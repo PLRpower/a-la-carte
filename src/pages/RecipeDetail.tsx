@@ -45,7 +45,6 @@ const RecipeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [isFavorite, setIsFavorite] = useState(false);
-  const [servings, setServings] = useState(4);
 
   const recipe = recipeData[id || "1"];
 
@@ -121,26 +120,9 @@ const RecipeDetail = () => {
 
       {/* Ingredients */}
       <section className="px-6 mt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Ingredients</h2>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setServings(Math.max(1, servings - 1))}
-              className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
-            >
-              -
-            </button>
-            <span className="text-sm font-medium min-w-[60px] text-center">
-              {servings} servings
-            </span>
-            <button
-              onClick={() => setServings(servings + 1)}
-              className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
-            >
-              +
-            </button>
-          </div>
-        </div>
+        <h2 className="text-xl font-semibold mb-4">
+          Ingredients ({recipe.servings} servings)
+        </h2>
         <Card>
           <CardContent className="p-4">
             <ul className="space-y-3">

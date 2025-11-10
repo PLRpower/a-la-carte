@@ -25,7 +25,7 @@ const Stock = () => {
     <div className="pb-20 min-h-screen">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <h1 className="text-2xl font-bold mb-4">My Ingredients</h1>
+        <h1 className="text-2xl font-bold mb-4">My Stock</h1>
         
         {/* Low Stock Alert */}
         {lowStockCount > 0 && (
