@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, AlertCircle, ShoppingCart } from "lucide-react";
+import {Plus, AlertCircle, ShoppingCart, ChefHat} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,31 +25,33 @@ const Stock = () => {
     <div className="pb-20 min-h-screen">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <h1 className="text-2xl font-bold mb-4">My Ingredients</h1>
-        
-        {/* Low Stock Alert */}
-        {lowStockCount > 0 && (
-          <Card className="bg-accent text-accent-foreground">
-            <CardContent className="p-3">
-              <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-bold">My Ingredients</h1>
+      </header>
+
+      {/* Low Stock Alert */}
+      {lowStockCount > 0 && (
+        <section className="px-6 -mt-4">
+          <Card className="bg-accent text-accent-foreground shadow-lg">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <div className="flex-1">
-                  <p className="text-sm font-medium">
+                  <h3 className="font-semibold mb-1">Warning</h3>
+                  <p className="text-sm opacity-90">
                     {lowStockCount} item{lowStockCount > 1 ? "s" : ""} running low
                   </p>
                 </div>
                 <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => navigate("/shopping-list")}
-                >
-                  View
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => navigate("/shopping-list")}
+                >View
                 </Button>
               </div>
             </CardContent>
           </Card>
-        )}
-      </header>
+        </section>
+      )}
 
       {/* Action Buttons */}
       <section className="px-6 mt-4">

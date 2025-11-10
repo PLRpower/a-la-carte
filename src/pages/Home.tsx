@@ -8,7 +8,7 @@ const tipRecipe = {
   title: "Creamy Mushroom Risotto",
   time: "35 min",
   difficulty: "Medium",
-  image: "https://images.unsplash.com/photo-1476124369491-c0df5c6e8f2c?w=800",
+  image: "https://img-3.journaldesfemmes.fr/EP0XCaoHsL7OsF8OPCYkq-eUxmg=/750x500/e3bbf2e440ea4914a56bc5427a8081f6/ccmcms-jdf/39904280.jpg",
 };
 
 const recipeOfMoment = {
@@ -17,7 +17,7 @@ const recipeOfMoment = {
   time: "35 min",
   difficulty: "Medium",
   category: "Italian",
-  image: "https://images.unsplash.com/photo-1476124369491-c0df5c6e8f2c?w=800",
+  image: "https://img-3.journaldesfemmes.fr/EP0XCaoHsL7OsF8OPCYkq-eUxmg=/750x500/e3bbf2e440ea4914a56bc5427a8081f6/ccmcms-jdf/39904280.jpg",
   availableIngredients: 3,
   totalIngredients: 10,
   ingredients: [
@@ -70,14 +70,30 @@ const Home = () => {
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-12 pb-8 px-6">
         <h1 className="text-3xl font-bold mb-2">À la carte</h1>
-        <p className="text-sm opacity-90">Your personal cooking companion</p>
+        <p className="text-sm opacity-90">Cuisinez, gérez, savourez</p>
       </header>
+
+      {/* Daily Suggestion */}
+      <section className="px-6 -mt-4">
+        <Card className="bg-accent text-accent-foreground shadow-lg">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <ChefHat className="w-6 h-6 mt-0.5 flex-shrink-0" />
+              <div>
+                <h3 className="font-semibold mb-1">Today's Suggestion</h3>
+                <p className="text-sm opacity-90">
+                  Try our Creamy Mushroom Risotto - perfect for a cozy evening!
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </section>
 
       {/* Tip of the Day */}
       <section className="px-6 mt-6">
         <div className="flex items-center gap-2 mb-3">
-          <Lightbulb className="w-5 h-5 text-accent" />
-          <h2 className="text-lg font-semibold">Tip of the day</h2>
+          <h2 className="text-xl font-semibold">Tip of the day</h2>
         </div>
         <Card
           className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
@@ -109,8 +125,7 @@ const Home = () => {
       {/* Recipe of the Moment */}
       <section className="px-6 mt-8">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-5 h-5 text-accent" />
-          <h2 className="text-lg font-semibold">Recipe of the moment</h2>
+          <h2 className="text-xl font-semibold">Recipe of the moment</h2>
         </div>
         <Card
           className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
@@ -170,8 +185,7 @@ const Home = () => {
       {/* Suggested Based on Stock */}
       <section className="px-6 mt-8">
         <div className="flex items-center gap-2 mb-3">
-          <ShoppingBasket className="w-5 h-5 text-accent" />
-          <h2 className="text-lg font-semibold">Based on your ingredients</h2>
+          <h2 className="text-xl font-semibold">Based on your ingredients</h2>
         </div>
         <Card
           className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
@@ -217,7 +231,7 @@ const Home = () => {
 
       {/* Quick & Easy */}
       <section className="px-6 mt-8 pb-6">
-        <h2 className="text-lg font-semibold mb-3">Quick & Easy</h2>
+        <h2 className="text-xl font-semibold mb-3">Quick & Easy</h2>
         <div className="grid grid-cols-2 gap-3">
           {quickEasyRecipes.map((recipe) => (
             <Card

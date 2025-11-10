@@ -10,7 +10,7 @@ const recipes = [
   {
     id: 1,
     title: "Creamy Mushroom Risotto",
-    image: "https://images.unsplash.com/photo-1476124369491-c0df5c6e8f2c?w=600",
+    image: "https://img-3.journaldesfemmes.fr/EP0XCaoHsL7OsF8OPCYkq-eUxmg=/750x500/e3bbf2e440ea4914a56bc5427a8081f6/ccmcms-jdf/39904280.jpg",
     time: "35 min",
     difficulty: "Medium",
     category: "Italian",

@@ -5,10 +5,9 @@ import { Separator } from "@/components/ui/separator";
 
 const menuItems = [
   { icon: Heart, label: "Favorite Recipes", count: 12 },
-  { icon: ChefHat, label: "My Recipes", count: 5 },
-  { icon: Bell, label: "Notifications", hasToggle: true },
+  { icon: Bell, label: "Notifications" },
   { icon: Settings, label: "App Preferences" },
-  { icon: Info, label: "About & Help" },
+  { icon: Info, label: "Onboarding" },
 ];
 
 const Profile = () => {
@@ -89,6 +88,8 @@ const Profile = () => {
           </CardContent>
         </Card>
       </section>
+
+      <div className="text-center text-xs text-muted-foreground pb-2">Crée avec 🤎 par Paul</div>
 
       {/* App Version */}
       <div className="text-center text-xs text-muted-foreground pb-6">

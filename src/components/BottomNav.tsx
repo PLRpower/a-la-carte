@@ -36,9 +36,9 @@ export const BottomNav = () => {
           {/* Add Button - Centered */}
           <button
             onClick={() => setIsAddOverlayOpen(true)}
-            className="flex flex-col items-center justify-center flex-1 py-2 px-1 text-primary transition-all hover:scale-105 active:scale-95"
+            className="flex flex-col items-center justify-center text-muted-foreground flex-1 py-2 px-1 transition-all hover:scale-105 active:scale-95 -mt-6"
           >
-            <div className="w-12 h-12 rounded-full border-2 border-primary bg-background flex items-center justify-center mb-0.5 shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center mb-0.5 shadow-sm text-white">
               <Plus className="w-6 h-6" />
             </div>
             <span className="text-xs font-medium">Add</span>
