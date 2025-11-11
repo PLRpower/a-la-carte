@@ -1,16 +1,18 @@
-import { User, Heart, ChefHat, Bell, Settings, Info } from "lucide-react";
+import { User, Heart, Settings, Edit } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from "react-router-dom";
 
 const menuItems = [
+  { icon: Edit, label: "Edit Profile", path: "/profile/edit" },
   { icon: Heart, label: "Favorite Recipes", count: 12 },
-  { icon: Bell, label: "Notifications" },
-  { icon: Settings, label: "App Preferences" },
-  { icon: Info, label: "Onboarding" },
+  { icon: Settings, label: "App Preferences", path: "/profile/preferences" },
 ];
 
 const Profile = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="pb-20 min-h-screen">
       {/* Header */}
@@ -69,7 +71,10 @@ const Profile = () => {
           <CardContent className="p-0">
             {menuItems.map((item, index) => (
               <div key={item.label}>
-                <button className="w-full p-4 flex items-center gap-4 hover:bg-muted/50 transition-colors">
+                <button
+                  onClick={() => item.path && navigate(item.path)}
+                  className="w-full p-4 flex items-center gap-4 hover:bg-muted/50 transition-colors"
+                >
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                     <item.icon className="w-5 h-5 text-foreground" />
                   </div>

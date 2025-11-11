@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import RecipeFilters from "@/components/RecipeFilters";
 
 const recipes = [
   {
@@ -66,6 +67,10 @@ const recipes = [
 const Recipes = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavorites] = useState<number[]>([1, 3, 6]);
+  const [showFilters, setShowFilters] = useState(false);
+  const [category, setCategory] = useState("all");
+  const [difficulty, setDifficulty] = useState("all");
+  const [maxTime, setMaxTime] = useState("all");
   const navigate = useNavigate();
 
   const toggleFavorite = (id: number) => {
@@ -74,9 +79,21 @@ const Recipes = () => {
     );
   };
 
-  const filteredRecipes = recipes.filter((recipe) =>
-    recipe.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleResetFilters = () => {
+    setCategory("all");
+    setDifficulty("all");
+    setMaxTime("all");
+  };
+
+  const filteredRecipes = recipes.filter((recipe) => {
+    const matchesSearch = recipe.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = category === "all" || recipe.category.toLowerCase() === category;
+    const matchesDifficulty = difficulty === "all" || recipe.difficulty.toLowerCase() === difficulty;
+    const matchesTime =
+      maxTime === "all" || parseInt(recipe.time) <= parseInt(maxTime);
+    
+    return matchesSearch && matchesCategory && matchesDifficulty && matchesTime;
+  });
 
   return (
     <div className="pb-20 min-h-screen">
@@ -96,11 +113,29 @@ const Recipes = () => {
         </div>
 
         {/* Filter Button */}
-        <Button variant="secondary" className="w-full mt-3" size="sm">
+        <Button
+          variant="secondary"
+          className="w-full mt-3"
+          size="sm"
+          onClick={() => setShowFilters(true)}
+        >
           <Filter className="w-4 h-4 mr-2" />
           Filters
         </Button>
       </header>
+
+      {showFilters && (
+        <RecipeFilters
+          category={category}
+          difficulty={difficulty}
+          maxTime={maxTime}
+          onCategoryChange={setCategory}
+          onDifficultyChange={setDifficulty}
+          onMaxTimeChange={setMaxTime}
+          onReset={handleResetFilters}
+          onClose={() => setShowFilters(false)}
+        />
+      )}
 
       {/* Recipe Grid */}
       <section className="px-6 mt-6 pb-6">

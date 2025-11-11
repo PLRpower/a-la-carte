@@ -56,7 +56,7 @@ const Stock = () => {
       {/* Action Buttons */}
       <section className="px-6 mt-4">
         <div className="grid grid-cols-2 gap-3">
-          <Button className="w-full">
+          <Button className="w-full" onClick={() => navigate("/stock/add")}>
             <Plus className="w-4 h-4 mr-2" />
             Add Item
           </Button>
@@ -98,7 +98,7 @@ const Stock = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="ghost">
+                    <Button size="sm" variant="ghost" onClick={() => navigate(`/stock/edit/${item.id}`)}>
                       Edit
                     </Button>
                   </div>
@@ -117,7 +117,7 @@ const Stock = () => {
             <p className="text-sm text-muted-foreground mb-4">
               Start adding ingredients to keep track of your pantry
             </p>
-            <Button>
+            <Button onClick={() => navigate("/stock/add")}>
               <Plus className="w-4 h-4 mr-2" />
               Add First Item
             </Button>
