@@ -19,12 +19,22 @@ import AddIngredient from "./pages/AddIngredient";
 import EditIngredient from "./pages/EditIngredient";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
 
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
-  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" replace />;
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+  
+  return user ? <>{children}</> : <Navigate to="/auth" replace />;
 };
 
 const App = () => {
@@ -59,24 +69,26 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <div className="max-w-2xl mx-auto bg-background min-h-screen relative">
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-              <Route path="/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
-              <Route path="/recipe/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
-              <Route path="/add" element={<ProtectedRoute><AddRecipe /></ProtectedRoute>} />
-              <Route path="/stock" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
-              <Route path="/stock/add" element={<ProtectedRoute><AddIngredient /></ProtectedRoute>} />
-              <Route path="/stock/edit/:id" element={<ProtectedRoute><EditIngredient /></ProtectedRoute>} />
-              <Route path="/shopping-list" element={<ProtectedRoute><ShoppingList /></ProtectedRoute>} />
-              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-              <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
-              <Route path="/profile/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <BottomNav />
-          </div>
+          <AuthProvider>
+            <div className="max-w-2xl mx-auto bg-background min-h-screen relative">
+              <Routes>
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+                <Route path="/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
+                <Route path="/recipe/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
+                <Route path="/add" element={<ProtectedRoute><AddRecipe /></ProtectedRoute>} />
+                <Route path="/stock" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
+                <Route path="/stock/add" element={<ProtectedRoute><AddIngredient /></ProtectedRoute>} />
+                <Route path="/stock/edit/:id" element={<ProtectedRoute><EditIngredient /></ProtectedRoute>} />
+                <Route path="/shopping-list" element={<ProtectedRoute><ShoppingList /></ProtectedRoute>} />
+                <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
+                <Route path="/profile/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <BottomNav />
+            </div>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
