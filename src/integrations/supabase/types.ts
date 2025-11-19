@@ -14,16 +14,337 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      favorites: {
+        Row: {
+          created_at: string
+          id: string
+          recipe_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipe_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipe_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingredients: {
+        Row: {
+          category: Database["public"]["Enums"]["ingredient_category"] | null
+          created_at: string
+          id: string
+          image_url: string | null
+          name: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["ingredient_category"] | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["ingredient_category"] | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          first_name: string | null
+          id: string
+          last_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          first_name?: string | null
+          id: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          first_name?: string | null
+          id?: string
+          last_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      recipe_ingredients: {
+        Row: {
+          id: string
+          ingredient_id: string
+          notes: string | null
+          quantity: number
+          recipe_id: string
+          unit: Database["public"]["Enums"]["measurement_unit"]
+        }
+        Insert: {
+          id?: string
+          ingredient_id: string
+          notes?: string | null
+          quantity: number
+          recipe_id: string
+          unit: Database["public"]["Enums"]["measurement_unit"]
+        }
+        Update: {
+          id?: string
+          ingredient_id?: string
+          notes?: string | null
+          quantity?: number
+          recipe_id?: string
+          unit?: Database["public"]["Enums"]["measurement_unit"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_ingredients_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recipe_ingredients_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recipes: {
+        Row: {
+          category: Database["public"]["Enums"]["recipe_category"] | null
+          cook_time: number | null
+          created_at: string
+          description: string | null
+          difficulty: Database["public"]["Enums"]["recipe_difficulty"] | null
+          id: string
+          image_url: string | null
+          instructions: string | null
+          is_public: boolean | null
+          prep_time: number | null
+          servings: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["recipe_category"] | null
+          cook_time?: number | null
+          created_at?: string
+          description?: string | null
+          difficulty?: Database["public"]["Enums"]["recipe_difficulty"] | null
+          id?: string
+          image_url?: string | null
+          instructions?: string | null
+          is_public?: boolean | null
+          prep_time?: number | null
+          servings?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["recipe_category"] | null
+          cook_time?: number | null
+          created_at?: string
+          description?: string | null
+          difficulty?: Database["public"]["Enums"]["recipe_difficulty"] | null
+          id?: string
+          image_url?: string | null
+          instructions?: string | null
+          is_public?: boolean | null
+          prep_time?: number | null
+          servings?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shopping_list: {
+        Row: {
+          checked: boolean | null
+          created_at: string
+          id: string
+          ingredient_id: string | null
+          name: string
+          quantity: number | null
+          unit: Database["public"]["Enums"]["measurement_unit"] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checked?: boolean | null
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          name: string
+          quantity?: number | null
+          unit?: Database["public"]["Enums"]["measurement_unit"] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checked?: boolean | null
+          created_at?: string
+          id?: string
+          ingredient_id?: string | null
+          name?: string
+          quantity?: number | null
+          unit?: Database["public"]["Enums"]["measurement_unit"] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_list_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stock: {
+        Row: {
+          created_at: string
+          expiration_date: string | null
+          id: string
+          ingredient_id: string
+          low_stock: boolean | null
+          quantity: number
+          unit: Database["public"]["Enums"]["measurement_unit"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          ingredient_id: string
+          low_stock?: boolean | null
+          quantity: number
+          unit: Database["public"]["Enums"]["measurement_unit"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          ingredient_id?: string
+          low_stock?: boolean | null
+          quantity?: number
+          unit?: Database["public"]["Enums"]["measurement_unit"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_ingredient_id_fkey"
+            columns: ["ingredient_id"]
+            isOneToOne: false
+            referencedRelation: "ingredients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      ingredient_category:
+        | "vegetables"
+        | "fruits"
+        | "dairy"
+        | "meat"
+        | "fish"
+        | "grains"
+        | "oils"
+        | "spices"
+        | "beverages"
+        | "other"
+      measurement_unit:
+        | "g"
+        | "kg"
+        | "ml"
+        | "l"
+        | "cup"
+        | "tbsp"
+        | "tsp"
+        | "oz"
+        | "lb"
+        | "piece"
+      recipe_category:
+        | "breakfast"
+        | "lunch"
+        | "dinner"
+        | "dessert"
+        | "snack"
+        | "vegetarian"
+        | "vegan"
+      recipe_difficulty: "easy" | "medium" | "hard"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +471,42 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      ingredient_category: [
+        "vegetables",
+        "fruits",
+        "dairy",
+        "meat",
+        "fish",
+        "grains",
+        "oils",
+        "spices",
+        "beverages",
+        "other",
+      ],
+      measurement_unit: [
+        "g",
+        "kg",
+        "ml",
+        "l",
+        "cup",
+        "tbsp",
+        "tsp",
+        "oz",
+        "lb",
+        "piece",
+      ],
+      recipe_category: [
+        "breakfast",
+        "lunch",
+        "dinner",
+        "dessert",
+        "snack",
+        "vegetarian",
+        "vegan",
+      ],
+      recipe_difficulty: ["easy", "medium", "hard"],
+    },
   },
 } as const
