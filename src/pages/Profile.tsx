@@ -1,8 +1,13 @@
-import { User, Heart, Settings, Edit } from "lucide-react";
+import { User, Heart, Settings, Edit, LogOut } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useRecipes } from "@/hooks/useRecipes";
+import { useStock } from "@/hooks/useStock";
 
 const menuItems = [
   { icon: Edit, label: "Edit Profile", path: "/profile/edit" },
@@ -12,6 +17,12 @@ const menuItems = [
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const { profile } = useProfile();
+  const { recipes } = useRecipes();
+  const { stock } = useStock();
+
+  const favoriteCount = recipes.filter(r => r.is_favorited).length;
 
   return (
     <div className="pb-20 min-h-screen">
@@ -26,14 +37,23 @@ const Profile = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
-                <AvatarFallback className="bg-accent text-accent-foreground text-xl">
-                  <User className="w-8 h-8" />
-                </AvatarFallback>
+                {profile?.avatar_url ? (
+                  <AvatarImage src={profile.avatar_url} />
+                ) : (
+                  <AvatarFallback className="bg-accent text-accent-foreground text-xl">
+                    {profile?.first_name?.[0] || profile?.last_name?.[0] || <User className="w-8 h-8" />}
+                  </AvatarFallback>
+                )}
               </Avatar>
               <div className="flex-1">
-                <h2 className="text-lg font-semibold">Guest User</h2>
+                <h2 className="text-lg font-semibold">
+                  {profile?.first_name || profile?.last_name 
+                    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+                    : user?.email || 'Guest User'
+                  }
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  Sign in to sync your recipes
+                  {user?.email || 'Sign in to sync your recipes'}
                 </p>
               </div>
             </div>
@@ -46,19 +66,19 @@ const Profile = () => {
         <div className="grid grid-cols-3 gap-3">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">17</div>
+              <div className="text-2xl font-bold text-primary">{recipes.length}</div>
               <div className="text-xs text-muted-foreground mt-1">Recipes</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-accent">12</div>
+              <div className="text-2xl font-bold text-accent">{favoriteCount}</div>
               <div className="text-xs text-muted-foreground mt-1">Favorites</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-secondary">42</div>
+              <div className="text-2xl font-bold text-secondary">{stock.length}</div>
               <div className="text-xs text-muted-foreground mt-1">Items</div>
             </CardContent>
           </Card>
@@ -94,7 +114,17 @@ const Profile = () => {
         </Card>
       </section>
 
-      <div className="text-center text-xs text-muted-foreground pb-2">Crée avec 🤎 par Paul</div>
+      {/* Sign Out */}
+      {user && (
+        <section className="px-6 mt-6">
+          <Button variant="outline" className="w-full" onClick={signOut}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
+          </Button>
+        </section>
+      )}
+
+      <div className="text-center text-xs text-muted-foreground pb-2 mt-6">Crée avec 🤎 par Paul</div>
 
       {/* App Version */}
       <div className="text-center text-xs text-muted-foreground pb-6">
