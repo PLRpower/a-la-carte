@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import Home from "./pages/Home";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
-import AddRecipe from "./pages/AddRecipe";
+import AddRecipe from "./pages/AddRecipeWithAI";
 import Stock from "./pages/Stock";
 import ShoppingList from "./pages/ShoppingList";
 import Profile from "./pages/Profile";

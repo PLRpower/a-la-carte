@@ -1,1 +1,7 @@
 project_id = "iqauznwytxtpslyflmvv"
+
+[functions.suggest-recipe]
+verify_jwt = false
+
+[functions.scan-recipe-image]
+verify_jwt = false

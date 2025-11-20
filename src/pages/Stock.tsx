@@ -1,25 +1,32 @@
-import { useState } from "react";
-import {Plus, AlertCircle, ShoppingCart, ChefHat} from "lucide-react";
+import { Plus, AlertCircle, ShoppingCart, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-
-const stockItems = [
-  { id: 1, name: "Arborio Rice", quantity: "2 cups", category: "Grains", lowStock: false },
-  { id: 2, name: "Olive Oil", quantity: "500ml", category: "Oils", lowStock: false },
-  { id: 3, name: "Garlic", quantity: "2 cloves", category: "Vegetables", lowStock: true },
-  { id: 4, name: "Parmesan Cheese", quantity: "50g", category: "Dairy", lowStock: true },
-  { id: 5, name: "Mushrooms", quantity: "100g", category: "Vegetables", lowStock: true },
-  { id: 6, name: "Butter", quantity: "200g", category: "Dairy", lowStock: false },
-  { id: 7, name: "Vegetable Stock", quantity: "1 liter", category: "Broth", lowStock: false },
-  { id: 8, name: "White Wine", quantity: "1 bottle", category: "Beverages", lowStock: false },
-];
+import { useStock } from "@/hooks/useStock";
+import { useToast } from "@/hooks/use-toast";
 
 const Stock = () => {
-  const [items] = useState(stockItems);
   const navigate = useNavigate();
-  const lowStockCount = items.filter((item) => item.lowStock).length;
+  const { toast } = useToast();
+  const { stock: items, loading, deleteStock } = useStock();
+  const lowStockCount = items.filter((item) => item.low_stock).length;
+
+  const handleDelete = async (id: string) => {
+    const { error } = await deleteStock(id);
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete item",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Deleted",
+        description: "Item removed from stock",
+      });
+    }
+  };
 
   return (
     <div className="pb-20 min-h-screen">
@@ -77,38 +84,63 @@ const Stock = () => {
           <h2 className="text-lg font-semibold">All Items ({items.length})</h2>
         </div>
 
-        <div className="space-y-3">
-          {items.map((item) => (
-            <Card key={item.id} className="shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium">{item.name}</h3>
-                      {item.lowStock && (
-                        <Badge variant="destructive" className="text-xs">
-                          Low
-                        </Badge>
-                      )}
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading stock...</p>
+          </div>
+        ) : items.length > 0 ? (
+          <div className="space-y-3">
+            {items.map((item) => (
+              <Card key={item.id} className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium">{item.ingredient?.name}</h3>
+                        {item.low_stock && (
+                          <Badge variant="destructive" className="text-xs">
+                            Low
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <span>{item.quantity} {item.unit}</span>
+                        {item.ingredient?.category && (
+                          <>
+                            <span>•</span>
+                            <span>{item.ingredient.category}</span>
+                          </>
+                        )}
+                        {item.expiration_date && (
+                          <>
+                            <span>•</span>
+                            <span>Exp: {new Date(item.expiration_date).toLocaleDateString()}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <span>{item.quantity}</span>
-                      <span>•</span>
-                      <span>{item.category}</span>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => navigate(`/stock/edit/${item.id}`)}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        <Trash2 className="w-4 h-4 text-destructive" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => navigate(`/stock/edit/${item.id}`)}>
-                      Edit
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {items.length === 0 && (
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
           <div className="text-center py-12">
             <div className="w-16 h-16 rounded-full bg-muted mx-auto flex items-center justify-center mb-4">
               <AlertCircle className="w-8 h-8 text-muted-foreground" />
