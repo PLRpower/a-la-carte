@@ -144,12 +144,18 @@ const ShoppingList = () => {
                         onCheckedChange={() => handleToggle(item.id, item.checked || false)}
                         className="flex-shrink-0"
                       />
+                      {item.ingredient?.image_url && (
+                        <img
+                          src={item.ingredient.image_url}
+                          alt={item.name}
+                          className="w-8 h-8 rounded-full object-cover bg-muted flex-shrink-0"
+                        />
+                      )}
                       <span
-                        className={`flex-1 ${
-                          item.checked
+                        className={`flex-1 ${item.checked
                             ? "line-through text-muted-foreground"
                             : ""
-                        }`}
+                          }`}
                       >
                         {item.name}
                         {item.quantity && item.unit && (

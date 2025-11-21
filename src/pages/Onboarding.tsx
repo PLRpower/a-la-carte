@@ -21,7 +21,11 @@ const slides = [
   },
 ];
 
-const Onboarding = () => {
+interface OnboardingProps {
+  onComplete?: () => void;
+}
+
+const Onboarding = ({ onComplete }: OnboardingProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const navigate = useNavigate();
 
@@ -39,6 +43,9 @@ const Onboarding = () => {
 
   const handleGetStarted = () => {
     localStorage.setItem("onboardingCompleted", "true");
+    if (onComplete) {
+      onComplete();
+    }
     navigate("/auth");
   };
 
@@ -68,9 +75,8 @@ const Onboarding = () => {
           {slides.map((_, index) => (
             <div
               key={index}
-              className={`h-2 rounded-full transition-all ${
-                index === currentSlide ? "w-8 bg-accent" : "w-2 bg-muted"
-              }`}
+              className={`h-2 rounded-full transition-all ${index === currentSlide ? "w-8 bg-accent" : "w-2 bg-muted"
+                }`}
             />
           ))}
         </div>

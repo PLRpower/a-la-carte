@@ -7,22 +7,55 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useStock } from "@/hooks/useStock";
+import { useIngredients } from "@/hooks/useIngredients";
+import { IngredientCategory, MeasurementUnit } from "@/types/database";
 
 const AddIngredient = () => {
   const navigate = useNavigate();
+  const { addStock } = useStock();
+  const { getOrCreateIngredient } = useIngredients();
+
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [unit, setUnit] = useState("g");
-  const [category, setCategory] = useState("other");
+  const [unit, setUnit] = useState<MeasurementUnit>("g");
+  const [category, setCategory] = useState<IngredientCategory>("other");
   const [expirationDate, setExpirationDate] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name || !quantity) {
       toast.error("Please fill in all required fields");
       return;
     }
-    toast.success("Ingredient added successfully!");
-    navigate("/stock");
+
+    setIsSubmitting(true);
+    try {
+      // 1. Get or create ingredient
+      const { data: ingredient, error: ingError } = await getOrCreateIngredient(name, category);
+
+      if (ingError || !ingredient) {
+        throw new Error("Failed to process ingredient");
+      }
+
+      // 2. Add to stock
+      const { error: stockError } = await addStock(
+        ingredient.id,
+        parseFloat(quantity),
+        unit,
+        expirationDate || undefined
+      );
+
+      if (stockError) throw stockError;
+
+      toast.success("Ingredient added successfully!");
+      navigate("/stock");
+    } catch (error) {
+      console.error(error);
+      toast.error(error instanceof Error ? error.message : "Failed to add ingredient");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,6 +79,7 @@ const AddIngredient = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Tomatoes"
+                disabled={isSubmitting}
               />
             </div>
 
@@ -58,12 +92,13 @@ const AddIngredient = () => {
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   placeholder="500"
+                  disabled={isSubmitting}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="unit">Unit</Label>
-                <Select value={unit} onValueChange={setUnit}>
+                <Select value={unit} onValueChange={(val) => setUnit(val as MeasurementUnit)} disabled={isSubmitting}>
                   <SelectTrigger id="unit">
                     <SelectValue />
                   </SelectTrigger>
@@ -72,7 +107,12 @@ const AddIngredient = () => {
                     <SelectItem value="kg">Kilograms (kg)</SelectItem>
                     <SelectItem value="ml">Milliliters (ml)</SelectItem>
                     <SelectItem value="l">Liters (L)</SelectItem>
-                    <SelectItem value="units">Units</SelectItem>
+                    <SelectItem value="cup">Cup</SelectItem>
+                    <SelectItem value="tbsp">Tablespoon</SelectItem>
+                    <SelectItem value="tsp">Teaspoon</SelectItem>
+                    <SelectItem value="oz">Ounces</SelectItem>
+                    <SelectItem value="lb">Pounds</SelectItem>
+                    <SelectItem value="piece">Piece</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -80,7 +120,7 @@ const AddIngredient = () => {
 
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
+              <Select value={category} onValueChange={(val) => setCategory(val as IngredientCategory)} disabled={isSubmitting}>
                 <SelectTrigger id="category">
                   <SelectValue />
                 </SelectTrigger>
@@ -91,6 +131,9 @@ const AddIngredient = () => {
                   <SelectItem value="dairy">Dairy</SelectItem>
                   <SelectItem value="grains">Grains</SelectItem>
                   <SelectItem value="spices">Spices</SelectItem>
+                  <SelectItem value="oils">Oils</SelectItem>
+                  <SelectItem value="beverages">Beverages</SelectItem>
+                  <SelectItem value="fish">Fish</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -103,13 +146,14 @@ const AddIngredient = () => {
                 type="date"
                 value={expirationDate}
                 onChange={(e) => setExpirationDate(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
           </CardContent>
         </Card>
 
-        <Button onClick={handleSave} className="w-full" size="lg">
-          Add to Stock
+        <Button onClick={handleSave} className="w-full" size="lg" disabled={isSubmitting}>
+          {isSubmitting ? "Adding..." : "Add to Stock"}
         </Button>
       </section>
     </div>

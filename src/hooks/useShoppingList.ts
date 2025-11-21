@@ -72,6 +72,21 @@ export const useShoppingList = () => {
     if (!user) return { error: new Error('No user') };
 
     try {
+      let finalIngredientId = ingredientId;
+
+      // If no ingredient ID provided, try to find one by name
+      if (!finalIngredientId) {
+        const { data: existingIngredient } = await supabase
+          .from('ingredients')
+          .select('id')
+          .ilike('name', name)
+          .maybeSingle();
+
+        if (existingIngredient) {
+          finalIngredientId = existingIngredient.id;
+        }
+      }
+
       const { error } = await supabase
         .from('shopping_list')
         .insert({
@@ -79,7 +94,7 @@ export const useShoppingList = () => {
           name,
           quantity,
           unit,
-          ingredient_id: ingredientId,
+          ingredient_id: finalIngredientId || null,
           checked: false
         });
 
@@ -139,15 +154,15 @@ export const useShoppingList = () => {
     }
   };
 
-  return { 
-    items, 
-    loading, 
-    error, 
-    addItem, 
-    updateItem, 
+  return {
+    items,
+    loading,
+    error,
+    addItem,
+    updateItem,
     toggleItem,
     deleteItem,
     clearCheckedItems,
-    refetch: fetchShoppingList 
+    refetch: fetchShoppingList
   };
 };

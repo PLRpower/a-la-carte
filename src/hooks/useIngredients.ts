@@ -45,27 +45,17 @@ export const useIngredients = () => {
   };
 
   const getOrCreateIngredient = async (name: string, category?: IngredientCategory) => {
+    const trimmedName = name.trim();
     try {
-      // First, try to find existing ingredient
-      const { data: existing, error: searchError } = await supabase
-        .from('ingredients')
-        .select('*')
-        .ilike('name', name)
-        .single();
-
-      if (existing) {
-        return { data: existing, error: null };
-      }
-
-      // If not found, create new ingredient
       const { data, error } = await supabase
-        .from('ingredients')
-        .insert({ name, category })
-        .select()
+        .rpc('get_or_create_ingredient', {
+          _name: trimmedName,
+          _category: category || 'other'
+        })
         .single();
 
       if (error) throw error;
-      
+
       await fetchIngredients();
       return { data, error: null };
     } catch (err) {
@@ -73,12 +63,12 @@ export const useIngredients = () => {
     }
   };
 
-  return { 
-    ingredients, 
-    loading, 
-    error, 
+  return {
+    ingredients,
+    loading,
+    error,
     searchIngredients,
     getOrCreateIngredient,
-    refetch: fetchIngredients 
+    refetch: fetchIngredients
   };
 };

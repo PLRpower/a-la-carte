@@ -49,9 +49,9 @@ const Stock = () => {
                   </p>
                 </div>
                 <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => navigate("/shopping-list")}
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => navigate("/shopping-list")}
                 >View
                 </Button>
               </div>
@@ -95,41 +95,40 @@ const Stock = () => {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium">{item.ingredient?.name}</h3>
-                        {item.low_stock && (
-                          <Badge variant="destructive" className="text-xs">
-                            Low
-                          </Badge>
+                      <div className="flex items-center gap-3 mb-1">
+                        {item.ingredient?.image_url && (
+                          <img
+                            src={item.ingredient.image_url}
+                            alt={item.ingredient.name}
+                            className="w-10 h-10 rounded-full object-cover bg-muted"
+                          />
                         )}
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <span>{item.quantity} {item.unit}</span>
-                        {item.ingredient?.category && (
-                          <>
-                            <span>•</span>
-                            <span>{item.ingredient.category}</span>
-                          </>
-                        )}
-                        {item.expiration_date && (
-                          <>
-                            <span>•</span>
-                            <span>Exp: {new Date(item.expiration_date).toLocaleDateString()}</span>
-                          </>
-                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium">{item.ingredient?.name}</h3>
+                            <span className="text-sm text-muted-foreground">
+                              - {item.quantity} {item.unit}
+                            </span>
+                            {item.low_stock && (
+                              <Badge variant="destructive" className="text-xs">
+                                Low
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
+                      <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => navigate(`/stock/edit/${item.id}`)}
                       >
                         Edit
                       </Button>
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => handleDelete(item.id)}
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />

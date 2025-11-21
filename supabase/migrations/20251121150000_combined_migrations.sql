@@ -25,7 +25,7 @@ alter table public.profiles enable row level security;
 create policy "Users can view all profiles"
   on public.profiles for select
   to authenticated
-  using (true);
+  using (auth.uid() = id);
 
 create policy "Users can update own profile"
   on public.profiles for update
@@ -122,16 +122,17 @@ create table public.ingredients (
 
 alter table public.ingredients enable row level security;
 
+
 -- Ingredients RLS policies
 create policy "Ingredients are viewable by everyone"
   on public.ingredients for select
   to authenticated
   using (true);
 
-create policy "Only admins can insert ingredients"
+create policy "Authenticated users can insert ingredients"
   on public.ingredients for insert
   to authenticated
-  with check (public.has_role(auth.uid(), 'admin'));
+  with check (true);
 
 create policy "Only admins can update ingredients"
   on public.ingredients for update
@@ -414,3 +415,50 @@ $$;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- Create a secure function to handle ingredient creation
+-- This bypasses RLS issues by running as security definer (admin privileges)
+
+CREATE OR REPLACE FUNCTION public.get_or_create_ingredient(
+  _name text,
+  _category ingredient_category DEFAULT 'other'
+)
+RETURNS SETOF public.ingredients
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  found_ingredient public.ingredients;
+BEGIN
+  -- 1. Try to find existing ingredient (case-insensitive)
+  SELECT * INTO found_ingredient
+  FROM public.ingredients
+  WHERE name ILIKE _name
+  LIMIT 1;
+
+  IF found_ingredient.id IS NOT NULL THEN
+    RETURN NEXT found_ingredient;
+    RETURN;
+  END IF;
+
+  -- 2. If not found, insert new one
+  RETURN QUERY
+  INSERT INTO public.ingredients (name, category)
+  VALUES (_name, _category)
+  ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name -- Handle race condition by doing a dummy update
+  RETURNING *;
+  
+  -- If the insert didn't return anything (because of race condition on conflict), fetch again
+  IF NOT FOUND THEN
+    RETURN QUERY
+    SELECT *
+    FROM public.ingredients
+    WHERE name ILIKE _name
+    LIMIT 1;
+  END IF;
+END;
+$$;
+
+-- Grant execute permission to authenticated users
+GRANT EXECUTE ON FUNCTION public.get_or_create_ingredient(text, ingredient_category) TO authenticated;

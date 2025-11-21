@@ -15,9 +15,11 @@ export const useRecipes = (filters?: RecipeFilters) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const { category, difficulty, searchQuery } = filters || {};
+
   useEffect(() => {
     fetchRecipes();
-  }, [filters, user]);
+  }, [category, difficulty, searchQuery, user]);
 
   const fetchRecipes = async () => {
     try {
@@ -61,7 +63,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
           .eq('user_id', user.id);
 
         const favoritedIds = new Set(favorites?.map(f => f.recipe_id) || []);
-        
+
         const recipesWithFavorites = data.map(recipe => ({
           ...recipe,
           is_favorited: favoritedIds.has(recipe.id)
@@ -89,7 +91,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
         .single();
 
       if (error) throw error;
-      
+
       await fetchRecipes();
       return { data, error: null };
     } catch (err) {
@@ -105,7 +107,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       await fetchRecipes();
       return { error: null };
     } catch (err) {
@@ -121,7 +123,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       await fetchRecipes();
       return { error: null };
     } catch (err) {
@@ -134,7 +136,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
 
     try {
       const recipe = recipes.find(r => r.id === recipeId);
-      
+
       if (recipe?.is_favorited) {
         const { error } = await supabase
           .from('favorites')
@@ -158,14 +160,14 @@ export const useRecipes = (filters?: RecipeFilters) => {
     }
   };
 
-  return { 
-    recipes, 
-    loading, 
-    error, 
-    createRecipe, 
-    updateRecipe, 
+  return {
+    recipes,
+    loading,
+    error,
+    createRecipe,
+    updateRecipe,
     deleteRecipe,
     toggleFavorite,
-    refetch: fetchRecipes 
+    refetch: fetchRecipes
   };
 };

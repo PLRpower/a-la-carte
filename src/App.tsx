@@ -55,7 +55,7 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="*" element={<Onboarding />} />
+              <Route path="*" element={<Onboarding onComplete={() => setShowOnboarding(false)} />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

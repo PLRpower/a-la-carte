@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,7 +20,8 @@ import { useIngredients } from "@/hooks/useIngredients";
 import { uploadFile } from "@/lib/supabase-storage";
 
 const AddRecipeWithAI = () => {
-  const [method, setMethod] = useState<"photo" | "manual" | null>(null);
+  const location = useLocation();
+  const [method, setMethod] = useState<"photo" | "manual" | null>(location.state?.method || null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [ingredients, setIngredients] = useState("");
@@ -41,7 +42,7 @@ const AddRecipeWithAI = () => {
 
   const handleImageUpload = async (file: File) => {
     setImageFile(file);
-    
+
     if (method === "photo") {
       setScanning(true);
       try {
@@ -49,14 +50,14 @@ const AddRecipeWithAI = () => {
         const reader = new FileReader();
         reader.onloadend = async () => {
           const base64 = reader.result as string;
-          
+
           const { data, error } = await supabase.functions.invoke('scan-recipe-image', {
             body: { imageBase64: base64 }
           });
 
           if (error) throw error;
           if (data?.error) throw new Error(data.error);
-          
+
           const recipe = data.recipe;
           setTitle(recipe.title || "");
           setDescription(recipe.description || "");
@@ -66,7 +67,7 @@ const AddRecipeWithAI = () => {
           setServings(recipe.servings?.toString() || "");
           setCategory(recipe.category || "");
           setSteps(recipe.instructions || "");
-          
+
           // Format ingredients
           if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
             const ingredientsText = recipe.ingredients
@@ -276,8 +277,8 @@ const AddRecipeWithAI = () => {
                   if (file) handleImageUpload(file);
                 }}
               />
-              <Button 
-                className="w-full" 
+              <Button
+                className="w-full"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={scanning}
               >
@@ -448,8 +449,8 @@ const AddRecipeWithAI = () => {
                   if (file) setImageFile(file);
                 }}
               />
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full mt-1.5"
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -466,8 +467,8 @@ const AddRecipeWithAI = () => {
         </Card>
 
         <div className="mt-6 space-y-3">
-          <Button 
-            onClick={handleSubmit} 
+          <Button
+            onClick={handleSubmit}
             className="w-full"
             disabled={saving}
           >
