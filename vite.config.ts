@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
         description: 'Votre assistant de courses et de cuisine',
         theme_color: '#473528',
         background_color: '#ffffff',
-        display: 'fullscreen',
+        display: 'standalone',
         start_url: '/',
         icons: [
           {
