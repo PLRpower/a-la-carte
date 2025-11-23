@@ -6,7 +6,7 @@ import { AddRecipeOverlay } from "./AddRecipeOverlay";
 const navItems = [
   { to: "/", icon: Home, label: "Accueil" },
   { to: "/recipes", icon: BookOpen, label: "Recettes" },
-  { to: "/shopping-list", icon: Carrot, label: "Liste de courses" },
+  { to: "/shopping-list", icon: Carrot, label: "Courses" },
   { to: "/profile", icon: User, label: "Profil" },
 ];
 

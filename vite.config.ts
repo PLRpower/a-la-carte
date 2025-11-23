@@ -22,9 +22,9 @@ export default defineConfig(({ mode }) => ({
         name: 'À la Carte',
         short_name: 'À la Carte',
         description: 'Votre assistant de courses et de cuisine',
-        theme_color: '#ffffff',
+        theme_color: '#473528',
         background_color: '#ffffff',
-        display: 'standalone',
+        display: 'fullscreen',
         start_url: '/',
         icons: [
           {
