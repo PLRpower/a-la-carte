@@ -14,7 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        serif: ['PT Sans', 'sans-serif'],
+        serif: ['Libre Baskerville', 'sans-serif'],
         sans: ['Nunito Sans', 'sans-serif'],
       },
       colors: {

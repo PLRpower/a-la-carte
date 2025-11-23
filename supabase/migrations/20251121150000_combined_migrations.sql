@@ -3,10 +3,35 @@ create extension if not exists "uuid-ossp";
 
 -- Create enum types
 create type public.app_role as enum ('admin', 'user');
-create type public.recipe_difficulty as enum ('easy', 'medium', 'hard');
-create type public.recipe_category as enum ('breakfast', 'lunch', 'dinner', 'dessert', 'snack', 'vegetarian', 'vegan');
-create type public.ingredient_category as enum ('vegetables', 'fruits', 'dairy', 'meat', 'fish', 'grains', 'oils', 'spices', 'beverages', 'other');
-create type public.measurement_unit as enum ('g', 'kg', 'ml', 'l', 'cup', 'tbsp', 'tsp', 'oz', 'lb', 'piece');
+create type public.recipe_difficulty as enum (
+  'facile',
+  'moyen',
+  'difficile'
+);
+
+create type public.recipe_category as enum (
+  'petit_dejeuner',
+  'dejeuner',
+  'diner',
+  'dessert',
+  'encas',
+  'vegetarien',
+  'vegan'
+);
+
+create type public.ingredient_category as enum (
+'fruits_legumes', 'boucherie', 'poissonnerie', 'produits_laitiers', 'epicerie_sucree', 'epicerie_salee', 'produits_frais', 'produits_surgeles', 'boissons', 'autre'
+);
+
+create type public.measurement_unit as enum (
+  'g',
+  'kg',
+  'ml',
+  'l',
+  'cuillere_soupe',
+  'cuillere_the',
+  'piece'
+);
 
 -- Create profiles table
 create table public.profiles (
@@ -421,7 +446,7 @@ create trigger on_auth_user_created
 
 CREATE OR REPLACE FUNCTION public.get_or_create_ingredient(
   _name text,
-  _category ingredient_category DEFAULT 'other'
+  _category ingredient_category DEFAULT 'autre'
 )
 RETURNS SETOF public.ingredients
 LANGUAGE plpgsql

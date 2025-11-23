@@ -30,13 +30,13 @@ const Auth = () => {
     setLoading(true);
 
     if (!isLogin && password !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("Les mots de passe ne correspondent pas");
       setLoading(false);
       return;
     }
 
     if (!isLogin && password.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error("Le mot de passe doit contenir au moins 6 caractères");
       setLoading(false);
       return;
     }
@@ -46,28 +46,28 @@ const Auth = () => {
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
-            toast.error("Invalid email or password");
+            toast.error("Email ou mot de passe invalide");
           } else {
             toast.error(error.message);
           }
         } else {
-          toast.success("Welcome back!");
+          toast.success("Bon retour !");
           navigate("/");
         }
       } else {
         const { error } = await signUp(email, password, firstName, lastName);
         if (error) {
           if (error.message.includes("User already registered")) {
-            toast.error("This email is already registered");
+            toast.error("Cet email est déjà enregistré");
           } else {
             toast.error(error.message);
           }
         } else {
-          toast.success("Account created successfully! Please check your email to confirm.");
+          toast.success("Compte créé avec succès ! Veuillez vérifier votre email pour confirmer.");
         }
       }
     } catch (error) {
-      toast.error("An unexpected error occurred");
+      toast.error("Une erreur inattendue s'est produite");
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ const Auth = () => {
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-serif mb-2">À la carte</CardTitle>
           <CardDescription>
-            {isLogin ? "Welcome back! Sign in to continue." : "Create your account to get started."}
+            {isLogin ? "Bon retour ! Connectez-vous pour continuer." : "Créez votre compte pour commencer."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -87,7 +87,7 @@ const Auth = () => {
             {!isLogin && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
+                  <Label htmlFor="firstName">Prénom</Label>
                   <Input
                     id="firstName"
                     type="text"
@@ -97,7 +97,7 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
+                  <Label htmlFor="lastName">Nom</Label>
                   <Input
                     id="lastName"
                     type="text"
@@ -113,7 +113,7 @@ const Auth = () => {
               <Input
                 id="email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder="votre@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -121,7 +121,7 @@ const Auth = () => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Mot de passe</Label>
               <Input
                 id="password"
                 type="password"
@@ -134,7 +134,7 @@ const Auth = () => {
             </div>
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -150,10 +150,10 @@ const Auth = () => {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  {isLogin ? "Signing in..." : "Creating account..."}
+                  {isLogin ? "Connexion..." : "Création du compte..."}
                 </>
               ) : (
-                <>{isLogin ? "Sign in" : "Create account"}</>
+                <>{isLogin ? "Se connecter" : "Créer un compte"}</>
               )}
             </Button>
           </form>
@@ -163,7 +163,7 @@ const Auth = () => {
               onClick={() => setIsLogin(!isLogin)}
               className="text-accent hover:underline"
             >
-              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+              {isLogin ? "Pas de compte ? Inscrivez-vous" : "Déjà un compte ? Connectez-vous"}
             </button>
           </div>
         </CardContent>

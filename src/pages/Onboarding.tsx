@@ -6,18 +6,18 @@ import { useNavigate } from "react-router-dom";
 const slides = [
   {
     icon: ChefHat,
-    title: "Discover and cook delicious recipes",
-    description: "Browse hundreds of recipes and find your next favorite dish.",
+    title: "Découvrez et cuisinez de délicieuses recettes",
+    description: "Parcourez des centaines de recettes et trouvez votre prochain plat préféré.",
   },
   {
     icon: Package,
-    title: "Manage your ingredients easily",
-    description: "Keep track of your pantry and never miss an ingredient.",
+    title: "Gérez vos ingrédients facilement",
+    description: "Suivez votre garde-manger et ne manquez jamais d'ingrédient.",
   },
   {
     icon: User,
-    title: "Personalize your culinary experience",
-    description: "Save favorites, adjust servings, and make cooking your own.",
+    title: "Personnalisez votre expérience culinaire",
+    description: "Sauvegardez vos favoris, ajustez les portions et cuisinez à votre façon.",
   },
 ];
 
@@ -57,7 +57,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       <div className="w-full flex justify-end">
         {currentSlide < slides.length - 1 && (
           <Button variant="ghost" onClick={handleSkip} className="text-muted-foreground">
-            Skip
+            Passer
           </Button>
         )}
       </div>
@@ -81,7 +81,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
           ))}
         </div>
         <Button onClick={handleNext} className="w-full" size="lg">
-          {currentSlide === slides.length - 1 ? "Get started" : "Next"}
+          {currentSlide === slides.length - 1 ? "Commencer" : "Suivant"}
         </Button>
       </div>
     </div>

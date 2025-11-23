@@ -4,10 +4,10 @@ import { NavLink } from "./NavLink";
 import { AddRecipeOverlay } from "./AddRecipeOverlay";
 
 const navItems = [
-  { to: "/", icon: Home, label: "Home" },
-  { to: "/recipes", icon: BookOpen, label: "Recipes" },
-  { to: "/stock", icon: Carrot, label: "Ingredients" },
-  { to: "/profile", icon: User, label: "Profile" },
+  { to: "/", icon: Home, label: "Accueil" },
+  { to: "/recipes", icon: BookOpen, label: "Recettes" },
+  { to: "/shopping-list", icon: Carrot, label: "Liste de courses" },
+  { to: "/profile", icon: User, label: "Profil" },
 ];
 
 export const BottomNav = () => {
@@ -41,7 +41,7 @@ export const BottomNav = () => {
             <div className="w-12 h-12 rounded-full bg-accent flex items-center justify-center mb-0.5 shadow-sm text-white">
               <Plus className="w-6 h-6" />
             </div>
-            <span className="text-xs font-medium">Add</span>
+            <span className="text-xs font-medium">Ajouter</span>
           </button>
 
           {navItems.slice(2).map((item) => (

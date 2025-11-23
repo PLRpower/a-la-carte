@@ -13,7 +13,7 @@ const RecipeDetail = () => {
   const navigate = useNavigate();
   const { recipes, toggleFavorite } = useRecipes();
   const [servings, setServings] = useState(4);
-  
+
   const recipe = recipes.find(r => r.id === id);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const RecipeDetail = () => {
   if (!recipe) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-muted-foreground">Loading recipe...</p>
+        <p className="text-muted-foreground">Chargement de la recette...</p>
       </div>
     );
   }
@@ -44,7 +44,7 @@ const RecipeDetail = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           </>
         )}
-        
+
         <Button
           variant="ghost"
           size="icon"
@@ -61,9 +61,8 @@ const RecipeDetail = () => {
           onClick={() => toggleFavorite(recipe.id)}
         >
           <Heart
-            className={`w-5 h-5 ${
-              recipe.is_favorited ? "fill-accent text-accent" : "text-accent"
-            }`}
+            className={`w-5 h-5 ${recipe.is_favorited ? "fill-accent text-accent" : "text-accent"
+              }`}
           />
         </Button>
 
@@ -99,7 +98,7 @@ const RecipeDetail = () => {
       {/* Ingredients */}
       <section className="px-6 mt-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Ingredients</h2>
+          <h2 className="text-xl font-semibold">Ingrédients</h2>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setServings(Math.max(1, servings - 1))}
@@ -108,7 +107,7 @@ const RecipeDetail = () => {
               -
             </button>
             <span className="text-sm font-medium min-w-[60px] text-center">
-              {servings} servings
+              {servings} portions
             </span>
             <button
               onClick={() => setServings(servings + 1)}
@@ -138,7 +137,7 @@ const RecipeDetail = () => {
       {/* Preparation Steps */}
       {recipe.instructions && (
         <section className="px-6 mt-6 pb-6">
-          <h2 className="text-xl font-semibold mb-4">Preparation Steps</h2>
+          <h2 className="text-xl font-semibold mb-4">Étapes de préparation</h2>
           <Card>
             <CardContent className="p-4">
               <p className="text-sm whitespace-pre-wrap">{recipe.instructions}</p>

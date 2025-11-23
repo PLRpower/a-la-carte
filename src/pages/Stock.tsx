@@ -1,4 +1,4 @@
-import { Plus, AlertCircle, ShoppingCart, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, AlertCircle, ShoppingCart, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,14 +16,14 @@ const Stock = () => {
     const { error } = await deleteStock(id);
     if (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete item",
+        title: "Erreur",
+        description: "Échec de la suppression de l'article",
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Deleted",
-        description: "Item removed from stock",
+        title: "Supprimé",
+        description: "Article retiré du stock",
       });
     }
   };
@@ -32,7 +32,19 @@ const Stock = () => {
     <div className="pb-20 min-h-screen">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <h1 className="text-2xl font-bold">My Ingredients</h1>
+        <div className="flex items-center gap-3 mb-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-primary-foreground hover:bg-primary-foreground/10"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Mes Ingrédients</h1>
+          </div>
+        </div>
       </header>
 
       {/* Low Stock Alert */}
@@ -43,16 +55,16 @@ const Stock = () => {
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <div className="flex-1">
-                  <h3 className="font-semibold mb-1">Warning</h3>
+                  <h3 className="font-semibold mb-1">Attention</h3>
                   <p className="text-sm opacity-90">
-                    {lowStockCount} item{lowStockCount > 1 ? "s" : ""} running low
+                    {lowStockCount} article{lowStockCount > 1 ? "s" : ""} presque épuisé{lowStockCount > 1 ? "s" : ""}
                   </p>
                 </div>
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={() => navigate("/shopping-list")}
-                >View
+                >Voir
                 </Button>
               </div>
             </CardContent>
@@ -62,31 +74,21 @@ const Stock = () => {
 
       {/* Action Buttons */}
       <section className="px-6 mt-4">
-        <div className="grid grid-cols-2 gap-3">
-          <Button className="w-full" onClick={() => navigate("/stock/add")}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Item
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate("/shopping-list")}
-          >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Shopping List
-          </Button>
-        </div>
+        <Button className="w-full" onClick={() => navigate("/stock/add")}>
+          <Plus className="w-4 h-4 mr-2" />
+          Ajouter un article
+        </Button>
       </section>
 
       {/* Stock Items */}
       <section className="px-6 mt-6 pb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">All Items ({items.length})</h2>
+          <h2 className="text-lg font-semibold">Tous les articles ({items.length})</h2>
         </div>
 
         {loading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading stock...</p>
+            <p className="text-muted-foreground">Chargement du stock...</p>
           </div>
         ) : items.length > 0 ? (
           <div className="space-y-3">
@@ -111,7 +113,7 @@ const Stock = () => {
                             </span>
                             {item.low_stock && (
                               <Badge variant="destructive" className="text-xs">
-                                Low
+                                Bas
                               </Badge>
                             )}
                           </div>
@@ -124,7 +126,7 @@ const Stock = () => {
                         variant="ghost"
                         onClick={() => navigate(`/stock/edit/${item.id}`)}
                       >
-                        Edit
+                        Modifier
                       </Button>
                       <Button
                         size="icon"
@@ -144,13 +146,13 @@ const Stock = () => {
             <div className="w-16 h-16 rounded-full bg-muted mx-auto flex items-center justify-center mb-4">
               <AlertCircle className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="font-semibold mb-2">No items in stock</h3>
+            <h3 className="font-semibold mb-2">Aucun article en stock</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Start adding ingredients to keep track of your pantry
+              Commencez à ajouter des ingrédients pour suivre votre garde-manger
             </p>
             <Button onClick={() => navigate("/stock/add")}>
               <Plus className="w-4 h-4 mr-2" />
-              Add First Item
+              Ajouter le premier article
             </Button>
           </div>
         )}

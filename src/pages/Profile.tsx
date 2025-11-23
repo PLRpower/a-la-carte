@@ -10,9 +10,9 @@ import { useRecipes } from "@/hooks/useRecipes";
 import { useStock } from "@/hooks/useStock";
 
 const menuItems = [
-  { icon: Edit, label: "Edit Profile", path: "/profile/edit" },
-  { icon: Heart, label: "Favorite Recipes", count: 12 },
-  { icon: Settings, label: "App Preferences", path: "/profile/preferences" },
+  { icon: Edit, label: "Modifier le profil", path: "/profile/edit" },
+  { icon: Heart, label: "Recettes favorites", count: 12 },
+  { icon: Settings, label: "Préférences de l'application", path: "/profile/preferences" },
 ];
 
 const Profile = () => {
@@ -28,7 +28,7 @@ const Profile = () => {
     <div className="pb-20 min-h-screen">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <h1 className="text-2xl font-bold">Profile</h1>
+        <h1 className="text-2xl font-bold">Profil</h1>
       </header>
 
       {/* User Info */}
@@ -47,13 +47,13 @@ const Profile = () => {
               </Avatar>
               <div className="flex-1">
                 <h2 className="text-lg font-semibold">
-                  {profile?.first_name || profile?.last_name 
+                  {profile?.first_name || profile?.last_name
                     ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
-                    : user?.email || 'Guest User'
+                    : user?.email || 'Utilisateur invité'
                   }
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  {user?.email || 'Sign in to sync your recipes'}
+                  {user?.email || 'Connectez-vous pour synchroniser vos recettes'}
                 </p>
               </div>
             </div>
@@ -67,19 +67,19 @@ const Profile = () => {
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-primary">{recipes.length}</div>
-              <div className="text-xs text-muted-foreground mt-1">Recipes</div>
+              <div className="text-xs text-muted-foreground mt-1">Recettes</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-accent">{favoriteCount}</div>
-              <div className="text-xs text-muted-foreground mt-1">Favorites</div>
+              <div className="text-xs text-muted-foreground mt-1">Favoris</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-secondary">{stock.length}</div>
-              <div className="text-xs text-muted-foreground mt-1">Items</div>
+              <div className="text-xs text-muted-foreground mt-1">Articles</div>
             </CardContent>
           </Card>
         </div>
@@ -119,7 +119,7 @@ const Profile = () => {
         <section className="px-6 mt-6">
           <Button variant="outline" className="w-full" onClick={signOut}>
             <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            Se déconnecter
           </Button>
         </section>
       )}

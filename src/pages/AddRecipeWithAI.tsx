@@ -77,8 +77,8 @@ const AddRecipeWithAI = () => {
           }
 
           toast({
-            title: "Recipe scanned!",
-            description: "Review and edit the details before saving",
+            title: "Recette scannée !",
+            description: "Vérifiez et modifiez les détails avant de sauvegarder",
           });
           setMethod("manual");
         };
@@ -86,8 +86,8 @@ const AddRecipeWithAI = () => {
       } catch (error: any) {
         console.error('Scan error:', error);
         toast({
-          title: "Error",
-          description: error.message || "Failed to scan recipe",
+          title: "Erreur",
+          description: error.message || "Échec du scan de la recette",
           variant: "destructive",
         });
       } finally {
@@ -99,8 +99,8 @@ const AddRecipeWithAI = () => {
   const handleSubmit = async () => {
     if (!user) {
       toast({
-        title: "Not signed in",
-        description: "Please sign in to add recipes",
+        title: "Non connecté",
+        description: "Veuillez vous connecter pour ajouter des recettes",
         variant: "destructive",
       });
       return;
@@ -108,8 +108,8 @@ const AddRecipeWithAI = () => {
 
     if (!title || !ingredients || !steps) {
       toast({
-        title: "Missing fields",
-        description: "Please fill in all required fields",
+        title: "Champs manquants",
+        description: "Veuillez remplir tous les champs requis",
         variant: "destructive",
       });
       return;
@@ -171,15 +171,15 @@ const AddRecipeWithAI = () => {
       }
 
       toast({
-        title: "Recipe added!",
-        description: "Your recipe has been saved successfully",
+        title: "Recette ajoutée !",
+        description: "Votre recette a été sauvegardée avec succès",
       });
       navigate("/recipes");
     } catch (error: any) {
       console.error('Save error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to save recipe",
+        title: "Erreur",
+        description: error.message || "Échec de la sauvegarde de la recette",
         variant: "destructive",
       });
     } finally {
@@ -191,8 +191,8 @@ const AddRecipeWithAI = () => {
     return (
       <div className="pb-20 min-h-screen">
         <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-          <h1 className="text-2xl font-bold">Add New Recipe</h1>
-          <p className="text-sm opacity-90 mt-1">Choose how to add your recipe</p>
+          <h1 className="text-2xl font-bold">Ajouter une nouvelle recette</h1>
+          <p className="text-sm opacity-90 mt-1">Choisissez comment ajouter votre recette</p>
         </header>
 
         <section className="px-6 mt-6">
@@ -207,9 +207,9 @@ const AddRecipeWithAI = () => {
                     <Camera className="w-6 h-6 text-accent" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-1">From Photo (AI)</h3>
+                    <h3 className="font-semibold mb-1">Depuis une photo (IA)</h3>
                     <p className="text-sm text-muted-foreground">
-                      Upload a recipe photo and let AI extract the details
+                      Téléchargez une photo de recette et laissez l'IA extraire les détails
                     </p>
                   </div>
                 </div>
@@ -226,9 +226,9 @@ const AddRecipeWithAI = () => {
                     <FileText className="w-6 h-6 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-1">Manual Entry</h3>
+                    <h3 className="font-semibold mb-1">Saisie manuelle</h3>
                     <p className="text-sm text-muted-foreground">
-                      Fill in the details with a structured form
+                      Remplissez les détails avec un formulaire structuré
                     </p>
                   </div>
                 </div>
@@ -253,7 +253,7 @@ const AddRecipeWithAI = () => {
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-2xl font-bold">Add from Photo</h1>
+            <h1 className="text-2xl font-bold">Ajouter depuis une photo</h1>
           </div>
         </header>
 
@@ -263,9 +263,9 @@ const AddRecipeWithAI = () => {
               <div className="w-20 h-20 rounded-full bg-muted mx-auto flex items-center justify-center mb-4">
                 <Camera className="w-10 h-10 text-muted-foreground" />
               </div>
-              <h3 className="font-semibold mb-2">Upload Recipe Photo</h3>
+              <h3 className="font-semibold mb-2">Télécharger une photo de recette</h3>
               <p className="text-sm text-muted-foreground mb-6">
-                AI will scan and extract recipe details
+                L'IA va scanner et extraire les détails de la recette
               </p>
               <input
                 ref={fileInputRef}
@@ -283,13 +283,13 @@ const AddRecipeWithAI = () => {
                 disabled={scanning}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                {scanning ? "Scanning..." : "Choose Photo"}
+                {scanning ? "Scan en cours..." : "Choisir une photo"}
               </Button>
             </CardContent>
           </Card>
 
           <p className="text-xs text-muted-foreground text-center mt-4">
-            We'll use AI to detect and extract recipe information from your image
+            Nous utiliserons l'IA pour détecter et extraire les informations de la recette à partir de votre image
           </p>
         </section>
       </div>
@@ -308,7 +308,7 @@ const AddRecipeWithAI = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <h1 className="text-2xl font-bold">Recipe Details</h1>
+          <h1 className="text-2xl font-bold">Détails de la recette</h1>
         </div>
       </header>
 
@@ -316,10 +316,10 @@ const AddRecipeWithAI = () => {
         <Card>
           <CardContent className="p-4 space-y-4">
             <div>
-              <Label htmlFor="title">Recipe Title *</Label>
+              <Label htmlFor="title">Titre de la recette *</Label>
               <Input
                 id="title"
-                placeholder="Enter recipe name"
+                placeholder="Entrez le nom de la recette"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="mt-1.5"
@@ -330,7 +330,7 @@ const AddRecipeWithAI = () => {
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="Brief description"
+                placeholder="Brève description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={2}
@@ -340,33 +340,33 @@ const AddRecipeWithAI = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="difficulty">Difficulty *</Label>
+                <Label htmlFor="difficulty">Difficulté *</Label>
                 <Select value={difficulty} onValueChange={setDifficulty}>
                   <SelectTrigger className="mt-1.5">
-                    <SelectValue placeholder="Select" />
+                    <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="easy">Easy</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="hard">Hard</SelectItem>
+                    <SelectItem value="easy">Facile</SelectItem>
+                    <SelectItem value="medium">Moyen</SelectItem>
+                    <SelectItem value="hard">Difficile</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div>
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">Catégorie</Label>
                 <Select value={category} onValueChange={setCategory}>
                   <SelectTrigger className="mt-1.5">
-                    <SelectValue placeholder="Select" />
+                    <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="breakfast">Breakfast</SelectItem>
-                    <SelectItem value="lunch">Lunch</SelectItem>
-                    <SelectItem value="dinner">Dinner</SelectItem>
+                    <SelectItem value="breakfast">Petit-déjeuner</SelectItem>
+                    <SelectItem value="lunch">Déjeuner</SelectItem>
+                    <SelectItem value="dinner">Dîner</SelectItem>
                     <SelectItem value="dessert">Dessert</SelectItem>
-                    <SelectItem value="snack">Snack</SelectItem>
-                    <SelectItem value="vegetarian">Vegetarian</SelectItem>
-                    <SelectItem value="vegan">Vegan</SelectItem>
+                    <SelectItem value="snack">En-cas</SelectItem>
+                    <SelectItem value="vegetarian">Végétarien</SelectItem>
+                    <SelectItem value="vegan">Végétalien</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -374,7 +374,7 @@ const AddRecipeWithAI = () => {
 
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="prepTime">Prep (min)</Label>
+                <Label htmlFor="prepTime">Prép (min)</Label>
                 <Input
                   id="prepTime"
                   type="number"
@@ -386,7 +386,7 @@ const AddRecipeWithAI = () => {
               </div>
 
               <div>
-                <Label htmlFor="cookTime">Cook (min)</Label>
+                <Label htmlFor="cookTime">Cuisson (min)</Label>
                 <Input
                   id="cookTime"
                   type="number"
@@ -398,7 +398,7 @@ const AddRecipeWithAI = () => {
               </div>
 
               <div>
-                <Label htmlFor="servings">Servings</Label>
+                <Label htmlFor="servings">Portions</Label>
                 <Input
                   id="servings"
                   type="number"
@@ -411,25 +411,25 @@ const AddRecipeWithAI = () => {
             </div>
 
             <div>
-              <Label htmlFor="ingredients">Ingredients *</Label>
+              <Label htmlFor="ingredients">Ingrédients *</Label>
               <Textarea
                 id="ingredients"
-                placeholder="1 cup flour&#10;2 eggs&#10;100 g sugar"
+                placeholder="1 tasse de farine&#10;2 oeufs&#10;100 g de sucre"
                 value={ingredients}
                 onChange={(e) => setIngredients(e.target.value)}
                 rows={6}
                 className="mt-1.5"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Enter each ingredient on a new line (e.g., "2 cups flour")
+                Entrez chaque ingrédient sur une nouvelle ligne (ex: "2 tasses de farine")
               </p>
             </div>
 
             <div>
-              <Label htmlFor="steps">Preparation Steps *</Label>
+              <Label htmlFor="steps">Étapes de préparation *</Label>
               <Textarea
                 id="steps"
-                placeholder="1. First step&#10;2. Second step&#10;3. Third step"
+                placeholder="1. Première étape&#10;2. Deuxième étape&#10;3. Troisième étape"
                 value={steps}
                 onChange={(e) => setSteps(e.target.value)}
                 rows={8}
@@ -438,7 +438,7 @@ const AddRecipeWithAI = () => {
             </div>
 
             <div>
-              <Label htmlFor="photo">Recipe Photo</Label>
+              <Label htmlFor="photo">Photo de la recette</Label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -455,7 +455,7 @@ const AddRecipeWithAI = () => {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Camera className="w-4 h-4 mr-2" />
-                {imageFile ? "Change Photo" : "Upload Photo"}
+                {imageFile ? "Changer la photo" : "Télécharger une photo"}
               </Button>
               {imageFile && (
                 <p className="text-xs text-muted-foreground mt-1">
@@ -472,14 +472,14 @@ const AddRecipeWithAI = () => {
             className="w-full"
             disabled={saving}
           >
-            {saving ? "Saving..." : "Save Recipe"}
+            {saving ? "Sauvegarde..." : "Sauvegarder la recette"}
           </Button>
           <Button
             variant="outline"
             onClick={() => navigate("/recipes")}
             className="w-full"
           >
-            Cancel
+            Annuler
           </Button>
         </div>
       </section>

@@ -30,7 +30,7 @@ const RecipeFilters = ({
       <div className="fixed bottom-0 left-0 right-0 bg-background rounded-t-3xl shadow-lg animate-in slide-in-from-bottom max-h-[80vh] overflow-y-auto">
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold">Filters</h2>
+            <h2 className="text-xl font-bold">Filtres</h2>
             <button onClick={onClose} className="p-2 hover:bg-muted rounded-full">
               <X className="w-5 h-5" />
             </button>
@@ -40,50 +40,50 @@ const RecipeFilters = ({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Category</Label>
+              <Label>Catégorie</Label>
               <Select value={category} onValueChange={onCategoryChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All categories" />
+                  <SelectValue placeholder="Toutes les catégories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  <SelectItem value="italian">Italian</SelectItem>
-                  <SelectItem value="seafood">Seafood</SelectItem>
-                  <SelectItem value="asian">Asian</SelectItem>
-                  <SelectItem value="salad">Salad</SelectItem>
+                  <SelectItem value="all">Toutes les catégories</SelectItem>
+                  <SelectItem value="italian">Italien</SelectItem>
+                  <SelectItem value="seafood">Fruits de mer</SelectItem>
+                  <SelectItem value="asian">Asiatique</SelectItem>
+                  <SelectItem value="salad">Salade</SelectItem>
                   <SelectItem value="dessert">Dessert</SelectItem>
-                  <SelectItem value="vegetarian">Vegetarian</SelectItem>
+                  <SelectItem value="vegetarian">Végétarien</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Difficulty</Label>
+              <Label>Difficulté</Label>
               <Select value={difficulty} onValueChange={onDifficultyChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="All levels" />
+                  <SelectValue placeholder="Tous les niveaux" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All levels</SelectItem>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
+                  <SelectItem value="all">Tous les niveaux</SelectItem>
+                  <SelectItem value="easy">Facile</SelectItem>
+                  <SelectItem value="medium">Moyen</SelectItem>
+                  <SelectItem value="hard">Difficile</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Maximum preparation time</Label>
+              <Label>Temps de préparation maximum</Label>
               <Select value={maxTime} onValueChange={onMaxTimeChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Any time" />
+                  <SelectValue placeholder="Peu importe" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Any time</SelectItem>
+                  <SelectItem value="all">Peu importe</SelectItem>
                   <SelectItem value="15">15 minutes</SelectItem>
                   <SelectItem value="30">30 minutes</SelectItem>
                   <SelectItem value="45">45 minutes</SelectItem>
-                  <SelectItem value="60">1 hour</SelectItem>
+                  <SelectItem value="60">1 heure</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -93,10 +93,10 @@ const RecipeFilters = ({
 
           <div className="space-y-3">
             <Button onClick={onClose} className="w-full" size="lg">
-              Apply Filters
+              Appliquer les filtres
             </Button>
             <Button onClick={onReset} variant="outline" className="w-full" size="lg">
-              Reset Filters
+              Réinitialiser les filtres
             </Button>
           </div>
         </div>

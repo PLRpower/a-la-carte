@@ -24,7 +24,7 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
         <div className="bg-background rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="sticky top-0 bg-background border-b border-border px-6 py-4 flex items-center justify-between rounded-t-3xl">
-            <h2 className="text-xl font-bold">Add New Recipe</h2>
+            <h2 className="text-xl font-bold">Ajouter une nouvelle recette</h2>
             <Button
               variant="ghost"
               size="icon"
@@ -47,9 +47,9 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
                       <Camera className="w-6 h-6 text-accent" />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-1">From Photo</h3>
+                      <h3 className="font-semibold mb-1">Depuis une photo</h3>
                       <p className="text-sm text-muted-foreground">
-                        Upload a photo to detect text or use as reference
+                        Téléchargez une photo pour détecter le texte ou l'utiliser comme référence
                       </p>
                     </div>
                   </div>
@@ -66,9 +66,9 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
                       <FileText className="w-6 h-6 text-primary" />
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-1">Manual Entry</h3>
+                      <h3 className="font-semibold mb-1">Saisie manuelle</h3>
                       <p className="text-sm text-muted-foreground">
-                        Fill in the details with a structured form
+                        Remplissez les détails avec un formulaire structuré
                       </p>
                     </div>
                   </div>

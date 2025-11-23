@@ -31,11 +31,7 @@ export const useIngredients = () => {
   const searchIngredients = async (query: string) => {
     try {
       const { data, error } = await supabase
-        .from('ingredients')
-        .select('*')
-        .ilike('name', `%${query}%`)
-        .order('name')
-        .limit(10);
+        .rpc('search_ingredients_with_synonyms', { _query: query });
 
       if (error) throw error;
       return { data, error: null };

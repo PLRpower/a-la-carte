@@ -43,6 +43,7 @@ export interface Ingredient {
   name: string;
   category: IngredientCategory | null;
   image_url: string | null;
+  synonyms?: string[];
   created_at: string;
 }
 

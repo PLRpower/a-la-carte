@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ShoppingListItem, ShoppingListItemWithIngredient, MeasurementUnit } from '@/types/database';
+import { parseIngredientInput } from '@/lib/ingredient-parser';
 import { useAuth } from './useAuth';
 
 export const useShoppingList = () => {
@@ -30,7 +31,7 @@ export const useShoppingList = () => {
           filter: `user_id=eq.${user.id}`
         },
         () => {
-          fetchShoppingList();
+          fetchShoppingList(true);
         }
       )
       .subscribe();
@@ -40,11 +41,11 @@ export const useShoppingList = () => {
     };
   }, [user]);
 
-  const fetchShoppingList = async () => {
+  const fetchShoppingList = async (silent = false) => {
     if (!user) return;
 
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const { data, error } = await supabase
         .from('shopping_list')
         .select(`
@@ -59,53 +60,80 @@ export const useShoppingList = () => {
     } catch (err) {
       setError(err as Error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
-  const addItem = async (
-    name: string,
-    quantity?: number,
-    unit?: MeasurementUnit,
-    ingredientId?: string
-  ) => {
+  const addSmartItem = async (input: string) => {
     if (!user) return { error: new Error('No user') };
 
+    const { name, quantity, unit } = parseIngredientInput(input);
+
+    const tempId = crypto.randomUUID();
+    const optimisticItem: ShoppingListItemWithIngredient = {
+      id: tempId,
+      user_id: user.id,
+      name,
+      quantity: quantity || null,
+      unit: unit || null,
+      ingredient_id: null,
+      checked: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ingredient: null
+    };
+
+    // Optimistic update
+    setItems(prev => [optimisticItem, ...prev]);
+
     try {
-      let finalIngredientId = ingredientId;
+      let finalIngredientId: string | null = null;
 
-      // If no ingredient ID provided, try to find one by name
-      if (!finalIngredientId) {
-        const { data: existingIngredient } = await supabase
-          .from('ingredients')
-          .select('id')
-          .ilike('name', name)
-          .maybeSingle();
+      // Try to find ingredient by name or synonym using direct query
+      // We search for exact match on name OR name in synonyms array
+      const { data: matchedIngredients, error: matchError } = await supabase
+        .from('ingredients')
+        .select('id, name, synonyms')
+        .or(`name.ilike.${name},synonyms.cs.{${name}}`)
+        .limit(1);
 
-        if (existingIngredient) {
-          finalIngredientId = existingIngredient.id;
-        }
+      if (!matchError && matchedIngredients && matchedIngredients.length > 0) {
+        finalIngredientId = (matchedIngredients[0] as any).id;
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('shopping_list')
         .insert({
           user_id: user.id,
           name,
           quantity,
           unit,
-          ingredient_id: finalIngredientId || null,
+          ingredient_id: finalIngredientId,
           checked: false
-        });
+        })
+        .select(`
+          *,
+          ingredient:ingredients(*)
+        `)
+        .single();
 
       if (error) throw error;
+
+      // Replace optimistic item with real one
+      setItems(prev => prev.map(item => item.id === tempId ? (data as ShoppingListItemWithIngredient) : item));
       return { error: null };
     } catch (err) {
+      // Rollback
+      setItems(prev => prev.filter(item => item.id !== tempId));
       return { error: err as Error };
     }
   };
 
   const updateItem = async (id: string, updates: Partial<ShoppingListItem>) => {
+    // Optimistic update
+    const previousItems = [...items];
+    setItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+
     try {
       const { error } = await supabase
         .from('shopping_list')
@@ -115,6 +143,8 @@ export const useShoppingList = () => {
       if (error) throw error;
       return { error: null };
     } catch (err) {
+      // Rollback
+      setItems(previousItems);
       return { error: err as Error };
     }
   };
@@ -124,6 +154,10 @@ export const useShoppingList = () => {
   };
 
   const deleteItem = async (id: string) => {
+    // Optimistic update
+    const previousItems = [...items];
+    setItems(prev => prev.filter(item => item.id !== id));
+
     try {
       const { error } = await supabase
         .from('shopping_list')
@@ -133,12 +167,18 @@ export const useShoppingList = () => {
       if (error) throw error;
       return { error: null };
     } catch (err) {
+      // Rollback
+      setItems(previousItems);
       return { error: err as Error };
     }
   };
 
   const clearCheckedItems = async () => {
     if (!user) return { error: new Error('No user') };
+
+    // Optimistic update
+    const previousItems = [...items];
+    setItems(prev => prev.filter(item => !item.checked));
 
     try {
       const { error } = await supabase
@@ -150,6 +190,8 @@ export const useShoppingList = () => {
       if (error) throw error;
       return { error: null };
     } catch (err) {
+      // Rollback
+      setItems(previousItems);
       return { error: err as Error };
     }
   };
@@ -158,11 +200,11 @@ export const useShoppingList = () => {
     items,
     loading,
     error,
-    addItem,
+    addSmartItem,
     updateItem,
     toggleItem,
     deleteItem,
     clearCheckedItems,
-    refetch: fetchShoppingList
+    refetch: () => fetchShoppingList(false)
   };
 };

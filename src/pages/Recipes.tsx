@@ -31,13 +31,13 @@ const Recipes = () => {
     <div className="pb-20 min-h-screen">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <h1 className="text-2xl font-bold mb-4">All Recipes</h1>
-        
+        <h1 className="text-2xl font-bold mb-4">Toutes les recettes</h1>
+
         {/* Search Bar */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search recipes..."
+            placeholder="Rechercher des recettes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 bg-background text-foreground"
@@ -52,7 +52,7 @@ const Recipes = () => {
           onClick={() => setShowFilters(true)}
         >
           <Filter className="w-4 h-4 mr-2" />
-          Filters
+          Filtres
         </Button>
       </header>
 
@@ -63,7 +63,7 @@ const Recipes = () => {
           maxTime="all"
           onCategoryChange={(val) => setCategory(val as RecipeCategory | "all")}
           onDifficultyChange={(val) => setDifficulty(val as RecipeDifficulty | "all")}
-          onMaxTimeChange={() => {}}
+          onMaxTimeChange={() => { }}
           onReset={handleResetFilters}
           onClose={() => setShowFilters(false)}
         />
@@ -73,7 +73,7 @@ const Recipes = () => {
       <section className="px-6 mt-6 pb-6">
         {loading ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">Loading recipes...</p>
+            <p className="text-muted-foreground">Chargement des recettes...</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -99,11 +99,10 @@ const Recipes = () => {
                     className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full p-2 hover:bg-white transition-colors"
                   >
                     <Heart
-                      className={`w-5 h-5 ${
-                        recipe.is_favorited
+                      className={`w-5 h-5 ${recipe.is_favorited
                           ? "fill-accent text-accent"
                           : "text-accent"
-                      }`}
+                        }`}
                     />
                   </button>
                 </div>
@@ -131,7 +130,7 @@ const Recipes = () => {
 
         {!loading && recipes.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
-            <p>No recipes found</p>
+            <p>Aucune recette trouvée</p>
           </div>
         )}
       </section>

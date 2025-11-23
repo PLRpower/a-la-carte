@@ -27,8 +27,8 @@ const Home = () => {
   const generateAISuggestion = async () => {
     if (stock.length === 0) {
       toast({
-        title: "No ingredients",
-        description: "Add ingredients to your stock first",
+        title: "Pas d'ingrédients",
+        description: "Ajoutez d'abord des ingrédients à votre stock",
         variant: "destructive",
       });
       return;
@@ -51,14 +51,14 @@ const Home = () => {
       
       setSuggestedRecipe(data.recipe);
       toast({
-        title: "Recipe generated!",
-        description: "Check out your AI-suggested recipe below",
+        title: "Recette générée !",
+        description: "Découvrez votre recette suggérée par l'IA ci-dessous",
       });
     } catch (error: any) {
       console.error('AI suggestion error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to generate recipe suggestion",
+        title: "Erreur",
+        description: error.message || "Échec de la génération de la suggestion de recette",
         variant: "destructive",
       });
     } finally {
@@ -81,9 +81,9 @@ const Home = () => {
             <div className="flex items-start gap-3">
               <Sparkles className="w-6 h-6 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <h3 className="font-semibold mb-1">AI Recipe Suggestion</h3>
+                <h3 className="font-semibold mb-1">Suggestion de recette IA</h3>
                 <p className="text-sm opacity-90 mb-3">
-                  Get a personalized recipe based on your ingredients
+                  Obtenez une recette personnalisée basée sur vos ingrédients
                 </p>
                 <Button 
                   size="sm" 
@@ -91,7 +91,7 @@ const Home = () => {
                   onClick={generateAISuggestion}
                   disabled={loadingAI || stock.length === 0}
                 >
-                  {loadingAI ? "Generating..." : "Generate Recipe"}
+                  {loadingAI ? "Génération..." : "Générer une recette"}
                 </Button>
               </div>
             </div>
@@ -104,7 +104,7 @@ const Home = () => {
         <section className="px-6 mt-6">
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="w-5 h-5 text-accent" />
-            <h2 className="text-xl font-semibold">AI Suggested Recipe</h2>
+            <h2 className="text-xl font-semibold">Recette suggérée par l'IA</h2>
           </div>
           <Card className="overflow-hidden">
             <CardContent className="p-4">
@@ -126,11 +126,11 @@ const Home = () => {
               <Button size="sm" className="w-full" onClick={() => {
                 // Save recipe logic would go here
                 toast({
-                  title: "Coming soon",
-                  description: "Save AI recipe functionality coming soon!",
+                  title: "Bientôt disponible",
+                  description: "La sauvegarde des recettes IA arrive bientôt !",
                 });
               }}>
-                Save Recipe
+                Sauvegarder la recette
               </Button>
             </CardContent>
           </Card>
@@ -141,7 +141,7 @@ const Home = () => {
       {featuredRecipe && !recipesLoading && (
         <section className="px-6 mt-8">
           <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-xl font-semibold">Recipe of the moment</h2>
+            <h2 className="text-xl font-semibold">Recette du moment</h2>
           </div>
           <Card
             className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden"
@@ -189,7 +189,7 @@ const Home = () => {
       {/* Quick & Easy */}
       {quickRecipes.length > 0 && !recipesLoading && (
         <section className="px-6 mt-8 pb-6">
-          <h2 className="text-xl font-semibold mb-3">Quick & Easy</h2>
+          <h2 className="text-xl font-semibold mb-3">Rapide & Facile</h2>
           <div className="grid grid-cols-2 gap-3">
             {quickRecipes.map((recipe) => (
               <Card
@@ -223,7 +223,7 @@ const Home = () => {
 
       {recipesLoading && (
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading recipes...</p>
+          <p className="text-muted-foreground">Chargement des recettes...</p>
         </div>
       )}
     </div>

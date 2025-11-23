@@ -11,17 +11,17 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-      react(), mode === "development" && componentTagger(),
+    react(), mode === "development" && componentTagger(),
     VitePWA({
       devOptions: {
         enabled: true
       },
-      registerType: 'autoUpdate', // met à jour le service worker automatiquement
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
-        name: 'Nom de ton application',
-        short_name: 'Nom court',
-        description: 'Description de ton application',
+        name: 'À la Carte',
+        short_name: 'À la Carte',
+        description: 'Votre assistant de courses et de cuisine',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
