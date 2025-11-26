@@ -25,7 +25,7 @@ const AddIngredient = () => {
 
   const handleSave = async () => {
     if (!name || !quantity) {
-      toast.error("Please fill in all required fields");
+      toast.error("Veuillez remplir tous les champs obligatoires");
       return;
     }
 
@@ -35,7 +35,7 @@ const AddIngredient = () => {
       const { data: ingredient, error: ingError } = await getOrCreateIngredient(name, category);
 
       if (ingError || !ingredient) {
-        throw new Error("Failed to process ingredient");
+        throw new Error("Échec du traitement de l'ingrédient");
       }
 
       // 2. Add to stock
@@ -48,11 +48,11 @@ const AddIngredient = () => {
 
       if (stockError) throw stockError;
 
-      toast.success("Ingredient added successfully!");
+      toast.success("Ingrédient ajouté avec succès !");
       navigate("/stock");
     } catch (error) {
       console.error(error);
-      toast.error(error instanceof Error ? error.message : "Failed to add ingredient");
+      toast.error(error instanceof Error ? error.message : "Échec de l'ajout de l'ingrédient");
     } finally {
       setIsSubmitting(false);
     }
@@ -65,7 +65,7 @@ const AddIngredient = () => {
           <button onClick={() => navigate(-1)}>
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-2xl font-bold">Add Ingredient</h1>
+          <h1 className="text-2xl font-bold">Ajouter un ingrédient</h1>
         </div>
       </header>
 
@@ -73,19 +73,19 @@ const AddIngredient = () => {
         <Card>
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">Nom *</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Tomatoes"
+                placeholder="ex : Tomates"
                 disabled={isSubmitting}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity *</Label>
+                <Label htmlFor="quantity">Quantité *</Label>
                 <Input
                   id="quantity"
                   type="number"
@@ -97,50 +97,50 @@ const AddIngredient = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="unit">Unit</Label>
+                <Label htmlFor="unit">Unité</Label>
                 <Select value={unit} onValueChange={(val) => setUnit(val as MeasurementUnit)} disabled={isSubmitting}>
                   <SelectTrigger id="unit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="g">Grams (g)</SelectItem>
-                    <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                    <SelectItem value="ml">Milliliters (ml)</SelectItem>
-                    <SelectItem value="l">Liters (L)</SelectItem>
-                    <SelectItem value="cup">Cup</SelectItem>
-                    <SelectItem value="tbsp">Tablespoon</SelectItem>
-                    <SelectItem value="tsp">Teaspoon</SelectItem>
-                    <SelectItem value="oz">Ounces</SelectItem>
-                    <SelectItem value="lb">Pounds</SelectItem>
-                    <SelectItem value="piece">Piece</SelectItem>
+                    <SelectItem value="g">Grammes (g)</SelectItem>
+                    <SelectItem value="kg">Kilogrammes (kg)</SelectItem>
+                    <SelectItem value="ml">Millilitres (ml)</SelectItem>
+                    <SelectItem value="l">Litres (L)</SelectItem>
+                    <SelectItem value="cup">Tasse</SelectItem>
+                    <SelectItem value="tbsp">Cuillère à soupe</SelectItem>
+                    <SelectItem value="tsp">Cuillère à café</SelectItem>
+                    <SelectItem value="oz">Onces</SelectItem>
+                    <SelectItem value="lb">Livres</SelectItem>
+                    <SelectItem value="piece">Pièce</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Catégorie</Label>
               <Select value={category} onValueChange={(val) => setCategory(val as IngredientCategory)} disabled={isSubmitting}>
                 <SelectTrigger id="category">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="vegetables">Vegetables</SelectItem>
+                  <SelectItem value="vegetables">Légumes</SelectItem>
                   <SelectItem value="fruits">Fruits</SelectItem>
-                  <SelectItem value="meat">Meat</SelectItem>
-                  <SelectItem value="dairy">Dairy</SelectItem>
-                  <SelectItem value="grains">Grains</SelectItem>
-                  <SelectItem value="spices">Spices</SelectItem>
-                  <SelectItem value="oils">Oils</SelectItem>
-                  <SelectItem value="beverages">Beverages</SelectItem>
-                  <SelectItem value="fish">Fish</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="meat">Viande</SelectItem>
+                  <SelectItem value="dairy">Produits laitiers</SelectItem>
+                  <SelectItem value="grains">Céréales</SelectItem>
+                  <SelectItem value="spices">Épices</SelectItem>
+                  <SelectItem value="oils">Huiles</SelectItem>
+                  <SelectItem value="beverages">Boissons</SelectItem>
+                  <SelectItem value="fish">Poisson</SelectItem>
+                  <SelectItem value="other">Autre</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expiration">Expiration Date (optional)</Label>
+              <Label htmlFor="expiration">Date d'expiration (optionnel)</Label>
               <Input
                 id="expiration"
                 type="date"
@@ -153,7 +153,7 @@ const AddIngredient = () => {
         </Card>
 
         <Button onClick={handleSave} className="w-full" size="lg" disabled={isSubmitting}>
-          {isSubmitting ? "Adding..." : "Add to Stock"}
+          {isSubmitting ? "Ajout en cours..." : "Ajouter au stock"}
         </Button>
       </section>
     </div>

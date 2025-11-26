@@ -20,7 +20,7 @@ const Home = () => {
   const [loadingAI, setLoadingAI] = useState(false);
 
   const featuredRecipe = recipes[0];
-  const quickRecipes = recipes.filter(r => 
+  const quickRecipes = recipes.filter(r =>
     (r.prep_time || 0) + (r.cook_time || 0) <= 30
   ).slice(0, 2);
 
@@ -37,7 +37,7 @@ const Home = () => {
     setLoadingAI(true);
     try {
       const { data, error } = await supabase.functions.invoke('suggest-recipe', {
-        body: { 
+        body: {
           ingredients: stock.map(s => ({
             name: s.ingredient?.name,
             quantity: s.quantity,
@@ -48,7 +48,7 @@ const Home = () => {
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-      
+
       setSuggestedRecipe(data.recipe);
       toast({
         title: "Recette générée !",
@@ -69,7 +69,7 @@ const Home = () => {
   return (
     <div className="pb-20 min-h-screen">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground pt-12 pb-8 px-6">
+      <header className="bg-primary text-primary-foreground pt-8 pb-8 px-6">
         <h1 className="text-3xl font-bold mb-2">À la carte</h1>
         <p className="text-sm opacity-90">Cuisinez, gérez, savourez</p>
       </header>
@@ -85,8 +85,8 @@ const Home = () => {
                 <p className="text-sm opacity-90 mb-3">
                   Obtenez une recette personnalisée basée sur vos ingrédients
                 </p>
-                <Button 
-                  size="sm" 
+                <Button
+                  size="sm"
                   variant="secondary"
                   onClick={generateAISuggestion}
                   disabled={loadingAI || stock.length === 0}

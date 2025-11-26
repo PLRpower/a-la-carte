@@ -41,16 +41,17 @@ const Profile = () => {
                   <AvatarImage src={profile.avatar_url} />
                 ) : (
                   <AvatarFallback className="bg-accent text-accent-foreground text-xl">
-                    {profile?.first_name?.[0] || profile?.last_name?.[0] || <User className="w-8 h-8" />}
+                    {user?.user_metadata?.first_name?.[0] || user?.user_metadata?.last_name?.[0] || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
                   </AvatarFallback>
                 )}
               </Avatar>
               <div className="flex-1">
                 <h2 className="text-lg font-semibold">
-                  {profile?.first_name || profile?.last_name
-                    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
-                    : user?.email || 'Utilisateur invité'
-                  }
+                  {user?.user_metadata?.display_name ||
+                    user?.user_metadata?.full_name ||
+                    (user?.user_metadata?.first_name || user?.user_metadata?.last_name
+                      ? `${user.user_metadata.first_name || ''} ${user.user_metadata.last_name || ''}`.trim()
+                      : user?.email || 'Utilisateur invité')}
                 </h2>
                 <p className="text-sm text-muted-foreground">
                   {user?.email || 'Connectez-vous pour synchroniser vos recettes'}

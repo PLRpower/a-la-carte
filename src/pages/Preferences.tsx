@@ -22,7 +22,7 @@ const Preferences = () => {
           <button onClick={() => navigate(-1)}>
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-2xl font-bold">App Preferences</h1>
+          <h1 className="text-2xl font-bold">Préférences</h1>
         </div>
       </header>
 
@@ -35,10 +35,10 @@ const Preferences = () => {
                 {darkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
                 <div>
                   <Label htmlFor="darkMode" className="text-base font-medium">
-                    Dark Mode
+                    Mode sombre
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Switch between light and dark theme
+                    Basculer entre le thème clair et sombre
                   </p>
                 </div>
               </div>
@@ -53,14 +53,14 @@ const Preferences = () => {
 
             {/* Language */}
             <div className="p-4">
-              <Label className="text-base font-medium mb-2 block">Language</Label>
-              <Select value={language} onValueChange={setLanguage}>
+              <Label className="text-base font-medium mb-2 block">Langue</Label>
+              <Select value="fr" onValueChange={setLanguage}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
                   <SelectItem value="fr">Français</SelectItem>
+                  <SelectItem value="en">English</SelectItem>
                   <SelectItem value="es">Español</SelectItem>
                   <SelectItem value="de">Deutsch</SelectItem>
                 </SelectContent>
@@ -71,14 +71,14 @@ const Preferences = () => {
 
             {/* Weight Unit */}
             <div className="p-4">
-              <Label className="text-base font-medium mb-2 block">Weight Unit</Label>
+              <Label className="text-base font-medium mb-2 block">Unité de poids</Label>
               <Select value={weightUnit} onValueChange={setWeightUnit}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="grams">Grams (g)</SelectItem>
-                  <SelectItem value="ounces">Ounces (oz)</SelectItem>
+                  <SelectItem value="grams">Grammes (g)</SelectItem>
+                  <SelectItem value="ounces">Onces (oz)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -87,7 +87,7 @@ const Preferences = () => {
 
             {/* Temperature Unit */}
             <div className="p-4">
-              <Label className="text-base font-medium mb-2 block">Temperature Unit</Label>
+              <Label className="text-base font-medium mb-2 block">Unité de température</Label>
               <Select value={temperatureUnit} onValueChange={setTemperatureUnit}>
                 <SelectTrigger>
                   <SelectValue />
@@ -108,7 +108,7 @@ const Preferences = () => {
                   Notifications
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Receive updates and reminders
+                  Recevoir des mises à jour et des rappels
                 </p>
               </div>
               <Switch

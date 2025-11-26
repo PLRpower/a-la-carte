@@ -14,7 +14,7 @@ export const ShoppingListItem = ({ item, onToggle, onDelete }: ShoppingListItemP
     return (
         <Card className="shadow-sm overflow-hidden">
             <div
-                className="flex items-center gap-3 p-4 cursor-pointer hover:bg-accent/50 transition-colors"
+                className="flex items-center gap-3 p-4 cursor-pointer transition-colors"
                 onClick={() => onToggle(item.id, item.checked || false)}
             >
                 <Checkbox

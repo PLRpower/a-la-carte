@@ -19,8 +19,14 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in">
-      <div className="fixed inset-x-0 bottom-0 max-w-2xl mx-auto animate-in slide-in-from-bottom duration-300">
+    <div
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm animate-in fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="fixed inset-x-0 bottom-0 max-w-2xl mx-auto animate-in slide-in-from-bottom duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="bg-background rounded-t-3xl shadow-2xl max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="sticky top-0 bg-background border-b border-border px-6 py-4 flex items-center justify-between rounded-t-3xl">

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Home, BookOpen, Plus, Carrot, User } from "lucide-react";
+import { useLocation } from "react-router-dom";
 import { NavLink } from "./NavLink";
 import { AddRecipeOverlay } from "./AddRecipeOverlay";
 
@@ -12,6 +13,9 @@ const navItems = [
 
 export const BottomNav = () => {
   const [isAddOverlayOpen, setIsAddOverlayOpen] = useState(false);
+  const location = useLocation();
+
+  if (location.pathname === "/auth") return null;
 
   return (
     <>

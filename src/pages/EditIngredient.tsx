@@ -28,12 +28,12 @@ const EditIngredient = () => {
   const [expirationDate, setExpirationDate] = useState("");
 
   const handleSave = () => {
-    toast.success("Ingredient updated successfully!");
+    toast.success("Ingrédient mis à jour avec succès !");
     navigate("/stock");
   };
 
   const handleDelete = () => {
-    toast.success("Ingredient deleted successfully!");
+    toast.success("Ingrédient supprimé avec succès !");
     navigate("/stock");
   };
 
@@ -44,7 +44,7 @@ const EditIngredient = () => {
           <button onClick={() => navigate(-1)}>
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-2xl font-bold">Edit Ingredient</h1>
+          <h1 className="text-2xl font-bold">Modifier l'ingrédient</h1>
         </div>
       </header>
 
@@ -52,18 +52,18 @@ const EditIngredient = () => {
         <Card>
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name *</Label>
+              <Label htmlFor="name">Nom *</Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Tomatoes"
+                placeholder="ex : Tomates"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity *</Label>
+                <Label htmlFor="quantity">Quantité *</Label>
                 <Input
                   id="quantity"
                   type="number"
@@ -74,42 +74,42 @@ const EditIngredient = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="unit">Unit</Label>
+                <Label htmlFor="unit">Unité</Label>
                 <Select value={unit} onValueChange={setUnit}>
                   <SelectTrigger id="unit">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="g">Grams (g)</SelectItem>
-                    <SelectItem value="kg">Kilograms (kg)</SelectItem>
-                    <SelectItem value="ml">Milliliters (ml)</SelectItem>
-                    <SelectItem value="l">Liters (L)</SelectItem>
-                    <SelectItem value="units">Units</SelectItem>
+                    <SelectItem value="g">Grammes (g)</SelectItem>
+                    <SelectItem value="kg">Kilogrammes (kg)</SelectItem>
+                    <SelectItem value="ml">Millilitres (ml)</SelectItem>
+                    <SelectItem value="l">Litres (L)</SelectItem>
+                    <SelectItem value="units">Unités</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">Catégorie</Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger id="category">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="vegetables">Vegetables</SelectItem>
+                  <SelectItem value="vegetables">Légumes</SelectItem>
                   <SelectItem value="fruits">Fruits</SelectItem>
-                  <SelectItem value="meat">Meat</SelectItem>
-                  <SelectItem value="dairy">Dairy</SelectItem>
-                  <SelectItem value="grains">Grains</SelectItem>
-                  <SelectItem value="spices">Spices</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="meat">Viande</SelectItem>
+                  <SelectItem value="dairy">Produits laitiers</SelectItem>
+                  <SelectItem value="grains">Céréales</SelectItem>
+                  <SelectItem value="spices">Épices</SelectItem>
+                  <SelectItem value="other">Autre</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expiration">Expiration Date (optional)</Label>
+              <Label htmlFor="expiration">Date d'expiration (optionnel)</Label>
               <Input
                 id="expiration"
                 type="date"
@@ -122,26 +122,26 @@ const EditIngredient = () => {
 
         <div className="space-y-3">
           <Button onClick={handleSave} className="w-full" size="lg">
-            Save Changes
+            Enregistrer les modifications
           </Button>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full" size="lg">
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Ingredient
+                Supprimer l'ingrédient
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete this ingredient from your stock.
+                  Cette action est irréversible. Cela supprimera définitivement cet ingrédient de votre stock.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete}>Supprimer</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>

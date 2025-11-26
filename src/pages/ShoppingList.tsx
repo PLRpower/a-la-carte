@@ -11,7 +11,7 @@ import { ShoppingListCategory } from "@/components/shopping-list/ShoppingListCat
 const ShoppingList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { items, loading, toggleItem, deleteItem, addSmartItem, clearCheckedItems } = useShoppingList();
+  const { items, loading, toggleItem, deleteItem, addSmartItem, clearCheckedItems, finishShopping } = useShoppingList();
   const [newItemInput, setNewItemInput] = useState("");
 
   const checkedCount = items.filter((item) => item.checked).length;
@@ -57,18 +57,18 @@ const ShoppingList = () => {
     }
   };
 
-  const handleClearChecked = async () => {
-    const { error } = await clearCheckedItems();
+  const handleFinishShopping = async () => {
+    const { error } = await finishShopping();
     if (error) {
       toast({
         title: "Erreur",
-        description: "Échec de l'effacement des articles",
+        description: "Échec de l'ajout au stock",
         variant: "destructive",
       });
     } else {
       toast({
-        title: "Effacé",
-        description: `${checkedCount} article(s) retiré(s)`,
+        title: "Courses terminées !",
+        description: `${checkedCount} article(s) ajouté(s) au stock`,
       });
     }
   };
@@ -119,8 +119,8 @@ const ShoppingList = () => {
               ))}
             </div>
             {checkedCount > 0 && (
-              <Button variant="outline" className="w-full mt-6" onClick={handleClearChecked}>
-                Effacer les articles cochés ({checkedCount})
+              <Button className="w-full mt-6" onClick={handleFinishShopping}>
+                Ajouter au stock (terminer les courses)
               </Button>
             )}
           </>
@@ -131,7 +131,7 @@ const ShoppingList = () => {
             </div>
             <h3 className="font-semibold mb-2">Pas encore d'articles</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Ajoutez des articles depuis votre stock ou vos recettes
+              Ajoutez des articles depuis des recettes, ou directement ici.
             </p>
           </div>
         )}

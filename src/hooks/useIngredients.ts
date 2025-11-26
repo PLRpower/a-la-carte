@@ -1,32 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Ingredient, IngredientCategory } from '@/types/database';
 
 export const useIngredients = () => {
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchIngredients();
-  }, []);
-
-  const fetchIngredients = async () => {
-    try {
-      setLoading(true);
+  const { data: ingredients = [], isLoading: loading, error } = useQuery({
+    queryKey: ['ingredients'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('ingredients')
         .select('*')
         .order('name');
 
       if (error) throw error;
-      setIngredients(data);
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data as Ingredient[];
+    },
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
+  });
 
   const searchIngredients = async (query: string) => {
     try {
@@ -40,9 +32,9 @@ export const useIngredients = () => {
     }
   };
 
-  const getOrCreateIngredient = async (name: string, category?: IngredientCategory) => {
-    const trimmedName = name.trim();
-    try {
+  const getOrCreateIngredientMutation = useMutation({
+    mutationFn: async ({ name, category }: { name: string; category?: IngredientCategory }) => {
+      const trimmedName = name.trim();
       const { data, error } = await supabase
         .rpc('get_or_create_ingredient', {
           _name: trimmedName,
@@ -51,8 +43,16 @@ export const useIngredients = () => {
         .single();
 
       if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ingredients'] });
+    },
+  });
 
-      await fetchIngredients();
+  const getOrCreateIngredient = async (name: string, category?: IngredientCategory) => {
+    try {
+      const data = await getOrCreateIngredientMutation.mutateAsync({ name, category });
       return { data, error: null };
     } catch (err) {
       return { data: null, error: err as Error };
@@ -62,9 +62,9 @@ export const useIngredients = () => {
   return {
     ingredients,
     loading,
-    error,
+    error: error as Error | null,
     searchIngredients,
     getOrCreateIngredient,
-    refetch: fetchIngredients
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['ingredients'] })
   };
 };

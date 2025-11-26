@@ -39,26 +39,6 @@ const UNIT_MAPPINGS: Record<string, MeasurementUnit> = {
     'pcs': 'piece',
 };
 
-const EXCEPTIONS = [
-    'radis', 'maïs', 'jus', 'ananas', 'pois', 'frais', 'cours', 'corps',
-    'temps', 'bras', 'bas', 'gras', 'gros', 'souris', 'brebis', 'fils',
-    'os', 'ours', 'sens', 'succès', 'tapis', 'velours', 'kiwi', 'anchois',
-    'cassis', 'noix'
-];
-
-const singularize = (text: string): string => {
-    const words = text.trim().split(/\s+/);
-    const singularWords = words.map(word => {
-        const lower = word.toLowerCase();
-        if (EXCEPTIONS.includes(lower)) return lower;
-
-        if (lower.endsWith('s') && !lower.endsWith('ss')) return lower.slice(0, -1);
-        if (lower.endsWith('x')) return lower.slice(0, -1);
-        return lower;
-    });
-    return singularWords.join(' ');
-};
-
 export const parseIngredientInput = (input: string): ParsedIngredient => {
     const trimmedInput = input.trim();
 
@@ -95,8 +75,8 @@ export const parseIngredientInput = (input: string): ParsedIngredient => {
     // Remove "de" or "d'" separator
     remainingInput = remainingInput.replace(/^(?:\s+)?(?:de\s+|d')/i, '');
 
-    // Singularize and clean the name
-    const name = singularize(remainingInput);
+    // Clean the name
+    const name = remainingInput.trim();
 
     return {
         name,

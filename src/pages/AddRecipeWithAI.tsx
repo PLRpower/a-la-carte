@@ -346,9 +346,9 @@ const AddRecipeWithAI = () => {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="easy">Facile</SelectItem>
-                    <SelectItem value="medium">Moyen</SelectItem>
-                    <SelectItem value="hard">Difficile</SelectItem>
+                    <SelectItem value="facile">Facile</SelectItem>
+                    <SelectItem value="moyen">Moyen</SelectItem>
+                    <SelectItem value="difficile">Difficile</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -360,12 +360,12 @@ const AddRecipeWithAI = () => {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="breakfast">Petit-déjeuner</SelectItem>
-                    <SelectItem value="lunch">Déjeuner</SelectItem>
-                    <SelectItem value="dinner">Dîner</SelectItem>
+                    <SelectItem value="petit_dejeuner">Petit-déjeuner</SelectItem>
+                    <SelectItem value="dejeuner">Déjeuner</SelectItem>
+                    <SelectItem value="diner">Dîner</SelectItem>
                     <SelectItem value="dessert">Dessert</SelectItem>
-                    <SelectItem value="snack">En-cas</SelectItem>
-                    <SelectItem value="vegetarian">Végétarien</SelectItem>
+                    <SelectItem value="encas">En-cas</SelectItem>
+                    <SelectItem value="vegetarien">Végétarien</SelectItem>
                     <SelectItem value="vegan">Végétalien</SelectItem>
                   </SelectContent>
                 </Select>
