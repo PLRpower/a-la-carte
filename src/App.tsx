@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import Home from "./pages/Home";
 import Recipes from "./pages/Recipes";
 import RecipeDetail from "./pages/RecipeDetail";
-import AddRecipe from "./pages/AddRecipeWithAI";
 import Stock from "./pages/Stock";
 import ShoppingList from "./pages/ShoppingList";
 import Profile from "./pages/Profile";
@@ -76,7 +75,6 @@ const App = () => {
                 <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
                 <Route path="/recipes" element={<ProtectedRoute><Recipes /></ProtectedRoute>} />
                 <Route path="/recipe/:id" element={<ProtectedRoute><RecipeDetail /></ProtectedRoute>} />
-                <Route path="/add" element={<ProtectedRoute><AddRecipe /></ProtectedRoute>} />
                 <Route path="/stock" element={<ProtectedRoute><Stock /></ProtectedRoute>} />
                 <Route path="/stock/add" element={<ProtectedRoute><AddIngredient /></ProtectedRoute>} />
                 <Route path="/stock/edit/:id" element={<ProtectedRoute><EditIngredient /></ProtectedRoute>} />

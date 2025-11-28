@@ -10,90 +10,87 @@ serve(async (req) => {
 
   try {
     const { imageBase64 } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured");
     }
+
+    // Clean base64 string (remove data:image/jpeg;base64, prefix if present)
+    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
 
     const systemPrompt = `You are a professional chef assistant with image recognition capabilities. Analyze the recipe image and extract ALL recipe information. Return ONLY valid JSON with this exact structure:
 {
   "title": "Recipe name",
   "description": "Brief description",
-  "difficulty": "easy" or "medium" or "hard",
+  "difficulty": "facile" or "moyen" or "difficile",
   "prep_time": number (in minutes),
   "cook_time": number (in minutes),
   "servings": number,
-  "category": "breakfast" or "lunch" or "dinner" or "dessert" or "snack" or "vegetarian" or "vegan",
+  "category": "petit_dejeuner" or "dejeuner" or "diner" or "dessert" or "encas" or "vegetarien" or "vegan",
   "instructions": "Complete step-by-step instructions as a single text",
   "ingredients": [
     {
       "name": "ingredient name",
       "quantity": number,
-      "unit": "g" or "kg" or "ml" or "l" or "cup" or "tbsp" or "tsp" or "oz" or "lb" or "piece"
+      "unit": "g" or "kg" or "ml" or "l" or "tasse" or "c.à.s" or "c.à.c" or "pièce"
     }
   ]
-}`;
+}
+IMPORTANT: 
+- Translate everything to French.
+- If a value is missing or unclear, make a reasonable estimate.
+- Ensure the JSON is valid and parsable.
+- DO NOT use markdown formatting (no \`\`\`json blocks). Return RAW JSON only.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
-        messages: [
-          { 
-            role: "system", 
-            content: systemPrompt 
-          },
-          { 
-            role: "user", 
-            content: [
-              {
-                type: "text",
-                text: "Extract the complete recipe from this image including title, ingredients with quantities and units, preparation steps, difficulty, cooking times, and servings."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`
-                }
+        contents: [{
+          parts: [
+            { text: systemPrompt },
+            {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: base64Data
               }
-            ]
-          }
-        ],
-        temperature: 0.3,
+            }
+          ]
+        }]
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits depleted. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      throw new Error(`AI gateway error: ${response.status}`);
+      console.error("Gemini API error:", response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
-    const content = data.choices[0].message.content;
-    
-    // Parse the JSON response
-    const recipe = JSON.parse(content);
+
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+      console.error("Unexpected Gemini response format:", data);
+      throw new Error("Invalid response format from Gemini API");
+    }
+
+    const contentText = data.candidates[0].content.parts[0].text;
+
+    // Clean up the response text to ensure it's valid JSON
+    // Sometimes models wrap JSON in ```json ... ```
+    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+    const jsonString = jsonMatch ? jsonMatch[0] : contentText;
+
+    let recipe;
+    try {
+      recipe = JSON.parse(jsonString);
+    } catch (e) {
+      console.error("JSON parse error:", e);
+      console.error("Raw content:", contentText);
+      throw new Error("Failed to parse recipe JSON from AI response");
+    }
 
     return new Response(JSON.stringify({ recipe }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
