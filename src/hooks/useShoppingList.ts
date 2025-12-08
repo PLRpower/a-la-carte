@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ShoppingListItem, ShoppingListItemWithIngredient, Ingredient } from '@/types/database';
-import { parseIngredientInput } from '@/lib/ingredient-parser';
+import { parseIngredientInput, findBestIngredientMatch } from '@/lib/ingredient-parser';
 import { useAuth } from './useAuth';
 
 export const useShoppingList = () => {
@@ -76,31 +76,7 @@ export const useShoppingList = () => {
       });
 
       // Client-side matching logic
-      // We look for the longest ingredient name/synonym that is contained in the input
-      const lowerInput = name.toLowerCase();
-      let bestMatch: Ingredient | null = null;
-      let maxLen = -1;
-
-      for (const ing of ingredients) {
-        // Check name
-        if (lowerInput.includes(ing.name.toLowerCase())) {
-          if (ing.name.length > maxLen) {
-            maxLen = ing.name.length;
-            bestMatch = ing;
-          }
-        }
-        // Check synonyms
-        if (ing.synonyms) {
-          for (const syn of ing.synonyms) {
-            if (lowerInput.includes(syn.toLowerCase())) {
-              if (syn.length > maxLen) {
-                maxLen = syn.length;
-                bestMatch = ing;
-              }
-            }
-          }
-        }
-      }
+      const bestMatch = findBestIngredientMatch(name, ingredients);
 
       if (bestMatch) {
         finalIngredientId = bestMatch.id;

@@ -1,17 +1,25 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Clock, ChefHat } from "lucide-react";
+import { ArrowLeft, Heart, Clock, ChefHat, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useRecipes } from "@/hooks/useRecipes";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 const RecipeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { recipes, toggleFavorite } = useRecipes();
+  const { toast } = useToast();
   const [servings, setServings] = useState(4);
 
   const recipe = recipes.find(r => r.id === id);
@@ -54,17 +62,64 @@ const RecipeDetail = () => {
           <ArrowLeft className="w-5 h-5" />
         </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm hover:bg-white"
-          onClick={() => toggleFavorite(recipe.id)}
-        >
-          <Heart
-            className={`w-5 h-5 ${recipe.is_favorited ? "fill-accent text-accent" : "text-accent"
-              }`}
-          />
-        </Button>
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="bg-white/90 backdrop-blur-sm hover:bg-white"
+            onClick={() => toggleFavorite(recipe.id)}
+          >
+            <Heart
+              className={`w-5 h-5 ${recipe.is_favorited ? "fill-accent text-accent" : "text-accent"
+                }`}
+            />
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="bg-white/90 backdrop-blur-sm hover:bg-white"
+              >
+                <MoreVertical className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate(`/recipes/edit/${id}`)}>
+                <Edit className="w-4 h-4 mr-2" />
+                Modifier
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={async () => {
+                  if (!id) return;
+                  const { error } = await supabase
+                    .from('recipes')
+                    .delete()
+                    .eq('id', id);
+
+                  if (error) {
+                    toast({
+                      title: "Erreur",
+                      description: "Impossible de supprimer la recette",
+                      variant: "destructive",
+                    });
+                  } else {
+                    toast({
+                      title: "Recette supprimée",
+                      description: "La recette a été supprimée avec succès",
+                    });
+                    navigate('/recipes');
+                  }
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
 
         <div className="absolute bottom-4 left-6 right-6">
           <h1 className="text-2xl font-bold text-white mb-2">{recipe.title}</h1>
@@ -124,8 +179,7 @@ const RecipeDetail = () => {
                 <li key={index} className="flex items-start gap-2">
                   <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0" />
                   <span className="text-sm">
-                    {ing.quantity} {ing.unit} {ing.ingredient?.name}
-                    {ing.notes && <span className="text-muted-foreground"> ({ing.notes})</span>}
+                    {ing.quantity} {ing.unit} {ing.name}
                   </span>
                 </li>
               ))}

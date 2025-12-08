@@ -16,6 +16,9 @@ import ProfileEdit from "./pages/ProfileEdit";
 import Preferences from "./pages/Preferences";
 import AddIngredient from "./pages/AddIngredient";
 import EditIngredient from "./pages/EditIngredient";
+import RecipeAdd from "./pages/RecipeAdd";
+import RecipeEdit from "./pages/RecipeEdit";
+import RecipeShareInstructions from "./pages/RecipeShareInstructions";
 import NotFound from "./pages/NotFound";
 import { BottomNav } from "./components/BottomNav";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
@@ -82,6 +85,9 @@ const App = () => {
                 <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                 <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
                 <Route path="/profile/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
+                <Route path="/recipes/add" element={<ProtectedRoute><RecipeAdd /></ProtectedRoute>} />
+                <Route path="/recipes/edit/:id" element={<ProtectedRoute><RecipeEdit /></ProtectedRoute>} />
+                <Route path="/recipes/share-instructions" element={<ProtectedRoute><RecipeShareInstructions /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <BottomNav />

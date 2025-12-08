@@ -31,15 +31,14 @@ serve(async (req) => {
   "instructions": "Complete step-by-step instructions as a single text",
   "ingredients": [
     {
-      "name": "ingredient name",
-      "quantity": number,
-      "unit": "g" or "kg" or "ml" or "l" or "tasse" or "c.à.s" or "c.à.c" or "pièce"
+      "name": "number unit (g or kg or ml or l or cl or tasse or c.à.s or c.à.c or pièce) ingredient name",
     }
   ]
 }
 IMPORTANT: 
 - Translate everything to French.
 - If a value is missing or unclear, make a reasonable estimate.
+- In the "instructions" field, preserve the exact formatting of the steps as it appears in the image: keep numbering, bullets, sub-steps, or titles if they exist. Every step or sub-step must be separated by a newline character "\n". Do not merge steps or rewrite their structure.
 - Ensure the JSON is valid and parsable.
 - DO NOT use markdown formatting (no \`\`\`json blocks). Return RAW JSON only.`;
 

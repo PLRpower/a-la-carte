@@ -8,10 +8,12 @@ import { useNavigate } from "react-router-dom";
 import RecipeFilters from "@/components/RecipeFilters";
 import { useRecipes } from "@/hooks/useRecipes";
 import { RecipeCategory, RecipeDifficulty } from "@/types/database";
+import { AddRecipeOverlay } from "@/components/AddRecipeOverlay";
 
 const Recipes = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [isAddOverlayOpen, setIsAddOverlayOpen] = useState(false);
   const [category, setCategory] = useState<RecipeCategory | "all">("all");
   const [difficulty, setDifficulty] = useState<RecipeDifficulty | "all">("all");
   const navigate = useNavigate();
@@ -55,6 +57,11 @@ const Recipes = () => {
           Filtres
         </Button>
       </header>
+
+      <AddRecipeOverlay
+        isOpen={isAddOverlayOpen}
+        onClose={() => setIsAddOverlayOpen(false)}
+      />
 
       {showFilters && (
         <RecipeFilters
@@ -100,8 +107,8 @@ const Recipes = () => {
                   >
                     <Heart
                       className={`w-5 h-5 ${recipe.is_favorited
-                          ? "fill-accent text-accent"
-                          : "text-accent"
+                        ? "fill-accent text-accent"
+                        : "text-accent"
                         }`}
                     />
                   </button>

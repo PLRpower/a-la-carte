@@ -84,3 +84,34 @@ export const parseIngredientInput = (input: string): ParsedIngredient => {
         unit
     };
 };
+
+import { Ingredient } from "@/types/database";
+
+export const findBestIngredientMatch = (inputName: string, allIngredients: Ingredient[]): Ingredient | null => {
+    const lowerInput = inputName.toLowerCase();
+    let bestMatch: Ingredient | null = null;
+    let maxLen = -1;
+
+    for (const ing of allIngredients) {
+        // Check name
+        if (lowerInput.includes(ing.name.toLowerCase())) {
+            if (ing.name.length > maxLen) {
+                maxLen = ing.name.length;
+                bestMatch = ing;
+            }
+        }
+        // Check synonyms
+        if (ing.synonyms) {
+            for (const syn of ing.synonyms) {
+                if (lowerInput.includes(syn.toLowerCase())) {
+                    if (syn.length > maxLen) {
+                        maxLen = syn.length;
+                        bestMatch = ing;
+                    }
+                }
+            }
+        }
+    }
+
+    return bestMatch;
+};

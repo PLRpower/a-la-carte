@@ -50,10 +50,10 @@ export interface Ingredient {
 export interface RecipeIngredient {
   id: string;
   recipe_id: string;
-  ingredient_id: string;
+  ingredient_id: string | null;
   quantity: number;
   unit: MeasurementUnit;
-  notes: string | null;
+  name: string;
 }
 
 export interface Stock {
@@ -94,7 +94,7 @@ export interface RecipeWithDetails extends Recipe {
     id: string;
     quantity: number;
     unit: MeasurementUnit;
-    notes: string | null;
+    name: string;
     ingredient: Ingredient;
   }[];
   is_favorited?: boolean;

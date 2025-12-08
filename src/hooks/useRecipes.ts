@@ -32,7 +32,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
             id,
             quantity,
             unit,
-            notes,
+            name,
             ingredient:ingredients(*)
           )
         `)
