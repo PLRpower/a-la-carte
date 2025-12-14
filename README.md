@@ -65,11 +65,17 @@ This project is built with:
 ### 🌐 Partage de recettes depuis le web
 Partagez des recettes depuis n'importe quel site web directement vers votre application ! L'IA extrait automatiquement les ingrédients et les instructions.
 
+**⚠️ Important :** Le partage web nécessite :
+- ✅ Une URL HTTPS de production (ex: https://votre-app.com)
+- ✅ L'application installée en tant que PWA
+- ❌ Ne fonctionne PAS avec localhost ou IP locale
+
 **Comment l'utiliser :**
-1. Installez l'application en tant que PWA
-2. Sur un site de recettes, appuyez sur "Partager"
-3. Sélectionnez "À la carte"
-4. La recette est automatiquement importée !
+1. Déployez l'application en production (voir section déploiement)
+2. Installez l'application en tant que PWA depuis l'URL de production
+3. Sur un site de recettes, appuyez sur "Partager"
+4. Sélectionnez "À la carte"
+5. La recette est automatiquement importée !
 
 ### 📸 Capture photo directe
 Ajoutez des recettes en prenant une photo directement avec votre appareil photo, sans passer par la galerie.
@@ -81,6 +87,8 @@ Ajoutez des recettes en prenant une photo directement avec votre appareil photo,
 4. L'IA scanne et extrait la recette !
 
 **📚 Documentation complète :**
+- [**SOLUTION PARTAGE MOBILE**](SOLUTION_PARTAGE_MOBILE.md) - ⚡ Guide rapide si le partage ne fonctionne pas
+- [Diagnostic partage](DIAGNOSTIC_PARTAGE.md) - Dépannage complet
 - [Guide de test rapide](GUIDE_TEST_RAPIDE.md) - Testez les nouvelles fonctionnalités
 - [Guide de déploiement](GUIDE_DEPLOIEMENT.md) - Déployez la fonction Edge
 - [Nouvelles fonctionnalités](NOUVELLES_FONCTIONNALITES.md) - Documentation détaillée
