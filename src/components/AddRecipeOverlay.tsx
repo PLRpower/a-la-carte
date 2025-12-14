@@ -141,7 +141,7 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
                     <div className="w-20 h-20 rounded-full bg-muted mx-auto flex items-center justify-center mb-4">
                       <Camera className="w-10 h-10 text-muted-foreground" />
                     </div>
-                    <h3 className="font-semibold mb-2">Télécharger une photo de recette</h3>
+                    <h3 className="font-semibold mb-2">Ajouter une photo de recette</h3>
                     <p className="text-sm text-muted-foreground mb-6">
                       L'IA va scanner et extraire les détails de la recette
                     </p>
@@ -155,13 +155,34 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
                         if (file) handleImageUpload(file);
                       }}
                     />
-                    <Button
-                      className="w-full"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Choisir une photo
-                    </Button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      id="camera-input"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageUpload(file);
+                      }}
+                    />
+                    <div className="flex gap-3">
+                      <Button
+                        className="flex-1"
+                        variant="outline"
+                        onClick={() => document.getElementById('camera-input')?.click()}
+                      >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Prendre une photo
+                      </Button>
+                      <Button
+                        className="flex-1"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Choisir une photo
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
                 <p className="text-xs text-muted-foreground text-center">

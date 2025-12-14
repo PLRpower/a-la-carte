@@ -26,6 +26,16 @@ export default defineConfig(({ mode }) => ({
         background_color: '#ffffff',
         display: 'standalone',
         start_url: '/',
+        share_target: {
+          action: '/recipes/share',
+          method: 'GET',
+          enctype: 'application/x-www-form-urlencoded',
+          params: {
+            title: 'title',
+            text: 'text',
+            url: 'url',
+          },
+        },
         icons: [
           {
             src: '/pwa-192x192.png',
