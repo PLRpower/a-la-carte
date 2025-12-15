@@ -23,9 +23,17 @@ const RecipeShare = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const sharedUrl = searchParams.get('url');
+        let sharedUrl = searchParams.get('url');
         const sharedTitle = searchParams.get('title');
         const sharedText = searchParams.get('text');
+
+        // On mobile, the URL is often shared in the 'text' field instead of 'url'
+        if (!sharedUrl && sharedText) {
+            const urlMatch = sharedText.match(/(https?:\/\/[^\s]+)/);
+            if (urlMatch) {
+                sharedUrl = urlMatch[0];
+            }
+        }
 
         if (sharedUrl) {
             setLoading(true);
