@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Recipe, RecipeWithDetails, RecipeCategory, RecipeDifficulty } from '@/types/database';
 import { useAuth } from './useAuth';
@@ -11,19 +11,14 @@ interface RecipeFilters {
 
 export const useRecipes = (filters?: RecipeFilters) => {
   const { user } = useAuth();
-  const [recipes, setRecipes] = useState<RecipeWithDetails[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
+  const queryClient = useQueryClient();
   const { category, difficulty, searchQuery } = filters || {};
 
-  useEffect(() => {
-    fetchRecipes();
-  }, [category, difficulty, searchQuery, user]);
+  const { data: recipes = [], isLoading: loading, error } = useQuery({
+    queryKey: ['recipes', user?.id, category, difficulty, searchQuery],
+    queryFn: async () => {
+      if (!user) return [];
 
-  const fetchRecipes = async () => {
-    try {
-      setLoading(true);
       let query = supabase
         .from('recipes')
         .select(`
@@ -39,16 +34,16 @@ export const useRecipes = (filters?: RecipeFilters) => {
         .eq('is_public', true)
         .order('created_at', { ascending: false });
 
-      if (filters?.category) {
-        query = query.eq('category', filters.category);
+      if (category) {
+        query = query.eq('category', category);
       }
 
-      if (filters?.difficulty) {
-        query = query.eq('difficulty', filters.difficulty);
+      if (difficulty) {
+        query = query.eq('difficulty', difficulty);
       }
 
-      if (filters?.searchQuery) {
-        query = query.ilike('title', `%${filters.searchQuery}%`);
+      if (searchQuery) {
+        query = query.ilike('title', `%${searchQuery}%`);
       }
 
       const { data, error } = await query;
@@ -56,34 +51,24 @@ export const useRecipes = (filters?: RecipeFilters) => {
       if (error) throw error;
 
       // Check if recipes are favorited by current user
-      if (user) {
-        const { data: favorites } = await supabase
-          .from('favorites')
-          .select('recipe_id')
-          .eq('user_id', user.id);
+      const { data: favorites } = await supabase
+        .from('favorites')
+        .select('recipe_id')
+        .eq('user_id', user.id);
 
-        const favoritedIds = new Set(favorites?.map(f => f.recipe_id) || []);
+      const favoritedIds = new Set(favorites?.map(f => f.recipe_id) || []);
 
-        const recipesWithFavorites = data.map(recipe => ({
-          ...recipe,
-          is_favorited: favoritedIds.has(recipe.id)
-        }));
+      return data.map(recipe => ({
+        ...recipe,
+        is_favorited: favoritedIds.has(recipe.id)
+      })) as RecipeWithDetails[];
+    },
+    enabled: !!user,
+  });
 
-        setRecipes(recipesWithFavorites);
-      } else {
-        setRecipes(data);
-      }
-    } catch (err) {
-      setError(err as Error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createRecipe = async (recipe: Omit<Recipe, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    if (!user) return { error: new Error('No user') };
-
-    try {
+  const createRecipeMutation = useMutation({
+    mutationFn: async (recipe: Omit<Recipe, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+      if (!user) throw new Error('No user');
       const { data, error } = await supabase
         .from('recipes')
         .insert({ ...recipe, user_id: user.id })
@@ -91,50 +76,47 @@ export const useRecipes = (filters?: RecipeFilters) => {
         .single();
 
       if (error) throw error;
-
-      await fetchRecipes();
-      return { data, error: null };
-    } catch (err) {
-      return { data: null, error: err as Error };
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
     }
-  };
+  });
 
-  const updateRecipe = async (id: string, updates: Partial<Recipe>) => {
-    try {
+  const updateRecipeMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Recipe> }) => {
       const { error } = await supabase
         .from('recipes')
         .update(updates)
         .eq('id', id);
 
       if (error) throw error;
-
-      await fetchRecipes();
-      return { error: null };
-    } catch (err) {
-      return { error: err as Error };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
     }
-  };
+  });
 
-  const deleteRecipe = async (id: string) => {
-    try {
+  const deleteRecipeMutation = useMutation({
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('recipes')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-
-      await fetchRecipes();
-      return { error: null };
-    } catch (err) {
-      return { error: err as Error };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
     }
-  };
+  });
 
-  const toggleFavorite = async (recipeId: string) => {
-    if (!user) return { error: new Error('No user') };
+  const toggleFavoriteMutation = useMutation({
+    mutationFn: async (recipeId: string) => {
+      if (!user) throw new Error('No user');
 
-    try {
+      // We need to know current state, but simple insert/delete based on existence check is fine
+      // Alternatively we could optimistic update, but let's stick to simple logic first
       const recipe = recipes.find(r => r.id === recipeId);
 
       if (recipe?.is_favorited) {
@@ -143,17 +125,49 @@ export const useRecipes = (filters?: RecipeFilters) => {
           .delete()
           .eq('user_id', user.id)
           .eq('recipe_id', recipeId);
-
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('favorites')
           .insert({ user_id: user.id, recipe_id: recipeId });
-
         if (error) throw error;
       }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    }
+  });
 
-      await fetchRecipes();
+  const createRecipe = async (recipe: Omit<Recipe, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+    try {
+      const data = await createRecipeMutation.mutateAsync(recipe);
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: err as Error };
+    }
+  };
+
+  const updateRecipe = async (id: string, updates: Partial<Recipe>) => {
+    try {
+      await updateRecipeMutation.mutateAsync({ id, updates });
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  const deleteRecipe = async (id: string) => {
+    try {
+      await deleteRecipeMutation.mutateAsync(id);
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
+  const toggleFavorite = async (recipeId: string) => {
+    try {
+      await toggleFavoriteMutation.mutateAsync(recipeId);
       return { error: null };
     } catch (err) {
       return { error: err as Error };
@@ -163,11 +177,11 @@ export const useRecipes = (filters?: RecipeFilters) => {
   return {
     recipes,
     loading,
-    error,
+    error: error as Error | null,
     createRecipe,
     updateRecipe,
     deleteRecipe,
     toggleFavorite,
-    refetch: fetchRecipes
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['recipes'] })
   };
 };

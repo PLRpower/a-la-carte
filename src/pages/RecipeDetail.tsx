@@ -175,14 +175,21 @@ const RecipeDetail = () => {
         <Card>
           <CardContent className="p-4">
             <ul className="space-y-3">
-              {recipe.ingredients?.map((ing, index) => (
-                <li key={index} className="flex items-start gap-2">
-                  <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0" />
-                  <span className="text-sm">
-                    {ing.quantity} {ing.unit} {ing.name}
-                  </span>
-                </li>
-              ))}
+              {recipe.ingredients?.map((ing, index) => {
+                const initialServings = recipe.servings || 1;
+                const scale = servings / initialServings;
+                const quantity = ing.quantity ? (ing.quantity * scale) : null;
+                const formattedQuantity = quantity ? Number(quantity.toFixed(2)).toString() : '';
+
+                return (
+                  <li key={index} className="flex items-start gap-2">
+                    <div className="w-2 h-2 rounded-full bg-accent mt-2 flex-shrink-0" />
+                    <span className="text-sm">
+                      {formattedQuantity} {ing.unit !== 'piece' && ing.unit} {ing.name}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </CardContent>
         </Card>

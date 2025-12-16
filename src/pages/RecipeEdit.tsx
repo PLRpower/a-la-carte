@@ -67,7 +67,8 @@ const RecipeEdit = () => {
                     category: recipe.category || "",
                     steps: recipe.instructions || "",
                     ingredients: ingredientsText,
-                    imageUrl: recipe.image_url
+                    imageUrl: recipe.image_url,
+                    source: (recipe as any).source || null,
                 });
             } catch (err: any) {
                 console.error('Error fetching recipe:', err);
@@ -113,6 +114,7 @@ const RecipeEdit = () => {
                     category: formData.category as any || null,
                     instructions: formData.steps,
                     image_url: imageUrl,
+                    source: formData.source as any || null,
                 })
                 .eq('id', id);
 

@@ -24,13 +24,13 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
   const handleImageUpload = (file: File) => {
     // Navigate to the add page with the file for AI processing
     handleClose();
-    navigate("/recipes/add", { state: { file } });
+    navigate("/recipes/add", { state: { file, source: 'book' } });
   };
 
   const handleManualSelect = () => {
     // Navigate to the add page for manual entry
     handleClose();
-    navigate("/recipes/add");
+    navigate("/recipes/add", { state: { source: 'cooking_class' } });
   };
 
   return (
@@ -166,9 +166,9 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
                         if (file) handleImageUpload(file);
                       }}
                     />
-                    <div className="flex gap-3">
+                    <div className="flex flex-col gap-3">
                       <Button
-                        className="flex-1"
+                        className="w-full"
                         variant="outline"
                         onClick={() => document.getElementById('camera-input')?.click()}
                       >
@@ -176,7 +176,7 @@ export const AddRecipeOverlay = ({ isOpen, onClose }: AddRecipeOverlayProps) => 
                         Prendre une photo
                       </Button>
                       <Button
-                        className="flex-1"
+                        className="w-full"
                         onClick={() => fileInputRef.current?.click()}
                       >
                         <Upload className="w-4 h-4 mr-2" />

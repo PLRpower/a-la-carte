@@ -77,7 +77,7 @@ const ShoppingList = () => {
   const sortedCategories = sortCategories(Object.keys(groupedItems));
 
   return (
-    <div className="pb-20 min-h-screen">
+    <div className="pb-40 min-h-screen">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
         <div className="flex items-center gap-3 mb-4">
@@ -138,7 +138,7 @@ const ShoppingList = () => {
       </section>
 
       {/* Smart Input Bar */}
-      <div className="bg-background border-t p-4 pb-safe z-50">
+      <div className="fixed left-0 right-0 bg-background border-t p-4 z-40 pb-safe" style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}>
         <div className="max-w-2xl mx-auto flex gap-2">
           <Input
             placeholder="Ajouter (ex: 2 tomates, 500g farine...)"

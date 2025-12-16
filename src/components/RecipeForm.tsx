@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,7 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Camera } from "lucide-react";
+import { Camera, Upload } from "lucide-react";
 
 export interface RecipeFormData {
     title: string;
@@ -24,6 +24,7 @@ export interface RecipeFormData {
     category: string;
     imageFile: File | null;
     imageUrl?: string | null;
+    source?: string;
 }
 
 interface RecipeFormProps {
@@ -50,7 +51,9 @@ export const RecipeForm = ({
     const [cookTime, setCookTime] = useState(initialData?.cookTime || "");
     const [servings, setServings] = useState(initialData?.servings || "");
     const [category, setCategory] = useState(initialData?.category || "");
+    const [source, setSource] = useState(initialData?.source || "");
     const [imageFile, setImageFile] = useState<File | null>(initialData?.imageFile || null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Update state when initialData changes (important for AI import)
     useEffect(() => {
@@ -64,6 +67,7 @@ export const RecipeForm = ({
             if (initialData.cookTime) setCookTime(initialData.cookTime);
             if (initialData.servings) setServings(initialData.servings);
             if (initialData.category) setCategory(initialData.category);
+            if (initialData.source) setSource(initialData.source);
             if (initialData.imageFile) setImageFile(initialData.imageFile);
         }
     }, [initialData]);
@@ -79,6 +83,7 @@ export const RecipeForm = ({
             cookTime,
             servings,
             category,
+            source,
             imageFile,
             imageUrl: initialData?.imageUrl
         });
@@ -124,22 +129,38 @@ export const RecipeForm = ({
                     </Select>
                 </div>
 
-                <div>
-                    <Label htmlFor="category">Catégorie</Label>
-                    <Select value={category} onValueChange={setCategory}>
-                        <SelectTrigger className="mt-1.5">
-                            <SelectValue placeholder="Sélectionner" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="petit_dejeuner">Petit-déjeuner</SelectItem>
-                            <SelectItem value="dejeuner">Déjeuner</SelectItem>
-                            <SelectItem value="diner">Dîner</SelectItem>
-                            <SelectItem value="dessert">Dessert</SelectItem>
-                            <SelectItem value="encas">En-cas</SelectItem>
-                            <SelectItem value="vegetarien">Végétarien</SelectItem>
-                            <SelectItem value="vegan">Végétalien</SelectItem>
-                        </SelectContent>
-                    </Select>
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <Label htmlFor="category">Catégorie</Label>
+                        <Select value={category} onValueChange={setCategory}>
+                            <SelectTrigger className="mt-1.5">
+                                <SelectValue placeholder="Sélectionner" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="petit_dejeuner">Petit-déjeuner</SelectItem>
+                                <SelectItem value="dejeuner">Déjeuner</SelectItem>
+                                <SelectItem value="diner">Dîner</SelectItem>
+                                <SelectItem value="dessert">Dessert</SelectItem>
+                                <SelectItem value="encas">En-cas</SelectItem>
+                                <SelectItem value="vegetarien">Végétarien</SelectItem>
+                                <SelectItem value="vegan">Végétalien</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="source">Source</Label>
+                        <Select value={source} onValueChange={setSource}>
+                            <SelectTrigger className="mt-1.5">
+                                <SelectValue placeholder="Sélectionner" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="book">Livre de recette</SelectItem>
+                                <SelectItem value="cooking_class">Cours de cuisine</SelectItem>
+                                <SelectItem value="website">Site internet</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </div>
             </div>
 
@@ -210,17 +231,9 @@ export const RecipeForm = ({
 
             <div>
                 <Label htmlFor="photo">Photo de la recette</Label>
-                <div className="flex items-center gap-4 mt-1.5">
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => document.getElementById('form-image-upload')?.click()}
-                    >
-                        <Camera className="w-4 h-4 mr-2" />
-                        {imageFile ? "Changer la photo" : "Télécharger une photo"}
-                    </Button>
+                <div className="flex flex-col gap-3 mt-1.5">
                     <input
-                        id="form-image-upload"
+                        ref={fileInputRef}
                         type="file"
                         accept="image/*"
                         className="hidden"
@@ -229,6 +242,34 @@ export const RecipeForm = ({
                             if (file) setImageFile(file);
                         }}
                     />
+                    <input
+                        id="form-camera-input"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) setImageFile(file);
+                        }}
+                    />
+
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => document.getElementById('form-camera-input')?.click()}
+                    >
+                        <Camera className="w-4 h-4 mr-2" />
+                        Prendre une photo
+                    </Button>
+                    <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => fileInputRef.current?.click()}
+                    >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Choisir une photo
+                    </Button>
                 </div>
                 {imageFile && (
                     <p className="text-xs text-muted-foreground mt-1">

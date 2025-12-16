@@ -14,10 +14,10 @@ export const ShoppingListCategory = ({ category, items, onToggle, onDelete }: Sh
 
     return (
         <div>
-            <h3 className="font-semibold text-lg mb-3 capitalize text-primary">
+            <h3 className="font-medium text-base mb-1 mt-2 capitalize text-primary">
                 {label}
             </h3>
-            <div className="space-y-3">
+            <div className="space-y-2">
                 {items.map((item) => (
                     <ShoppingListItem
                         key={item.id}

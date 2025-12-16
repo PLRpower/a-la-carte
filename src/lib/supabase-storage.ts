@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/utils/imageOptimizer";
 
 export const uploadFile = async (
   bucket: 'avatars' | 'recipe-images' | 'ingredient-images',
@@ -6,14 +7,15 @@ export const uploadFile = async (
   userId?: string
 ): Promise<{ url: string | null; error: Error | null }> => {
   try {
-    const fileExt = file.name.split('.').pop();
+    const compressedFile = await compressImage(file);
+    const fileExt = compressedFile.name.split('.').pop() || file.name.split('.').pop();
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = userId ? `${userId}/${fileName}` : fileName;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
-      .upload(filePath, file, {
-        cacheControl: '3600',
+      .upload(filePath, compressedFile, {
+        cacheControl: '31536000', // 1 year (files are usually unique)
         upsert: false
       });
 
@@ -59,6 +61,6 @@ export const getPublicUrl = (
   const { data: { publicUrl } } = supabase.storage
     .from(bucket)
     .getPublicUrl(filePath);
-  
+
   return publicUrl;
 };

@@ -154,6 +154,8 @@ const Home = () => {
                     src={featuredRecipe.image_url}
                     alt={featuredRecipe.title}
                     className="w-full h-48 object-cover"
+                    loading="eager"
+                    {...({ fetchPriority: "high" } as any)}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-3 left-3 right-3">
@@ -202,6 +204,7 @@ const Home = () => {
                     src={recipe.image_url}
                     alt={recipe.title}
                     className="w-full h-32 object-cover"
+                    loading="lazy"
                   />
                 )}
                 <CardContent className="p-3">

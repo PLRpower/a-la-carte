@@ -84,7 +84,7 @@ const Recipes = () => {
           </div>
         ) : (
           <div className="space-y-4">
-            {recipes.map((recipe) => (
+            {recipes.map((recipe, index) => (
               <Card
                 key={recipe.id}
                 className="overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow"
@@ -96,6 +96,8 @@ const Recipes = () => {
                       src={recipe.image_url}
                       alt={recipe.title}
                       className="w-full h-40 object-cover"
+                      loading={index < 2 ? "eager" : "lazy"}
+                      {...({ fetchPriority: index < 2 ? "high" : "auto" } as any)}
                     />
                   )}
                   <button

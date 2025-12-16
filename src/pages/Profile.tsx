@@ -3,26 +3,27 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useStock } from "@/hooks/useStock";
 
-const menuItems = [
-  { icon: Edit, label: "Modifier le profil", path: "/profile/edit" },
-  { icon: Heart, label: "Recettes favorites", count: 12 },
-  { icon: Settings, label: "Préférences de l'application", path: "/profile/preferences" },
-];
-
 const Profile = () => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
-  const { recipes } = useRecipes();
-  const { stock } = useStock();
+  const { recipes, loading: recipesLoading } = useRecipes();
+  const { stock, loading: stockLoading } = useStock();
 
   const favoriteCount = recipes.filter(r => r.is_favorited).length;
+
+  const menuItems = [
+    { icon: Edit, label: "Modifier le profil", path: "/profile/edit" },
+    { icon: Heart, label: "Recettes favorites", path: "/profile/favorites", count: favoriteCount },
+    { icon: Settings, label: "Préférences de l'application", path: "/profile/preferences" },
+  ];
 
   return (
     <div className="pb-20 min-h-screen">
@@ -67,19 +68,25 @@ const Profile = () => {
         <div className="grid grid-cols-3 gap-3">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary">{recipes.length}</div>
+              <div className="text-2xl font-bold text-primary flex justify-center items-center min-h-[32px]">
+                {recipesLoading ? <Skeleton className="h-8 w-12" /> : recipes.length}
+              </div>
               <div className="text-xs text-muted-foreground mt-1">Recettes</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-accent">{favoriteCount}</div>
+              <div className="text-2xl font-bold text-accent flex justify-center items-center min-h-[32px]">
+                {recipesLoading ? <Skeleton className="h-8 w-12" /> : favoriteCount}
+              </div>
               <div className="text-xs text-muted-foreground mt-1">Favoris</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-secondary">{stock.length}</div>
+              <div className="text-2xl font-bold text-secondary flex justify-center items-center min-h-[32px]">
+                {stockLoading ? <Skeleton className="h-8 w-12" /> : stock.length}
+              </div>
               <div className="text-xs text-muted-foreground mt-1">Articles</div>
             </CardContent>
           </Card>
@@ -102,9 +109,9 @@ const Profile = () => {
                   <div className="flex-1 text-left">
                     <div className="font-medium">{item.label}</div>
                   </div>
-                  {item.count && (
+                  {item.count !== undefined && (
                     <div className="text-sm text-muted-foreground">
-                      {item.count}
+                      {recipesLoading ? <Skeleton className="h-4 w-8" /> : item.count}
                     </div>
                   )}
                 </button>

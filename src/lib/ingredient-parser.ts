@@ -42,16 +42,37 @@ const UNIT_MAPPINGS: Record<string, MeasurementUnit> = {
 export const parseIngredientInput = (input: string): ParsedIngredient => {
     const trimmedInput = input.trim();
 
-    // Regex to match quantity at the start (e.g., "2", "2.5", "2,5")
-    const quantityMatch = trimmedInput.match(/^(\d+(?:[.,]\d+)?)\s*/);
+    // Regex to match quantity at the start (e.g., "2", "2.5", "2,5", "1/2", "1 1/2")
+    // Groups:
+    // 1: Mixed number whole part (optional) + Fraction (e.g. "1 1/2") OR Fraction (e.g. "1/2")
+    // 2: Decimal/Integer (e.g. "1.5", "1")
+    const quantityMatch = trimmedInput.match(/^(\d+\s+\d+\/\d+|\d+\/\d+)|(\d+(?:[.,]\d+)?)\s*/);
 
     let quantity: number | null = null;
     let remainingInput = trimmedInput;
 
     if (quantityMatch) {
-        const quantityStr = quantityMatch[1].replace(',', '.');
-        quantity = parseFloat(quantityStr);
-        remainingInput = trimmedInput.slice(quantityMatch[0].length);
+        // If match group 1 (fractional) is present
+        if (quantityMatch[1]) {
+            const fractionParts = quantityMatch[1].split(/\s+/);
+            if (fractionParts.length === 2) {
+                // Mixed fraction: "1 1/2"
+                const [whole, frac] = fractionParts;
+                const [num, den] = frac.split('/');
+                quantity = parseInt(whole) + parseInt(num) / parseInt(den);
+            } else {
+                // Simple fraction: "1/2"
+                const [num, den] = quantityMatch[1].split('/');
+                quantity = parseInt(num) / parseInt(den);
+            }
+            remainingInput = trimmedInput.slice(quantityMatch[1].length);
+        }
+        // If match group 2 (decimal/integer) is present
+        else if (quantityMatch[2]) {
+            const quantityStr = quantityMatch[2].replace(',', '.');
+            quantity = parseFloat(quantityStr);
+            remainingInput = trimmedInput.slice(quantityMatch[0].length);
+        }
     }
 
     // Check for unit

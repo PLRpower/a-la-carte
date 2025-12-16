@@ -67,6 +67,7 @@ const RecipeShare = () => {
                         category: recipe.category || "",
                         steps: recipe.instructions || "",
                         ingredients: ingredientsText,
+                        source: 'website'
                     });
 
                     setLoading(false);
@@ -124,6 +125,7 @@ const RecipeShare = () => {
                     instructions: formData.steps,
                     image_url: imageUrl,
                     is_public: true,
+                    source: 'website'
                 }])
                 .select()
                 .single();

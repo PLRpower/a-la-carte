@@ -64,7 +64,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'google-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -78,7 +78,7 @@ export default defineConfig(({ mode }) => ({
               cacheName: 'gstatic-fonts-cache',
               expiration: {
                 maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
               },
               cacheableResponse: {
                 statuses: [0, 200]
@@ -86,14 +86,15 @@ export default defineConfig(({ mode }) => ({
             }
           },
           {
-            // Cache Supabase Storage images
+            // Supabase Storage images - StaleWhileRevalidate is good for likely immutable but potentially updateable content
+            // Changed maxEntries to 100 and duration to 30 days
             urlPattern: /^https:\/\/.*\.supabase\.co\/storage\/v1\/object\/public\/.*/i,
             handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'supabase-image-cache',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // <== 7 days
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               },
               cacheableResponse: {
                 statuses: [0, 200]

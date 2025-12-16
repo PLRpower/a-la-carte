@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIngredients } from "@/hooks/useIngredients";
 import { uploadFile } from "@/lib/supabase-storage";
 import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
+import { compressImage } from "@/utils/imageOptimizer";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -18,16 +19,19 @@ const RecipeAdd = () => {
     const { ingredients: allIngredients } = useIngredients();
 
     const [scanning, setScanning] = useState(false);
-    const [scannedData, setScannedData] = useState<Partial<RecipeFormData>>({});
+    const [scannedData, setScannedData] = useState<Partial<RecipeFormData>>({
+        source: (location.state?.source as string)
+    });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const file = location.state?.file as File;
-        if (file) {
+        const rawFile = location.state?.file as File;
+        if (rawFile) {
             setScanning(true);
             const scanImage = async () => {
                 try {
+                    const file = await compressImage(rawFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 }); // More aggressive compression for scanning
                     const reader = new FileReader();
                     reader.onloadend = async () => {
                         const base64 = reader.result as string;
@@ -61,7 +65,8 @@ const RecipeAdd = () => {
                                 category: recipe.category || "",
                                 steps: recipe.instructions || "",
                                 ingredients: ingredientsText,
-                                imageFile: file
+                                imageFile: file,
+                                source: (location.state?.source as string) || 'book'
                             });
 
                             setScanning(false);
@@ -120,6 +125,7 @@ const RecipeAdd = () => {
                     instructions: formData.steps,
                     image_url: imageUrl,
                     is_public: true,
+                    source: formData.source as any || null,
                 }])
                 .select()
                 .single();
