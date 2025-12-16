@@ -9,8 +9,11 @@ export const useShoppingList = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Shared query key
+  const queryKey = ['shopping-list'];
+
   const { data: items = [], isLoading: loading, error } = useQuery({
-    queryKey: ['shopping-list', user?.id],
+    queryKey,
     queryFn: async () => {
       if (!user) return [];
       const { data, error } = await supabase
@@ -19,7 +22,7 @@ export const useShoppingList = () => {
           *,
           ingredient:ingredients(*)
         `)
-        .eq('user_id', user.id)
+        // .eq('user_id', user.id) // Removed to share list
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -40,10 +43,10 @@ export const useShoppingList = () => {
           event: '*',
           schema: 'public',
           table: 'shopping_list',
-          filter: `user_id=eq.${user.id}`
+          // filter: `user_id=eq.${user.id}` // Removed filter
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['shopping-list', user.id] });
+          queryClient.invalidateQueries({ queryKey });
         }
       )
       .subscribe();
@@ -101,33 +104,8 @@ export const useShoppingList = () => {
       if (error) throw error;
       return data as ShoppingListItemWithIngredient;
     },
-    onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: ['shopping-list', user?.id] });
-      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(['shopping-list', user?.id]);
-
-      const { name, quantity, unit } = parseIngredientInput(input);
-      const optimisticItem: ShoppingListItemWithIngredient = {
-        id: crypto.randomUUID(),
-        user_id: user!.id,
-        name,
-        quantity: quantity || null,
-        unit: unit || null,
-        ingredient_id: null,
-        checked: false,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        ingredient: null
-      };
-
-      queryClient.setQueryData(['shopping-list', user?.id], (old: ShoppingListItemWithIngredient[] = []) => [optimisticItem, ...old]);
-
-      return { previousItems };
-    },
-    onError: (err, newTodo, context) => {
-      queryClient.setQueryData(['shopping-list', user?.id], context?.previousItems);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list', user?.id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
     },
   });
 
@@ -139,21 +117,8 @@ export const useShoppingList = () => {
         .eq('id', id);
       if (error) throw error;
     },
-    onMutate: async ({ id, checked }) => {
-      await queryClient.cancelQueries({ queryKey: ['shopping-list', user?.id] });
-      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(['shopping-list', user?.id]);
-
-      queryClient.setQueryData(['shopping-list', user?.id], (old: ShoppingListItemWithIngredient[] = []) =>
-        old.map(item => item.id === id ? { ...item, checked } : item)
-      );
-
-      return { previousItems };
-    },
-    onError: (err, newTodo, context) => {
-      queryClient.setQueryData(['shopping-list', user?.id], context?.previousItems);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list', user?.id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
     },
   });
 
@@ -165,21 +130,8 @@ export const useShoppingList = () => {
         .eq('id', id);
       if (error) throw error;
     },
-    onMutate: async (id) => {
-      await queryClient.cancelQueries({ queryKey: ['shopping-list', user?.id] });
-      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(['shopping-list', user?.id]);
-
-      queryClient.setQueryData(['shopping-list', user?.id], (old: ShoppingListItemWithIngredient[] = []) =>
-        old.filter(item => item.id !== id)
-      );
-
-      return { previousItems };
-    },
-    onError: (err, newTodo, context) => {
-      queryClient.setQueryData(['shopping-list', user?.id], context?.previousItems);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list', user?.id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
     },
   });
 
@@ -189,25 +141,13 @@ export const useShoppingList = () => {
       const { error } = await supabase
         .from('shopping_list')
         .delete()
-        .eq('user_id', user.id)
-        .eq('checked', true);
+        .eq('checked', true); // Removed user_id check to clear ALL checked items or just my own? 
+      // "Partagés... tout les utilisateurs sont dans la même maison".
+      // Logically, "Finish shopping" clears checked items for everyone.
       if (error) throw error;
     },
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ['shopping-list', user?.id] });
-      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(['shopping-list', user?.id]);
-
-      queryClient.setQueryData(['shopping-list', user?.id], (old: ShoppingListItemWithIngredient[] = []) =>
-        old.filter(item => !item.checked)
-      );
-
-      return { previousItems };
-    },
-    onError: (err, newTodo, context) => {
-      queryClient.setQueryData(['shopping-list', user?.id], context?.previousItems);
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list', user?.id] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
     },
   });
 
@@ -215,11 +155,11 @@ export const useShoppingList = () => {
     mutationFn: async () => {
       if (!user) throw new Error('No user');
 
-      // 1. Get checked items
+      // 1. Get checked items (GLOBAL)
       const { data: checkedItems, error: fetchError } = await supabase
         .from('shopping_list')
         .select('*')
-        .eq('user_id', user.id)
+        // .eq('user_id', user.id) // Removed to process ALL checked items
         .eq('checked', true);
 
       if (fetchError) throw fetchError;
@@ -253,12 +193,21 @@ export const useShoppingList = () => {
         }
 
         if (targetIngredientId) {
-          // Check if exists in stock
+          // Check if exists in stock (GLOBAL check, not just my user_id?
+          // If stock is shared, we should check if ANYONE has it?
+          // But stock table still has user_id. We probably want to consolidate.
+          // For now, let's just add it to the current user's stock (who clicked "Finish")
+          // OR if we want shared stock, we should probably pick one user or just add it.
+          // Since the prompt says "stock sont partagés", querying by user.id is still "valid" if we just want to update *existing* entry for THIS user,
+          // BUT if another user added it, we might create a duplicate.
+          // Let's check generally if this ingredient exists in stock irrespective of user_id to update it?
+
           const { data: existingStock } = await supabase
             .from('stock')
             .select('id, quantity')
-            .eq('user_id', user.id)
             .eq('ingredient_id', targetIngredientId)
+            // .eq('user_id', user.id) // Try to find ANY entry for this ingredient
+            .limit(1)
             .maybeSingle();
 
           if (existingStock) {
@@ -271,11 +220,11 @@ export const useShoppingList = () => {
               })
               .eq('id', existingStock.id);
           } else {
-            // Insert into stock
+            // Insert into stock (as current user)
             await supabase
               .from('stock')
               .insert({
-                user_id: user.id,
+                user_id: user.id, // Marked as added by me, but shared view
                 ingredient_id: targetIngredientId,
                 quantity: Number(item.quantity) || 0,
                 unit: item.unit || 'piece',
@@ -285,33 +234,19 @@ export const useShoppingList = () => {
         }
       }
 
-      // 3. Delete checked items
+      // 3. Delete checked items (GLOBAL)
       const { error: deleteError } = await supabase
         .from('shopping_list')
         .delete()
-        .eq('user_id', user.id)
+        // .eq('user_id', user.id) // Removed
         .eq('checked', true);
 
       if (deleteError) throw deleteError;
     },
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ['shopping-list', user?.id] });
-      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(['shopping-list', user?.id]);
-
-      // Optimistically remove checked items
-      queryClient.setQueryData(['shopping-list', user?.id], (old: ShoppingListItemWithIngredient[] = []) =>
-        old.filter(item => !item.checked)
-      );
-
-      return { previousItems };
-    },
     onSuccess: () => {
       // Invalidate both shopping list and stock as items moved there
-      queryClient.invalidateQueries({ queryKey: ['shopping-list', user?.id] });
-      queryClient.invalidateQueries({ queryKey: ['stock', user?.id] });
-    },
-    onError: (err, newTodo, context) => {
-      queryClient.setQueryData(['shopping-list', user?.id], context?.previousItems);
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
+      queryClient.invalidateQueries({ queryKey: ['stock'] });
     },
   });
 
@@ -370,6 +305,6 @@ export const useShoppingList = () => {
     deleteItem,
     clearCheckedItems,
     finishShopping,
-    refetch: () => queryClient.invalidateQueries({ queryKey: ['shopping-list', user?.id] })
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['shopping-list'] })
   };
 };
