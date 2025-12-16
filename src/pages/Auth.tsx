@@ -56,7 +56,7 @@ const Auth = () => {
           navigate("/");
         }
       } else {
-        const { error } = await signUp(email, password, firstName, lastName);
+        const { data, error } = await signUp(email, password, firstName, lastName);
         if (error) {
           if (error.message.includes("User already registered")) {
             toast.error("Cet email est déjà enregistré");
@@ -64,7 +64,13 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
-          toast.success("Compte créé avec succès ! Veuillez vérifier votre email pour confirmer.");
+          // Check if session was created (auto-confirm enabled)
+          if (data?.session) {
+            toast.success("Compte créé ! Bienvenue.");
+            // Navigation will happen via useEffect
+          } else {
+            toast.success("Compte créé avec succès ! Si nécessaire, vérifiez votre email.");
+          }
         }
       }
     } catch (error) {
