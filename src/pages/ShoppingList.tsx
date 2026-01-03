@@ -141,7 +141,7 @@ const ShoppingList = () => {
       <div className="fixed left-0 right-0 bg-background border-t p-4 z-40 pb-safe" style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}>
         <div className="max-w-2xl mx-auto flex gap-2">
           <Input
-            placeholder="Ajouter (ex: 2 tomates, 500g farine...)"
+            placeholder="Ajouter (ex: 2 tomates, farine 500g...)"
             value={newItemInput}
             onChange={(e) => setNewItemInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleAddItem()}

@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useStock } from "@/hooks/useStock";
 import { useIngredients } from "@/hooks/useIngredients";
 import { IngredientCategory, MeasurementUnit } from "@/types/database";
+import { parseIngredientInput } from "@/lib/ingredient-parser";
 
 const AddIngredient = () => {
   const navigate = useNavigate();
@@ -22,6 +23,24 @@ const AddIngredient = () => {
   const [category, setCategory] = useState<IngredientCategory>("other");
   const [expirationDate, setExpirationDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleNameBlur = () => {
+    if (!name) return;
+    const parsed = parseIngredientInput(name);
+
+    // If we successfully parsed a quantity, update the fields
+    if (parsed.quantity !== null) {
+      // Only update if we actually extracted something (name changed)
+      if (parsed.name !== name) {
+        setName(parsed.name);
+        setQuantity(parsed.quantity.toString());
+        if (parsed.unit) {
+          setUnit(parsed.unit);
+        }
+        toast.info("Quantité et unité détectées automatiquement !");
+      }
+    }
+  };
 
   const handleSave = async () => {
     if (!name || !quantity) {
@@ -78,6 +97,7 @@ const AddIngredient = () => {
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                onBlur={handleNameBlur}
                 placeholder="ex : Tomates"
                 disabled={isSubmitting}
               />

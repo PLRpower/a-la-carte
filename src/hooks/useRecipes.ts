@@ -42,13 +42,26 @@ export const useRecipes = (filters?: RecipeFilters) => {
         query = query.eq('difficulty', difficulty);
       }
 
-      if (searchQuery) {
-        query = query.ilike('title', `%${searchQuery}%`);
-      }
+      // Removed DB-side search to handle accents client-side
+      // if (searchQuery) {
+      //   query = query.ilike('title', `%${searchQuery}%`);
+      // }
 
       const { data, error } = await query;
 
       if (error) throw error;
+
+      // Filter by search query (accent-insensitive)
+      let filteredData = data;
+      if (searchQuery) {
+        const normalizeText = (str: string) =>
+          str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+        const normalizedQuery = normalizeText(searchQuery);
+        filteredData = data.filter(recipe =>
+          normalizeText(recipe.title).includes(normalizedQuery)
+        );
+      }
 
       // Check if recipes are favorited by current user
       const { data: favorites } = await supabase
@@ -58,7 +71,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
 
       const favoritedIds = new Set(favorites?.map(f => f.recipe_id) || []);
 
-      return data.map(recipe => ({
+      return filteredData.map(recipe => ({
         ...recipe,
         is_favorited: favoritedIds.has(recipe.id)
       })) as RecipeWithDetails[];
