@@ -65,6 +65,7 @@ const RecipeEdit = () => {
                     cookTime: recipe.cook_time?.toString() || "",
                     servings: recipe.servings?.toString() || "",
                     category: recipe.category || "",
+                    tags: recipe.tags || (recipe.category ? [recipe.category] : []),
                     steps: recipe.instructions || "",
                     ingredients: ingredientsText,
                     imageUrl: recipe.image_url,
@@ -111,7 +112,8 @@ const RecipeEdit = () => {
                     prep_time: formData.prepTime ? parseInt(formData.prepTime) : null,
                     cook_time: formData.cookTime ? parseInt(formData.cookTime) : null,
                     servings: formData.servings ? parseInt(formData.servings) : null,
-                    category: formData.category as any || null,
+                    category: (formData.tags?.[0] || null) as any,
+                    tags: formData.tags || [],
                     instructions: formData.steps,
                     image_url: imageUrl,
                     source: formData.source as any || null,
@@ -184,7 +186,7 @@ const RecipeEdit = () => {
                         variant="ghost"
                         size="icon"
                         className="text-primary-foreground hover:text-primary-foreground/80 -ml-2"
-                        onClick={() => navigate(`/recipe/${id}`)}
+                        onClick={() => navigate(`/recipe/${id}`, { replace: true })}
                     >
                         <ArrowLeft className="w-6 h-6" />
                     </Button>

@@ -1,6 +1,6 @@
 export type AppRole = 'admin' | 'user';
-export type RecipeDifficulty = 'easy' | 'medium' | 'hard';
-export type RecipeCategory = 'breakfast' | 'lunch' | 'dinner' | 'dessert' | 'snack' | 'vegetarian' | 'vegan';
+export type RecipeDifficulty = 'facile' | 'moyen' | 'difficile';
+export type RecipeCategory = 'petit_dejeuner' | 'dejeuner' | 'diner' | 'dessert' | 'encas' | 'vegetarien' | 'vegan';
 export type RecipeSource = 'book' | 'cooking_class' | 'website';
 export type IngredientCategory = 'vegetables' | 'fruits' | 'dairy' | 'meat' | 'fish' | 'grains' | 'oils' | 'spices' | 'beverages' | 'other';
 export type MeasurementUnit = 'g' | 'kg' | 'ml' | 'l' | 'cup' | 'tbsp' | 'tsp' | 'oz' | 'lb' | 'piece';
@@ -33,6 +33,7 @@ export interface Recipe {
   cook_time: number | null;
   servings: number | null;
   category: RecipeCategory | null;
+  tags: string[] | null;
   source: RecipeSource | null;
   instructions: string | null;
   is_public: boolean;

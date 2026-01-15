@@ -1,4 +1,4 @@
-import { ArrowLeft, Plus, AlertCircle, ShoppingCart, Trash2 } from "lucide-react";
+import { Plus, AlertCircle, ShoppingCart, Trash2, Pencil } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,15 +32,8 @@ const Stock = () => {
     <div className="pb-20 min-h-screen">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <div className="flex items-center gap-3 mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-primary-foreground hover:bg-primary-foreground/10"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+        <div className="flex items-center gap-3">
+
           <div>
             <h1 className="text-2xl font-bold">Mes Ingrédients</h1>
           </div>
@@ -76,7 +69,7 @@ const Stock = () => {
       <section className="px-6 mt-4">
         <Button className="w-full" onClick={() => navigate("/stock/add")}>
           <Plus className="w-4 h-4 mr-2" />
-          Ajouter un article
+          Ajouter un article manuellement
         </Button>
       </section>
 
@@ -122,11 +115,11 @@ const Stock = () => {
                     </div>
                     <div className="flex gap-2">
                       <Button
-                        size="sm"
+                        size="icon"
                         variant="ghost"
                         onClick={() => navigate(`/stock/edit/${item.id}`)}
                       >
-                        Modifier
+                        <Pencil className="w-4 h-4 text-[#3D2B1F]" />
                       </Button>
                       <Button
                         size="icon"

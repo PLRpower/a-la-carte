@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { RecipeImage } from "@/components/RecipeImage";
 import { ArrowLeft, Clock, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,20 +55,15 @@ const FavoriteRecipes = () => {
                                 className="overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                                 onClick={() => navigate(`/recipe/${recipe.id}`)}
                             >
-                                <div className="relative">
-                                    {recipe.image_url ? (
-                                        <img
-                                            src={recipe.image_url}
-                                            alt={recipe.title}
-                                            className="w-full h-40 object-cover"
-                                            loading={index < 2 ? "eager" : "lazy"}
-                                            {...({ fetchPriority: index < 2 ? "high" : "auto" } as any)}
-                                        />
-                                    ) : (
-                                        <div className="w-full h-40 bg-muted flex items-center justify-center">
-                                            <span className="text-muted-foreground">Pas d'image</span>
-                                        </div>
-                                    )}
+                                <div className="relative h-40">
+                                    <RecipeImage
+                                        src={recipe.image_url}
+                                        alt={recipe.title}
+                                        className="w-full h-full"
+                                        loading={index < 2 ? "eager" : "lazy"}
+                                        // @ts-ignore
+                                        fetchPriority={index < 2 ? "high" : "auto"}
+                                    />
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -83,11 +79,13 @@ const FavoriteRecipes = () => {
                                 <CardContent className="p-4">
                                     <div className="flex items-start justify-between gap-2 mb-2">
                                         <h3 className="font-semibold line-clamp-1">{recipe.title}</h3>
-                                        {recipe.category && (
-                                            <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                                                {recipe.category}
-                                            </Badge>
-                                        )}
+                                        <div className="flex flex-wrap gap-1">
+                                            {recipe.tags && recipe.tags.map((tag) => (
+                                                <Badge key={tag} variant="secondary" className="flex-shrink-0 text-[10px] px-1.5 py-0">
+                                                    {tag}
+                                                </Badge>
+                                            ))}
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                         <div className="flex items-center gap-1">

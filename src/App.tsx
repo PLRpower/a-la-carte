@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState, lazy, Suspense } from "react";
 import { BottomNav } from "./components/BottomNav";
+import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 
 const Home = lazy(() => import("./pages/Home"));
@@ -20,6 +21,7 @@ const Preferences = lazy(() => import("./pages/Preferences"));
 const AddIngredient = lazy(() => import("./pages/AddIngredient"));
 const EditIngredient = lazy(() => import("./pages/EditIngredient"));
 const RecipeAdd = lazy(() => import("./pages/RecipeAdd"));
+const RecipeAddMethod = lazy(() => import("./pages/RecipeAddMethod"));
 const RecipeEdit = lazy(() => import("./pages/RecipeEdit"));
 const RecipeShare = lazy(() => import("./pages/RecipeShare"));
 const RecipeShareInstructions = lazy(() => import("./pages/RecipeShareInstructions"));
@@ -80,6 +82,7 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <ScrollToTop />
           <AuthProvider>
             <div className="max-w-2xl mx-auto bg-background min-h-screen relative">
               <Suspense fallback={
@@ -100,6 +103,7 @@ const App = () => {
                   <Route path="/profile/edit" element={<ProtectedRoute><ProfileEdit /></ProtectedRoute>} />
                   <Route path="/profile/preferences" element={<ProtectedRoute><Preferences /></ProtectedRoute>} />
                   <Route path="/recipes/add" element={<ProtectedRoute><RecipeAdd /></ProtectedRoute>} />
+                  <Route path="/recipes/new-method" element={<ProtectedRoute><RecipeAddMethod /></ProtectedRoute>} />
                   <Route path="/recipes/edit/:id" element={<ProtectedRoute><RecipeEdit /></ProtectedRoute>} />
                   <Route path="/recipes/share" element={<ProtectedRoute><RecipeShare /></ProtectedRoute>} />
                   <Route path="/recipes/share-instructions" element={<ProtectedRoute><RecipeShareInstructions /></ProtectedRoute>} />

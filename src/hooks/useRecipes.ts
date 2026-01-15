@@ -4,7 +4,7 @@ import { Recipe, RecipeWithDetails, RecipeCategory, RecipeDifficulty } from '@/t
 import { useAuth } from './useAuth';
 
 interface RecipeFilters {
-  category?: RecipeCategory;
+  category?: RecipeCategory | string;
   difficulty?: RecipeDifficulty;
   searchQuery?: string;
 }
@@ -35,7 +35,8 @@ export const useRecipes = (filters?: RecipeFilters) => {
         .order('created_at', { ascending: false });
 
       if (category) {
-        query = query.eq('category', category);
+        const categories = category.includes(',') ? category.split(',') : [category];
+        query = query.overlaps('tags', categories);
       }
 
       if (difficulty) {

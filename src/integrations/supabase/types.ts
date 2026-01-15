@@ -97,6 +97,35 @@ export type Database = {
         }
         Relationships: []
       }
+      recipe_photos: {
+        Row: {
+          created_at: string
+          id: string
+          recipe_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipe_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipe_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_photos_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipe_ingredients: {
         Row: {
           id: string
@@ -152,6 +181,7 @@ export type Database = {
           is_public: boolean | null
           prep_time: number | null
           servings: number | null
+          tags: string[] | null
           title: string
           updated_at: string
           user_id: string
@@ -168,6 +198,7 @@ export type Database = {
           is_public?: boolean | null
           prep_time?: number | null
           servings?: number | null
+          tags?: string[] | null
           title: string
           updated_at?: string
           user_id: string
@@ -184,6 +215,7 @@ export type Database = {
           is_public?: boolean | null
           prep_time?: number | null
           servings?: number | null
+          tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string
@@ -375,14 +407,14 @@ export type Database = {
       | "lb"
       | "piece"
       recipe_category:
-      | "breakfast"
-      | "lunch"
-      | "dinner"
+      | "petit_dejeuner"
+      | "dejeuner"
+      | "diner"
       | "dessert"
-      | "snack"
-      | "vegetarian"
+      | "encas"
+      | "vegetarien"
       | "vegan"
-      recipe_difficulty: "easy" | "medium" | "hard"
+      recipe_difficulty: "facile" | "moyen" | "difficile"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -536,15 +568,15 @@ export const Constants = {
         "piece",
       ],
       recipe_category: [
-        "breakfast",
-        "lunch",
-        "dinner",
+        "petit_dejeuner",
+        "dejeuner",
+        "diner",
         "dessert",
-        "snack",
-        "vegetarian",
+        "encas",
+        "vegetarien",
         "vegan",
       ],
-      recipe_difficulty: ["easy", "medium", "hard"],
+      recipe_difficulty: ["facile", "moyen", "difficile"],
     },
   },
 } as const

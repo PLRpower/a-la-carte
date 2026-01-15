@@ -102,7 +102,44 @@ export const parseIngredientInput = (input: string): ParsedIngredient => {
         };
     }
 
-    // 2. If no quantity at start, try to match at the end
+    // 2. Check for parenthesized quantity at the end: "Tomates (500g)" or "Items (2)"
+    // Pattern: Optional Space + ( + (Fraction or Decimal) + Optional Space + Optional Unit + ) + Optional Space + End
+    const parenEndRegex = new RegExp(`\\s*\\(\\s*((\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+)|(\\d+(?:[.,]\\d+)?))\\s*(${unitPattern})?\\s*\\)\\s*$`, 'i');
+    const parenEndMatch = trimmedInput.match(parenEndRegex);
+
+    if (parenEndMatch) {
+        let quantity: number | null = null;
+        const numberPart = parenEndMatch[1];
+        const fractionPart = parenEndMatch[2];
+        const decimalPart = parenEndMatch[3];
+        const unitPart = parenEndMatch[4];
+
+        if (fractionPart) {
+            const fractionParts = fractionPart.split(/\s+/);
+            if (fractionParts.length === 2) {
+                const [whole, frac] = fractionParts;
+                const [num, den] = frac.split('/');
+                quantity = parseInt(whole) + parseInt(num) / parseInt(den);
+            } else {
+                const [num, den] = fractionPart.split('/');
+                quantity = parseInt(num) / parseInt(den);
+            }
+        } else if (decimalPart) {
+            quantity = parseFloat(decimalPart.replace(',', '.'));
+        }
+
+        let unit: MeasurementUnit | null = null;
+        if (unitPart) {
+            unit = UNIT_MAPPINGS[unitPart.toLowerCase()] || null;
+        } else if (quantity !== null) {
+            unit = 'piece';
+        }
+
+        const name = trimmedInput.slice(0, parenEndMatch.index).trim();
+        return { name, quantity, unit };
+    }
+
+    // 3. If no quantity at start/paren-end, try to match at the end (no parens)
     // Pattern: Space + (Fraction or Decimal) + Optional Space + Optional Unit + End
     // e.g. "tomates 500g" or "tomates 1/2 cup"
     const endRegex = new RegExp(`\\s+((\\d+\\s+\\d+\\/\\d+|\\d+\\/\\d+)|(\\d+(?:[.,]\\d+)?))\\s*(${unitPattern})?$`, 'i');

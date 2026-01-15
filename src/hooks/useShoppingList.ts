@@ -29,6 +29,7 @@ export const useShoppingList = () => {
       return data as ShoppingListItemWithIngredient[];
     },
     enabled: !!user,
+    refetchInterval: 5000,
   });
 
   // Real-time subscription
@@ -127,6 +128,41 @@ export const useShoppingList = () => {
       const { error } = await supabase
         .from('shopping_list')
         .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
+    },
+  });
+
+  const updateItemMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<ShoppingListItem> }) => {
+      // If name is updated, re-evaluate ingredient matching
+      if (updates.name) {
+        // Fetch all ingredients to perform smart matching (similar to addSmartItem)
+        const ingredients = await queryClient.ensureQueryData({
+          queryKey: ['ingredients'],
+          queryFn: async () => {
+            const { data, error } = await supabase
+              .from('ingredients')
+              .select('*')
+              .order('name');
+
+            if (error) throw error;
+            return data as Ingredient[];
+          },
+          staleTime: 1000 * 60 * 60 * 24, // 24 hours
+        });
+
+        // Find best match for the new name
+        const bestMatch = findBestIngredientMatch(updates.name, ingredients);
+        updates.ingredient_id = bestMatch?.id || null;
+      }
+
+      const { error } = await supabase
+        .from('shopping_list')
+        .update(updates)
         .eq('id', id);
       if (error) throw error;
     },
@@ -278,6 +314,15 @@ export const useShoppingList = () => {
     }
   };
 
+  const updateItem = async (id: string, updates: Partial<ShoppingListItem>) => {
+    try {
+      await updateItemMutation.mutateAsync({ id, updates });
+      return { error: null };
+    } catch (err) {
+      return { error: err as Error };
+    }
+  };
+
   const clearCheckedItems = async () => {
     try {
       await clearCheckedItemsMutation.mutateAsync();
@@ -302,6 +347,7 @@ export const useShoppingList = () => {
     error: error as Error | null,
     addSmartItem,
     toggleItem,
+    updateItem,
     deleteItem,
     clearCheckedItems,
     finishShopping,

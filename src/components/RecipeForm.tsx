@@ -10,7 +10,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Camera, Upload } from "lucide-react";
+import { Camera, Upload, X, Image as ImageIcon, ChevronsUpDown, Check } from "lucide-react";
+import { MultiSelect } from "./ui/multi-select";
+
+const CATEGORY_OPTIONS = [
+    { value: 'petit_dejeuner', label: 'Petit-déjeuner' },
+    { value: 'dejeuner', label: 'Déjeuner' },
+    { value: 'diner', label: 'Dîner' },
+    { value: 'dessert', label: 'Dessert' },
+    { value: 'encas', label: 'En-cas' },
+    { value: 'vegetarien', label: 'Végétarien' },
+    { value: 'vegan', label: 'Végétalien' }
+];
 
 export interface RecipeFormData {
     title: string;
@@ -21,8 +32,10 @@ export interface RecipeFormData {
     prepTime: string;
     cookTime: string;
     servings: string;
-    category: string;
+    tags: string[];
+    category?: string;
     imageFile: File | null;
+    imageFiles?: File[];
     imageUrl?: string | null;
     source?: string;
 }
@@ -50,12 +63,19 @@ export const RecipeForm = ({
     const [prepTime, setPrepTime] = useState(initialData?.prepTime || "");
     const [cookTime, setCookTime] = useState(initialData?.cookTime || "");
     const [servings, setServings] = useState(initialData?.servings || "");
-    const [category, setCategory] = useState(initialData?.category || "");
+    const [tags, setTags] = useState<string[]>(initialData?.tags || []);
     const [source, setSource] = useState(initialData?.source || "");
-    const [imageFile, setImageFile] = useState<File | null>(initialData?.imageFile || null);
+
+    // Manage multiple files
+    const [imageFiles, setImageFiles] = useState<File[]>(
+        initialData?.imageFiles || (initialData?.imageFile ? [initialData.imageFile] : [])
+    );
+    // Manage existing image URL (legacy/single) - TODO: Expand for multiple existing URLs
+    const [imageUrl, setImageUrl] = useState<string | null>(initialData?.imageUrl || null);
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Update state when initialData changes (important for AI import)
+    // Update state when initialData changes
     useEffect(() => {
         if (initialData) {
             if (initialData.title) setTitle(initialData.title);
@@ -66,9 +86,17 @@ export const RecipeForm = ({
             if (initialData.prepTime) setPrepTime(initialData.prepTime);
             if (initialData.cookTime) setCookTime(initialData.cookTime);
             if (initialData.servings) setServings(initialData.servings);
-            if (initialData.category) setCategory(initialData.category);
+            if (initialData.tags) setTags(initialData.tags);
+            // Backward compatibility
+            if (initialData.category && (!initialData.tags || initialData.tags.length === 0)) {
+                setTags([initialData.category]);
+            }
             if (initialData.source) setSource(initialData.source);
-            if (initialData.imageFile) setImageFile(initialData.imageFile);
+
+            const newFiles = initialData.imageFiles || (initialData.imageFile ? [initialData.imageFile] : []);
+            if (newFiles.length > 0) setImageFiles(newFiles);
+
+            if (initialData.imageUrl) setImageUrl(initialData.imageUrl);
         }
     }, [initialData]);
 
@@ -82,15 +110,33 @@ export const RecipeForm = ({
             prepTime,
             cookTime,
             servings,
-            category,
+            tags,
+            // maintain category for backward compatibility, ensure it's null if no tags
+            category: tags[0] || undefined,
             source,
-            imageFile,
-            imageUrl: initialData?.imageUrl
+            imageFile: imageFiles[0] || null, // Backwards compatibility
+            imageFiles: imageFiles,
+            imageUrl: imageUrl
         });
     };
 
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const newFiles = Array.from(e.target.files);
+            setImageFiles(prev => [...prev, ...newFiles]);
+        }
+    };
+
+    const removeFile = (index: number) => {
+        setImageFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeExistingImage = () => {
+        setImageUrl(null);
+    };
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <div>
                 <Label htmlFor="title">Titre de la recette *</Label>
                 <Input
@@ -131,21 +177,13 @@ export const RecipeForm = ({
 
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <Label htmlFor="category">Catégorie</Label>
-                        <Select value={category} onValueChange={setCategory}>
-                            <SelectTrigger className="mt-1.5">
-                                <SelectValue placeholder="Sélectionner" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="petit_dejeuner">Petit-déjeuner</SelectItem>
-                                <SelectItem value="dejeuner">Déjeuner</SelectItem>
-                                <SelectItem value="diner">Dîner</SelectItem>
-                                <SelectItem value="dessert">Dessert</SelectItem>
-                                <SelectItem value="encas">En-cas</SelectItem>
-                                <SelectItem value="vegetarien">Végétarien</SelectItem>
-                                <SelectItem value="vegan">Végétalien</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <Label className="mb-2 block">Tags / Catégories</Label>
+                        <MultiSelect
+                            options={CATEGORY_OPTIONS}
+                            selected={tags}
+                            onChange={setTags}
+                            placeholder="Choisir des catégories..."
+                        />
                     </div>
 
                     <div>
@@ -229,18 +267,53 @@ export const RecipeForm = ({
                 />
             </div>
 
+            {/* Photos Section */}
             <div>
-                <Label htmlFor="photo">Photo de la recette</Label>
-                <div className="flex flex-col gap-3 mt-1.5">
+                <Label htmlFor="photo" className="mb-2 block">Photos de la recette</Label>
+
+                {/* Image Previews */}
+                {(imageUrl || imageFiles.length > 0) && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                        {imageUrl && (
+                            <div className="relative aspect-square rounded-lg overflow-hidden border bg-muted">
+                                <img src={imageUrl} alt="Existing" className="w-full h-full object-cover" />
+                                <button
+                                    onClick={removeExistingImage}
+                                    className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+                        {imageFiles.map((file, idx) => (
+                            <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border bg-muted group">
+                                <img
+                                    src={URL.createObjectURL(file)}
+                                    alt={`Preview ${idx}`}
+                                    className="w-full h-full object-cover"
+                                />
+                                <button
+                                    onClick={() => removeFile(idx)}
+                                    className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                                <div className="absolute bottom-0 text-[10px] bg-black/60 text-white w-full px-2 py-1 truncate">
+                                    {file.name}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <div className="flex flex-col gap-3">
                     <input
                         ref={fileInputRef}
                         type="file"
                         accept="image/*"
+                        multiple
                         className="hidden"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) setImageFile(file);
-                        }}
+                        onChange={handleFileSelect}
                     />
                     <input
                         id="form-camera-input"
@@ -248,34 +321,28 @@ export const RecipeForm = ({
                         accept="image/*"
                         capture="environment"
                         className="hidden"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) setImageFile(file);
-                        }}
+                        onChange={handleFileSelect}
                     />
 
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => document.getElementById('form-camera-input')?.click()}
-                    >
-                        <Camera className="w-4 h-4 mr-2" />
-                        Prendre une photo
-                    </Button>
-                    <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <Upload className="w-4 h-4 mr-2" />
-                        Choisir une photo
-                    </Button>
+                    <div className="grid grid-cols-2 gap-3">
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => document.getElementById('form-camera-input')?.click()}
+                        >
+                            <Camera className="w-4 h-4 mr-2" />
+                            Prendre photo
+                        </Button>
+                        <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <Upload className="w-4 h-4 mr-2" />
+                            Choisir photos
+                        </Button>
+                    </div>
                 </div>
-                {imageFile && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {imageFile.name}
-                    </p>
-                )}
             </div>
 
             <div className="pt-4 space-y-3">

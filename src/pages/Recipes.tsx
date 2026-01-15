@@ -1,22 +1,30 @@
-import { useState } from "react";
-import { Search, Clock, Heart, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { RecipeImage } from "@/components/RecipeImage";
+import { Search, Clock, Heart, Filter, Plus, Book, GraduationCap, Globe, ChefHat } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import RecipeFilters from "@/components/RecipeFilters";
 import { useRecipes } from "@/hooks/useRecipes";
 import { RecipeCategory, RecipeDifficulty } from "@/types/database";
-import { AddRecipeOverlay } from "@/components/AddRecipeOverlay";
 
 const Recipes = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
-  const [isAddOverlayOpen, setIsAddOverlayOpen] = useState(false);
-  const [category, setCategory] = useState<RecipeCategory | "all">("all");
+  const [category, setCategory] = useState<RecipeCategory | "all" | string>("all");
   const [difficulty, setDifficulty] = useState<RecipeDifficulty | "all">("all");
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat) {
+      setCategory(cat as RecipeCategory);
+    }
+  }, [searchParams]);
+
 
   const { recipes, loading, toggleFavorite } = useRecipes({
     searchQuery,
@@ -30,38 +38,41 @@ const Recipes = () => {
   };
 
   return (
-    <div className="pb-20 min-h-screen">
+    <div className="pb-20 min-h-screen relative">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <h1 className="text-2xl font-bold mb-4">Toutes les recettes</h1>
-
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Rechercher des recettes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-background text-foreground"
-          />
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">Toutes les recettes</h1>
+          <Button
+            size="icon"
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={() => navigate("/recipes/new-method")}
+          >
+            <Plus className="w-6 h-6" />
+          </Button>
         </div>
 
-        {/* Filter Button */}
-        <Button
-          variant="secondary"
-          className="w-full mt-3"
-          size="sm"
-          onClick={() => setShowFilters(true)}
-        >
-          <Filter className="w-4 h-4 mr-2" />
-          Filtres
-        </Button>
-      </header>
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Rechercher des recettes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-background text-foreground"
+            />
+          </div>
 
-      <AddRecipeOverlay
-        isOpen={isAddOverlayOpen}
-        onClose={() => setIsAddOverlayOpen(false)}
-      />
+          <Button
+            variant="secondary"
+            className="shrink-0"
+            onClick={() => setShowFilters(true)}
+          >
+            <Filter className="w-4 h-4 mr-2" />
+            Filtres
+          </Button>
+        </div>
+      </header>
 
       {showFilters && (
         <RecipeFilters
@@ -90,16 +101,15 @@ const Recipes = () => {
                 className="overflow-hidden shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => navigate(`/recipe/${recipe.id}`)}
               >
-                <div className="relative">
-                  {recipe.image_url && (
-                    <img
-                      src={recipe.image_url}
-                      alt={recipe.title}
-                      className="w-full h-40 object-cover"
-                      loading={index < 2 ? "eager" : "lazy"}
-                      {...({ fetchPriority: index < 2 ? "high" : "auto" } as any)}
-                    />
-                  )}
+                <div className="relative h-40">
+                  <RecipeImage
+                    src={recipe.image_url}
+                    alt={recipe.title}
+                    className="w-full h-full"
+                    loading={index < 2 ? "eager" : "lazy"}
+                    // @ts-ignore
+                    fetchPriority={index < 2 ? "high" : "auto"}
+                  />
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -118,18 +128,37 @@ const Recipes = () => {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-semibold">{recipe.title}</h3>
-                    {recipe.category && (
-                      <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                        {recipe.category}
-                      </Badge>
-                    )}
+                    <div className="flex flex-wrap gap-1">
+                      {recipe.tags && recipe.tags.map((tag) => (
+                        <Badge key={tag} variant="secondary" className="flex-shrink-0 text-[10px] px-1.5 py-0">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" />
                       {(recipe.prep_time || 0) + (recipe.cook_time || 0)} min
                     </div>
-                    {recipe.difficulty && <div>{recipe.difficulty}</div>}
+                    {recipe.difficulty && (
+                      <div className="flex items-center gap-1">
+                        <ChefHat className="w-3.5 h-3.5" />
+                        {recipe.difficulty}
+                      </div>
+                    )}
+                    {recipe.source && (
+                      <div className="flex items-center gap-1">
+                        {recipe.source === 'book' && <Book className="w-3.5 h-3.5" />}
+                        {recipe.source === 'cooking_class' && <GraduationCap className="w-3.5 h-3.5" />}
+                        {recipe.source === 'website' && <Globe className="w-3.5 h-3.5" />}
+                        <span className="capitalize text-xs">
+                          {recipe.source === 'book' ? 'Livre' :
+                            recipe.source === 'cooking_class' ? 'Cours de cuisine' :
+                              recipe.source === 'website' ? 'Web' : recipe.source}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>

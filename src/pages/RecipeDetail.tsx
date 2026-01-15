@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { RecipeImage } from "@/components/RecipeImage";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Heart, Clock, ChefHat, MoreVertical, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ const RecipeDetail = () => {
   const { recipes, toggleFavorite } = useRecipes();
   const { toast } = useToast();
   const [servings, setServings] = useState(4);
+  const [photos, setPhotos] = useState<string[]>([]);
 
   const recipe = recipes.find(r => r.id === id);
 
@@ -28,7 +30,22 @@ const RecipeDetail = () => {
     if (recipe?.servings) {
       setServings(recipe.servings);
     }
-  }, [recipe]);
+
+    // Fetch photos
+    const fetchPhotos = async () => {
+      if (!id) return;
+      const { data } = await supabase
+        .from('recipe_photos')
+        .select('url')
+        .eq('recipe_id', id);
+
+      if (data) {
+        setPhotos(data.map(p => p.url));
+      }
+    };
+
+    fetchPhotos();
+  }, [recipe, id]);
 
   if (!recipe) {
     return (
@@ -41,23 +58,19 @@ const RecipeDetail = () => {
   return (
     <div className="pb-20 min-h-screen">
       {/* Image Header */}
-      <div className="relative">
-        {recipe.image_url && (
-          <>
-            <img
-              src={recipe.image_url}
-              alt={recipe.title}
-              className="w-full h-64 object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-          </>
-        )}
+      <div className="relative h-64 w-full bg-muted">
+        <RecipeImage
+          src={recipe.image_url}
+          alt={recipe.title}
+          className="w-full h-full"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
 
         <Button
           variant="ghost"
           size="icon"
           className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm hover:bg-white"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/recipes')}
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -124,11 +137,13 @@ const RecipeDetail = () => {
         <div className="absolute bottom-4 left-6 right-6">
           <h1 className="text-2xl font-bold text-white mb-2">{recipe.title}</h1>
           <div className="flex items-center gap-3 text-white text-sm">
-            {recipe.category && (
-              <Badge className="bg-accent text-accent-foreground">
-                {recipe.category}
-              </Badge>
-            )}
+            <div className="flex flex-wrap gap-1">
+              {recipe.tags && recipe.tags.map((tag) => (
+                <Badge key={tag} className="bg-accent text-accent-foreground">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
             <div className="flex items-center gap-1">
               <Clock className="w-4 h-4" />
               {(recipe.prep_time || 0) + (recipe.cook_time || 0)} min
@@ -204,6 +219,24 @@ const RecipeDetail = () => {
               <p className="text-sm whitespace-pre-wrap">{recipe.instructions}</p>
             </CardContent>
           </Card>
+        </section>
+      )}
+
+      {/* Photos Section */}
+      {photos.length > 0 && (
+        <section className="px-6 mt-2 pb-8">
+          <h2 className="text-xl font-semibold mb-4">Photos originales</h2>
+          <div className="flex flex-col gap-4">
+            {photos.map((url, idx) => (
+              <div key={idx} className="rounded-lg overflow-hidden border bg-muted">
+                <img
+                  src={url}
+                  alt={`Photo originale ${idx + 1}`}
+                  className="w-full h-auto object-contain max-h-[500px]"
+                />
+              </div>
+            ))}
+          </div>
         </section>
       )}
     </div>

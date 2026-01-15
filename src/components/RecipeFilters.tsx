@@ -47,12 +47,13 @@ const RecipeFilters = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Toutes les catégories</SelectItem>
-                  <SelectItem value="italian">Italien</SelectItem>
-                  <SelectItem value="seafood">Fruits de mer</SelectItem>
-                  <SelectItem value="asian">Asiatique</SelectItem>
-                  <SelectItem value="salad">Salade</SelectItem>
+                  <SelectItem value="petit_dejeuner">Petit-déjeuner</SelectItem>
+                  <SelectItem value="dejeuner">Déjeuner</SelectItem>
+                  <SelectItem value="diner">Dîner</SelectItem>
                   <SelectItem value="dessert">Dessert</SelectItem>
-                  <SelectItem value="vegetarian">Végétarien</SelectItem>
+                  <SelectItem value="encas">En-cas</SelectItem>
+                  <SelectItem value="vegetarien">Végétarien</SelectItem>
+                  <SelectItem value="vegan">Végétalien</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -65,9 +66,9 @@ const RecipeFilters = ({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tous les niveaux</SelectItem>
-                  <SelectItem value="easy">Facile</SelectItem>
-                  <SelectItem value="medium">Moyen</SelectItem>
-                  <SelectItem value="hard">Difficile</SelectItem>
+                  <SelectItem value="facile">Facile</SelectItem>
+                  <SelectItem value="moyen">Moyen</SelectItem>
+                  <SelectItem value="difficile">Difficile</SelectItem>
                 </SelectContent>
               </Select>
             </div>

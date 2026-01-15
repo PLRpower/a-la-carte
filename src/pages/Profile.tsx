@@ -42,13 +42,15 @@ const Profile = () => {
                   <AvatarImage src={profile.avatar_url} />
                 ) : (
                   <AvatarFallback className="bg-accent text-accent-foreground text-xl">
-                    {user?.user_metadata?.first_name?.[0] || user?.user_metadata?.last_name?.[0] || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
+                    {profile?.first_name?.[0] || profile?.last_name?.[0] || user?.user_metadata?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
                   </AvatarFallback>
                 )}
               </Avatar>
               <div className="flex-1">
                 <h2 className="text-lg font-semibold">
-                  {user?.user_metadata?.display_name ||
+                  {profile?.first_name || profile?.last_name
+                    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+                    : user?.user_metadata?.display_name ||
                     user?.user_metadata?.full_name ||
                     (user?.user_metadata?.first_name || user?.user_metadata?.last_name
                       ? `${user.user_metadata.first_name || ''} ${user.user_metadata.last_name || ''}`.trim()
@@ -57,6 +59,11 @@ const Profile = () => {
                 <p className="text-sm text-muted-foreground">
                   {user?.email || 'Connectez-vous pour synchroniser vos recettes'}
                 </p>
+                {profile?.bio && (
+                  <p className="text-sm mt-2 text-foreground/80 line-clamp-2 italic">
+                    "{profile.bio}"
+                  </p>
+                )}
               </div>
             </div>
           </CardContent>
@@ -136,7 +143,7 @@ const Profile = () => {
 
       {/* App Version */}
       <div className="text-center text-xs text-muted-foreground pb-6">
-        À la carte v1.0.0
+        À la carte v1.2.0
       </div>
     </div>
   );

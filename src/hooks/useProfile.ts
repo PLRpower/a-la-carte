@@ -15,28 +15,37 @@ export const useProfile = () => {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching profile:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
-    staleTime: Infinity, // Profile data rarely changes, cache it indefinitely
-    gcTime: 1000 * 60 * 60 * 24, // Keep in cache for 24 hours
+    staleTime: 1000 * 60 * 5, // 5 minutes instead of Infinity
+    gcTime: 1000 * 60 * 60 * 24,
+    retry: false,
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: Partial<Profile>) => {
       if (!user) throw new Error('No user');
+      // Use upsert to handle cases where the profile row might be missing
       const { error } = await supabase
         .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+        .upsert({
+          ...updates,
+          id: user.id,
+          updated_at: new Date().toISOString(),
+        });
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+      queryClient.refetchQueries({ queryKey: ['profile', user?.id] });
     },
   });
 

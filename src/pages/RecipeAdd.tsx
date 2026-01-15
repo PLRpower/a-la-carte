@@ -8,7 +8,7 @@ import { useIngredients } from "@/hooks/useIngredients";
 import { uploadFile } from "@/lib/supabase-storage";
 import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
 import { compressImage } from "@/utils/imageOptimizer";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const RecipeAdd = () => {
@@ -22,16 +22,45 @@ const RecipeAdd = () => {
     const [scannedData, setScannedData] = useState<Partial<RecipeFormData>>({
         source: (location.state?.source as string)
     });
+    const [pendingRecipes, setPendingRecipes] = useState<any[]>([]);
+    const [originalImageFile, setOriginalImageFile] = useState<File | null>(null);
+
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const convertAiRecipeToFormData = (recipe: any, imageFile: File | null): Partial<RecipeFormData> => {
+        let ingredientsText = "";
+        if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+            ingredientsText = recipe.ingredients
+                .map((ing: any) => ing.name)
+                .join("\n");
+        }
+
+        return {
+            title: recipe.title || "",
+            description: recipe.description || "",
+            difficulty: recipe.difficulty || "",
+            prepTime: recipe.prep_time?.toString() || "",
+            cookTime: recipe.cook_time?.toString() || "",
+            servings: recipe.servings?.toString() || "",
+            tags: recipe.tags || (recipe.category ? [recipe.category] : []),
+            category: recipe.category || "",
+            steps: recipe.instructions || "",
+            ingredients: ingredientsText,
+            imageFiles: imageFile ? [imageFile] : [],
+            source: (location.state?.source as string) || 'cooking_class'
+        };
+    };
 
     useEffect(() => {
         const rawFile = location.state?.file as File;
         if (rawFile) {
             setScanning(true);
+            setOriginalImageFile(rawFile);
+
             const scanImage = async () => {
                 try {
-                    const file = await compressImage(rawFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 }); // More aggressive compression for scanning
+                    const file = await compressImage(rawFile, { maxSizeMB: 0.5, maxWidthOrHeight: 1280 });
                     const reader = new FileReader();
                     reader.onloadend = async () => {
                         const base64 = reader.result as string;
@@ -44,38 +73,31 @@ const RecipeAdd = () => {
 
                             if (error) throw error;
                             if (data?.error) throw new Error(data.error);
-                            if (!data?.recipe) throw new Error("Aucune donnée de recette reçue");
 
-                            const recipe = data.recipe;
+                            // Handle new array format or fallback to single
+                            const recipes = data?.recipes || (data?.recipe ? [data.recipe] : []);
 
-                            let ingredientsText = "";
-                            if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-                                ingredientsText = recipe.ingredients
-                                    .map((ing: any) => ing.name)
-                                    .join("\n");
+                            if (recipes.length === 0) throw new Error("Aucune donnée de recette reçue");
+
+                            const firstRecipe = recipes[0];
+                            const remainingRecipes = recipes.slice(1);
+
+                            setPendingRecipes(remainingRecipes);
+                            setScannedData(convertAiRecipeToFormData(firstRecipe, file));
+                            setScanning(false);
+
+                            if (remainingRecipes.length > 0) {
+                                toast({
+                                    title: "Plusieurs recettes détectées",
+                                    description: `${recipes.length} recettes trouvées. Vous allez les vérifier une par une.`,
+                                });
                             }
 
-                            setScannedData({
-                                title: recipe.title || "",
-                                description: recipe.description || "",
-                                difficulty: recipe.difficulty || "",
-                                prepTime: recipe.prep_time?.toString() || "",
-                                cookTime: recipe.cook_time?.toString() || "",
-                                servings: recipe.servings?.toString() || "",
-                                category: recipe.category || "",
-                                steps: recipe.instructions || "",
-                                ingredients: ingredientsText,
-                                imageFile: file,
-                                source: (location.state?.source as string) || 'book'
-                            });
-
-                            setScanning(false);
                         } catch (scanError: any) {
                             console.error('Scan processing error:', scanError);
                             setError("L'IA n'a pas pu extraire toutes les données. Veuillez compléter manuellement.");
                             setScanning(false);
-                            // Still set the file so user can edit manually
-                            setScannedData({ imageFile: file });
+                            setScannedData({ imageFiles: [file] });
                         }
                     };
                     reader.readAsDataURL(file);
@@ -104,11 +126,21 @@ const RecipeAdd = () => {
 
         setSaving(true);
         try {
-            let imageUrl = null;
-            if (formData.imageFile) {
-                const { url, error: uploadError } = await uploadFile('recipe-images', formData.imageFile, user.id);
-                if (uploadError) throw uploadError;
-                imageUrl = url;
+            // Upload multiple images
+            let mainImageUrl = formData.imageUrl || null;
+            const uploadedImageUrls: string[] = [];
+
+            if (formData.imageFiles && formData.imageFiles.length > 0) {
+                for (const file of formData.imageFiles) {
+                    // If it's a new file (not just a placeholder), upload it
+                    const { url, error: uploadError } = await uploadFile('recipe-images', file, user.id);
+                    if (uploadError) throw uploadError;
+                    uploadedImageUrls.push(url);
+                }
+                // Use first uploaded image as main image if none exists
+                if (!mainImageUrl && uploadedImageUrls.length > 0) {
+                    mainImageUrl = uploadedImageUrls[0];
+                }
             }
 
             const { data: recipe, error: recipeError } = await supabase
@@ -121,9 +153,10 @@ const RecipeAdd = () => {
                     prep_time: formData.prepTime ? parseInt(formData.prepTime) : null,
                     cook_time: formData.cookTime ? parseInt(formData.cookTime) : null,
                     servings: formData.servings ? parseInt(formData.servings) : null,
-                    category: formData.category as any || null,
+                    category: (formData.tags?.[0] || null) as any,
+                    tags: formData.tags || [],
                     instructions: formData.steps,
-                    image_url: imageUrl,
+                    image_url: mainImageUrl, // Main image for thumbnails
                     is_public: true,
                     source: formData.source as any || null,
                 }])
@@ -131,6 +164,19 @@ const RecipeAdd = () => {
                 .single();
 
             if (recipeError) throw recipeError;
+
+            // Insert photos into recipe_photos table
+            if (uploadedImageUrls.length > 0) {
+                const photoInserts = uploadedImageUrls.map(url => ({
+                    recipe_id: recipe.id,
+                    url: url
+                }));
+                // Use upsert or insert? Insert is fine.
+                const { error: photosError } = await supabase
+                    .from('recipe_photos')
+                    .insert(photoInserts);
+                if (photosError) console.error("Error saving photos:", photosError); // Non-blocking
+            }
 
             const ingredientLines = formData.ingredients.split('\n').filter(line => line.trim());
             for (const line of ingredientLines) {
@@ -153,11 +199,34 @@ const RecipeAdd = () => {
                 }]);
             }
 
-            toast({
-                title: "Recette ajoutée !",
-                description: "Votre recette a été sauvegardée avec succès",
-            });
-            navigate("/recipes");
+            // check pending recipes
+            if (pendingRecipes.length > 0) {
+                toast({
+                    title: "Recette sauvegardée !",
+                    description: `Passage à la recette suivante (${pendingRecipes.length} restantes)...`,
+                });
+
+                const nextRecipe = pendingRecipes[0];
+                const remaining = pendingRecipes.slice(1);
+
+                // We reuse the original image file for subsequent recipes as well,
+                // passing it to the form so it is uploaded/associated again.
+                // Note: This means we re-upload the same file. Efficient? No. 
+                // Reliable? Yes. Optimization would be to upload once, get URL, pass URL.
+                // But RecipeForm expects imageFile or imageUrl.
+                // Let's rely on re-upload for simplicity now or pass scannedData.imageFile
+                const nextFormData = convertAiRecipeToFormData(nextRecipe, scannedData.imageFiles?.[0] || null);
+
+                setPendingRecipes(remaining);
+                setScannedData(nextFormData);
+                window.scrollTo(0, 0);
+            } else {
+                toast({
+                    title: "Recette ajoutée !",
+                    description: "Toutes les recettes ont été sauvegardées.",
+                });
+                navigate("/recipes");
+            }
         } catch (error: any) {
             console.error('Save error:', error);
             toast({
@@ -203,21 +272,41 @@ const RecipeAdd = () => {
                     </Button>
                     <h1 className="text-2xl font-bold">
                         {location.state?.file ? "Vérifier la recette" : "Nouvelle recette"}
+                        {pendingRecipes.length > 0 && <span className="text-sm font-normal ml-2 opacity-80">(+{pendingRecipes.length} autres)</span>}
                     </h1>
                 </div>
             </header>
 
             <div className="px-6 py-8">
                 {error && (
-                    <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-6 text-sm">
-                        {error}
+                    <div className="bg-destructive/10 border-l-4 border-destructive text-destructive p-4 rounded-r-lg mb-6 flex items-start gap-3 relative shadow-sm">
+                        <div className="flex-1">
+                            <p className="font-medium">Une erreur est survenue lors de l'analyse</p>
+                            <p className="text-sm mt-1">{error}</p>
+                        </div>
+                        <button
+                            onClick={() => setError(null)}
+                            className="p-1 hover:bg-destructive/20 rounded-full transition-colors"
+                            aria-label="Fermer le message d'erreur"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
                     </div>
                 )}
+
+                {pendingRecipes.length > 0 && (
+                    <div className="bg-primary/10 text-primary p-4 rounded-lg mb-6 text-sm flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        Il reste {pendingRecipes.length} autre(s) recette(s) détectée(s) à vérifier après celle-ci.
+                    </div>
+                )}
+
                 <RecipeForm
                     initialData={scannedData}
                     onSubmit={handleSave}
                     onCancel={() => navigate("/recipes")}
                     isSubmitting={saving}
+                    submitLabel={pendingRecipes.length > 0 ? "Sauvegarder et suivante" : "Sauvegarder la recette"}
                 />
             </div>
         </div>
