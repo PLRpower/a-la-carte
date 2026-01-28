@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { RecipeImage } from "@/components/RecipeImage";
-import { Search, Clock, Heart, Filter, Plus, Book, GraduationCap, Globe, ChefHat } from "lucide-react";
+import { Search, Clock, Heart, Filter, Plus, Book, GraduationCap, Globe, ChefHat, Camera } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -152,10 +152,12 @@ const Recipes = () => {
                         {recipe.source === 'book' && <Book className="w-3.5 h-3.5" />}
                         {recipe.source === 'cooking_class' && <GraduationCap className="w-3.5 h-3.5" />}
                         {recipe.source === 'website' && <Globe className="w-3.5 h-3.5" />}
+                        {recipe.source === 'photo' && <Camera className="w-3.5 h-3.5" />}
                         <span className="capitalize text-xs">
                           {recipe.source === 'book' ? 'Livre' :
                             recipe.source === 'cooking_class' ? 'Cours de cuisine' :
-                              recipe.source === 'website' ? 'Web' : recipe.source}
+                              recipe.source === 'website' ? 'Web' :
+                                recipe.source === 'photo' ? 'Photo' : recipe.source}
                         </span>
                       </div>
                     )}

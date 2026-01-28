@@ -196,6 +196,7 @@ export const RecipeForm = ({
                                 <SelectItem value="book">Livre de recette</SelectItem>
                                 <SelectItem value="cooking_class">Cours de cuisine</SelectItem>
                                 <SelectItem value="website">Site internet</SelectItem>
+                                <SelectItem value="photo">Photo / Scan</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

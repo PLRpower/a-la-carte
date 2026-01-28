@@ -3,7 +3,7 @@ import { RecipeImage } from "@/components/RecipeImage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, ChefHat, Sparkles, Book, GraduationCap, Globe, Lightbulb, Save, RefreshCw, Coffee, Utensils, IceCream, Apple, Heart, ArrowRight, Salad } from "lucide-react";
+import { Clock, ChefHat, Sparkles, Book, GraduationCap, Globe, Lightbulb, Save, RefreshCw, Coffee, Utensils, IceCream, Apple, Heart, ArrowRight, Salad, Camera } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useStock } from "@/hooks/useStock";
@@ -472,10 +472,12 @@ const Home = () => {
                     {featuredRecipe.source === 'book' && <Book className="w-4 h-4" />}
                     {featuredRecipe.source === 'cooking_class' && <GraduationCap className="w-4 h-4" />}
                     {featuredRecipe.source === 'website' && <Globe className="w-4 h-4" />}
+                    {featuredRecipe.source === 'photo' && <Camera className="w-4 h-4" />}
                     <span className="capitalize text-xs">
                       {featuredRecipe.source === 'book' ? 'Livre' :
                         featuredRecipe.source === 'cooking_class' ? 'Cours de cuisine' :
-                          featuredRecipe.source === 'website' ? 'Web' : featuredRecipe.source}
+                          featuredRecipe.source === 'website' ? 'Web' :
+                            featuredRecipe.source === 'photo' ? 'Photo' : featuredRecipe.source}
                     </span>
                   </div>
                 )}

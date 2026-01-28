@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
-  }
   public: {
     Tables: {
       favorites: {
@@ -47,84 +42,31 @@ export type Database = {
         Row: {
           category: Database["public"]["Enums"]["ingredient_category"] | null
           created_at: string
+          created_by: string | null
           id: string
           image_url: string | null
           name: string
+          synonyms: string[] | null
         }
         Insert: {
           category?: Database["public"]["Enums"]["ingredient_category"] | null
           created_at?: string
+          created_by?: string | null
           id?: string
           image_url?: string | null
           name: string
+          synonyms?: string[] | null
         }
         Update: {
           category?: Database["public"]["Enums"]["ingredient_category"] | null
           created_at?: string
+          created_by?: string | null
           id?: string
           image_url?: string | null
           name?: string
+          synonyms?: string[] | null
         }
         Relationships: []
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          bio: string | null
-          created_at: string
-          first_name: string | null
-          id: string
-          last_name: string | null
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      recipe_photos: {
-        Row: {
-          created_at: string
-          id: string
-          recipe_id: string
-          url: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          recipe_id: string
-          url: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          recipe_id?: string
-          url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recipe_photos_recipe_id_fkey"
-            columns: ["recipe_id"]
-            isOneToOne: false
-            referencedRelation: "recipes"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       recipe_ingredients: {
         Row: {
@@ -168,6 +110,35 @@ export type Database = {
           },
         ]
       }
+      recipe_photos: {
+        Row: {
+          created_at: string
+          id: string
+          recipe_id: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          recipe_id: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          recipe_id?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipe_photos_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       recipes: {
         Row: {
           category: Database["public"]["Enums"]["recipe_category"] | null
@@ -181,6 +152,7 @@ export type Database = {
           is_public: boolean | null
           prep_time: number | null
           servings: number | null
+          source: Database["public"]["Enums"]["recipe_source"] | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -198,6 +170,7 @@ export type Database = {
           is_public?: boolean | null
           prep_time?: number | null
           servings?: number | null
+          source?: Database["public"]["Enums"]["recipe_source"] | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -215,12 +188,21 @@ export type Database = {
           is_public?: boolean | null
           prep_time?: number | null
           servings?: number | null
+          source?: Database["public"]["Enums"]["recipe_source"] | null
           tags?: string[] | null
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recipes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shopping_list: {
         Row: {
@@ -336,75 +318,28 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      match_ingredient: {
-        Args: {
-          _name: string
-        }
-        Returns: {
-          id: string
-          name: string
-          category: Database["public"]["Enums"]["ingredient_category"]
-          image_url: string | null
-          synonyms: string[] | null
-        }[]
-      }
-      search_ingredients_with_synonyms: {
-        Args: {
-          _query: string
-        }
-        Returns: {
-          id: string
-          name: string
-          category: Database["public"]["Enums"]["ingredient_category"]
-          image_url: string | null
-          synonyms: string[] | null
-        }[]
-      }
-      get_or_create_ingredient: {
-        Args: {
-          _name: string
-          _category: string
-        }
-        Returns: {
-          id: string
-          name: string
-          category: Database["public"]["Enums"]["ingredient_category"] | null
-          image_url: string | null
-          synonyms: string[] | null
-          created_at: string
-        }
-      }
+      [_ in never]: never
     }
     Enums: {
       app_role: "admin" | "user"
       ingredient_category:
-      | "vegetables"
-      | "fruits"
-      | "dairy"
-      | "meat"
-      | "fish"
-      | "grains"
-      | "oils"
-      | "spices"
-      | "beverages"
-      | "other"
+      | "fruits_legumes"
+      | "boucherie"
+      | "poissonnerie"
+      | "produits_laitiers"
+      | "epicerie_sucree"
+      | "epicerie_salee"
+      | "produits_frais"
+      | "produits_surgeles"
+      | "boissons"
+      | "autre"
       measurement_unit:
       | "g"
       | "kg"
       | "ml"
       | "l"
-      | "cup"
-      | "tbsp"
-      | "tsp"
-      | "oz"
-      | "lb"
+      | "cuillere_soupe"
+      | "cuillere_the"
       | "piece"
       recipe_category:
       | "petit_dejeuner"
@@ -415,6 +350,7 @@ export type Database = {
       | "vegetarien"
       | "vegan"
       recipe_difficulty: "facile" | "moyen" | "difficile"
+      recipe_source: "book" | "cooking_class" | "website" | "photo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -422,33 +358,27 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
-
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type PublicSchema = Database["public"]
 
 export type Tables<
-  DefaultSchemaTableNameOrOptions extends
-  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-  | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  PublicTableNameOrOptions extends
+  | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+  ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+    Database[PublicTableNameOrOptions["schema"]]["Views"])
   : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+    Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
   ? R
   : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+    PublicSchema["Views"])
+  ? (PublicSchema["Tables"] &
+    PublicSchema["Views"])[PublicTableNameOrOptions] extends {
       Row: infer R
     }
   ? R
@@ -456,24 +386,20 @@ export type Tables<
   : never
 
 export type TablesInsert<
-  DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  PublicTableNameOrOptions extends
+  | keyof PublicSchema["Tables"]
+  | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
   : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
     Insert: infer I
   }
   ? I
   : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
     Insert: infer I
   }
   ? I
@@ -481,24 +407,20 @@ export type TablesInsert<
   : never
 
 export type TablesUpdate<
-  DefaultSchemaTableNameOrOptions extends
-  | keyof DefaultSchema["Tables"]
-  | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  PublicTableNameOrOptions extends
+  | keyof PublicSchema["Tables"]
+  | { schema: keyof Database },
+  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+  ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
   : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
     Update: infer U
   }
   ? U
   : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+  ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
     Update: infer U
   }
   ? U
@@ -506,77 +428,29 @@ export type TablesUpdate<
   : never
 
 export type Enums<
-  DefaultSchemaEnumNameOrOptions extends
-  | keyof DefaultSchema["Enums"]
-  | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
-  }
-  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  PublicSchemaNameOrOptions extends
+  | keyof Database
+  | { schema: keyof Database },
+  EnumName extends PublicSchemaNameOrOptions extends { schema: keyof Database }
+  ? keyof Database[PublicSchemaNameOrOptions["schema"]]["Enums"]
   : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+> = PublicSchemaNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicSchemaNameOrOptions["schema"]]["Enums"][EnumName]
+  : PublicSchemaNameOrOptions extends keyof PublicSchema["Enums"]
+  ? PublicSchema["Enums"][PublicSchemaNameOrOptions]
   : never
 
 export type CompositeTypes<
-  PublicCompositeTypeNameOrOptions extends
-  | keyof DefaultSchema["CompositeTypes"]
-  | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+  PublicSchemaNameOrOptions extends
+  | keyof Database
+  | { schema: keyof Database },
+  CompositeTypeName extends PublicSchemaNameOrOptions extends {
+    schema: keyof Database
   }
-  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  ? keyof Database[PublicSchemaNameOrOptions["schema"]]["CompositeTypes"]
   : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+> = PublicSchemaNameOrOptions extends { schema: keyof Database }
+  ? Database[PublicSchemaNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicSchemaNameOrOptions extends keyof PublicSchema["CompositeTypes"]
+  ? PublicSchema["CompositeTypes"][PublicSchemaNameOrOptions]
   : never
-
-export const Constants = {
-  public: {
-    Enums: {
-      app_role: ["admin", "user"],
-      ingredient_category: [
-        "vegetables",
-        "fruits",
-        "dairy",
-        "meat",
-        "fish",
-        "grains",
-        "oils",
-        "spices",
-        "beverages",
-        "other",
-      ],
-      measurement_unit: [
-        "g",
-        "kg",
-        "ml",
-        "l",
-        "cup",
-        "tbsp",
-        "tsp",
-        "oz",
-        "lb",
-        "piece",
-      ],
-      recipe_category: [
-        "petit_dejeuner",
-        "dejeuner",
-        "diner",
-        "dessert",
-        "encas",
-        "vegetarien",
-        "vegan",
-      ],
-      recipe_difficulty: ["facile", "moyen", "difficile"],
-    },
-  },
-} as const

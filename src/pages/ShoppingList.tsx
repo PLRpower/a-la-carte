@@ -18,11 +18,15 @@ import { groupItemsByCategory, sortCategories } from "@/lib/shopping-list-utils"
 import { ShoppingListCategory } from "@/components/shopping-list/ShoppingListCategory";
 import { ShoppingListItem } from "@/components/shopping-list/ShoppingListItem";
 import { supabase } from "@/integrations/supabase/client";
+import { useIngredients } from "@/hooks/useIngredients";
+import { parseIngredientInput } from "@/lib/ingredient-parser";
+import { Ingredient } from "@/types/database";
 
 const ShoppingList = () => {
 
   const { toast } = useToast();
   const { items, loading, toggleItem, deleteItem, updateItem, addSmartItem, finishShopping } = useShoppingList();
+  const { ingredients } = useIngredients();
 
   const [isAdding, setIsAdding] = useState(false);
   const [newItemInput, setNewItemInput] = useState("");
@@ -38,6 +42,53 @@ const ShoppingList = () => {
       addItemInputRef.current.focus();
     }
   }, [isAdding]);
+
+  // Suggestions logic
+  const { name: parsedName, quantity: parsedQuantity, unit: parsedUnit } = parseIngredientInput(newItemInput);
+
+  const suggestions = newItemInput.trim() && parsedName && parsedName.length >= 2
+    ? ingredients
+      .filter((i) =>
+        i.name.toLowerCase().includes(parsedName.toLowerCase()) ||
+        i.synonyms?.some(s => s.toLowerCase().includes(parsedName.toLowerCase()))
+      )
+      .sort((a, b) => {
+        const aName = a.name.toLowerCase();
+        const bName = b.name.toLowerCase();
+        const q = parsedName.toLowerCase();
+        if (aName === q) return -1;
+        if (bName === q) return 1;
+        if (aName.startsWith(q) && !bName.startsWith(q)) return -1;
+        if (!aName.startsWith(q) && bName.startsWith(q)) return 1;
+        return 0;
+      })
+      .slice(0, 5)
+    : [];
+
+  const applySuggestion = async (suggestion: Ingredient) => {
+    let newValue = suggestion.name;
+    if (parsedQuantity !== null) {
+      const unitStr = parsedUnit ? ` ${parsedUnit}` : '';
+      newValue = `${parsedQuantity}${unitStr} ${suggestion.name}`;
+    }
+
+    setNewItemInput("");
+
+    const { error } = await addSmartItem(newValue);
+
+    if (error) {
+      toast({
+        title: "Erreur",
+        description: "Échec de l'ajout de l'article",
+        variant: "destructive",
+      });
+      setNewItemInput(newValue);
+    } else {
+      if (addItemInputRef.current) {
+        addItemInputRef.current.focus();
+      }
+    }
+  };
 
   const handleAddItem = async () => {
     if (!newItemInput.trim()) {
@@ -201,17 +252,37 @@ const ShoppingList = () => {
               {isAdding ? (
                 <div className="flex items-center gap-3 py-2 px-1 animate-in fade-in zoom-in-95 duration-200">
                   <div className="w-5 h-5 flex-shrink-0" /> {/* Spacer for checkbox alignment */}
-                  <input
-                    ref={addItemInputRef}
-                    value={newItemInput}
-                    onChange={(e) => setNewItemInput(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    // onBlur={handleBlur} // Blur causing issues with "Enter" key on mobile sometimes, let's rely on Enter or clicking away manually closing? 
-                    // Actually better: "Enter" adds and keeps focus. Clicking away (blur) adds and closes.
-                    onBlur={handleBlur}
-                    className="flex-1 bg-transparent border-none p-0 text-base focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
-                    placeholder="Nouvel article..."
-                  />
+                  <div className="relative flex-1">
+                    <input
+                      ref={addItemInputRef}
+                      value={newItemInput}
+                      onChange={(e) => setNewItemInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      // onBlur={handleBlur} // Blur causing issues with "Enter" key on mobile sometimes, let's rely on Enter or clicking away manually closing? 
+                      // Actually better: "Enter" adds and keeps focus. Clicking away (blur) adds and closes.
+                      onBlur={handleBlur}
+                      className="w-full bg-transparent border-none p-0 text-base focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
+                      placeholder="Nouvel article..."
+                    />
+                    {suggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-1">
+                          {suggestions.map((suggestion) => (
+                            <button
+                              key={suggestion.id}
+                              className="relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                              onMouseDown={(e) => {
+                                e.preventDefault(); // Prevent blur
+                                applySuggestion(suggestion);
+                              }}
+                            >
+                              {suggestion.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <button
