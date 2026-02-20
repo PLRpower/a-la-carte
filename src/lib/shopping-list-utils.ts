@@ -2,7 +2,7 @@ import { ShoppingListItemWithIngredient } from "@/types/database";
 
 export const groupItemsByCategory = (items: ShoppingListItemWithIngredient[]) => {
     return items.reduce((acc, item) => {
-        const category = item.ingredient?.category || "other";
+        const category = item.ingredient?.category || "autre";
         if (!acc[category]) acc[category] = [];
         acc[category].push(item);
         return acc;
@@ -11,9 +11,9 @@ export const groupItemsByCategory = (items: ShoppingListItemWithIngredient[]) =>
 
 export const sortCategories = (categories: string[]) => {
     return categories.sort((catA, catB) => {
-        // Define order: specific categories first, then 'other'
-        if (catA === 'other') return 1;
-        if (catB === 'other') return -1;
+        // Define order: specific categories first, then 'autre'
+        if (catA === 'autre') return 1;
+        if (catB === 'autre') return -1;
         return catA.localeCompare(catB);
     });
 };
@@ -40,9 +40,8 @@ export const getCategoryLabel = (category: string): string => {
         oils: "Épicerie salée",
         spices: "Épicerie salée",
         beverages: "Boissons",
-        other: "Autres",
     };
 
     return categoryLabels[category.toLowerCase()] ||
-        (category === 'other' ? "Autres" : category);
+        (category === 'autre' ? "Autres" : category);
 };

@@ -27,6 +27,8 @@ const RecipeShare = lazy(() => import("./pages/RecipeShare"));
 const RecipeShareInstructions = lazy(() => import("./pages/RecipeShareInstructions"));
 const FavoriteRecipes = lazy(() => import("./pages/FavoriteRecipes"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const Family = lazy(() => import("./pages/Family"));
+
 
 const queryClient = new QueryClient();
 
@@ -108,6 +110,7 @@ const App = () => {
                   <Route path="/recipes/share" element={<ProtectedRoute><RecipeShare /></ProtectedRoute>} />
                   <Route path="/recipes/share-instructions" element={<ProtectedRoute><RecipeShareInstructions /></ProtectedRoute>} />
                   <Route path="/profile/favorites" element={<ProtectedRoute><FavoriteRecipes /></ProtectedRoute>} />
+                  <Route path="/family" element={<ProtectedRoute><Family /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

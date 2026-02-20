@@ -5,12 +5,11 @@ import { ShoppingListItem, ShoppingListItemWithIngredient, Ingredient } from '@/
 import { parseIngredientInput, findBestIngredientMatch } from '@/lib/ingredient-parser';
 import { useAuth } from './useAuth';
 
+const queryKey = ['shopping-list'];
+
 export const useShoppingList = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-
-  // Shared query key
-  const queryKey = ['shopping-list'];
 
   const { data: items = [], isLoading: loading, error } = useQuery({
     queryKey,
@@ -220,7 +219,7 @@ export const useShoppingList = () => {
             // Create new ingredient
             const { data: newIng } = await supabase
               .from('ingredients')
-              .insert({ name: item.name, category: 'other' })
+              .insert({ name: item.name, category: 'autre' })
               .select('id')
               .single();
 

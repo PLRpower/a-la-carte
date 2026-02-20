@@ -38,7 +38,7 @@ export const useIngredients = () => {
       const { data, error } = await supabase
         .rpc('get_or_create_ingredient', {
           _name: trimmedName,
-          _category: category || 'other'
+          _category: category || 'autre'
         })
         .single();
 

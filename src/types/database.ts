@@ -2,8 +2,8 @@ export type AppRole = 'admin' | 'user';
 export type RecipeDifficulty = 'facile' | 'moyen' | 'difficile';
 export type RecipeCategory = 'petit_dejeuner' | 'dejeuner' | 'diner' | 'dessert' | 'encas' | 'vegetarien' | 'vegan';
 export type RecipeSource = 'book' | 'cooking_class' | 'website' | 'photo';
-export type IngredientCategory = 'vegetables' | 'fruits' | 'dairy' | 'meat' | 'fish' | 'grains' | 'oils' | 'spices' | 'beverages' | 'other';
-export type MeasurementUnit = 'g' | 'kg' | 'ml' | 'l' | 'cup' | 'tbsp' | 'tsp' | 'oz' | 'lb' | 'piece';
+export type IngredientCategory = 'fruits_legumes' | 'boucherie' | 'poissonnerie' | 'produits_laitiers' | 'epicerie_sucree' | 'epicerie_salee' | 'produits_frais' | 'produits_surgeles' | 'boissons' | 'autre';
+export type MeasurementUnit = 'g' | 'kg' | 'ml' | 'l' | 'cuillere_soupe' | 'cuillere_the' | 'piece';
 
 export interface Profile {
   id: string;

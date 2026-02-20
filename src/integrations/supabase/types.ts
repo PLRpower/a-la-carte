@@ -9,6 +9,62 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      families: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          share_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          share_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          share_code?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      family_members: {
+        Row: {
+          created_at: string
+          family_id: string
+          id: string
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          family_id: string
+          id?: string
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          family_id?: string
+          id?: string
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           created_at: string
@@ -42,7 +98,6 @@ export type Database = {
         Row: {
           category: Database["public"]["Enums"]["ingredient_category"] | null
           created_at: string
-          created_by: string | null
           id: string
           image_url: string | null
           name: string
@@ -318,7 +373,76 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      create_family: {
+        Args: {
+          p_name: string
+        }
+        Returns: string
+      }
+      join_family_with_code: {
+        Args: {
+          p_share_code: string
+        }
+        Returns: undefined
+      }
+      add_family_member_by_email: {
+        Args: {
+          p_email: string
+          p_family_id: string
+        }
+        Returns: undefined
+      }
+      is_in_same_family: {
+        Args: {
+          target_user_id: string
+        }
+        Returns: boolean
+      }
+      match_ingredient: {
+        Args: {
+          _name: string
+        }
+        Returns: {
+          id: string
+          name: string
+          category: Database["public"]["Enums"]["ingredient_category"]
+          image_url: string | null
+          synonyms: string[] | null
+        }[]
+      }
+      search_ingredients_with_synonyms: {
+        Args: {
+          _query: string
+        }
+        Returns: {
+          id: string
+          name: string
+          category: Database["public"]["Enums"]["ingredient_category"]
+          image_url: string | null
+          synonyms: string[] | null
+        }[]
+      }
+      get_or_create_ingredient: {
+        Args: {
+          _name: string
+          _category: string
+        }
+        Returns: {
+          id: string
+          name: string
+          category: Database["public"]["Enums"]["ingredient_category"] | null
+          image_url: string | null
+          synonyms: string[] | null
+          created_at: string
+        }
+      }
     }
     Enums: {
       app_role: "admin" | "user"
@@ -454,3 +578,45 @@ export type CompositeTypes<
   : PublicSchemaNameOrOptions extends keyof PublicSchema["CompositeTypes"]
   ? PublicSchema["CompositeTypes"][PublicSchemaNameOrOptions]
   : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      app_role: ["admin", "user"],
+      ingredient_category: [
+        "vegetables",
+        "fruits",
+        "dairy",
+        "meat",
+        "fish",
+        "grains",
+        "oils",
+        "spices",
+        "beverages",
+        "other",
+      ],
+      measurement_unit: [
+        "g",
+        "kg",
+        "ml",
+        "l",
+        "cup",
+        "tbsp",
+        "tsp",
+        "oz",
+        "lb",
+        "piece",
+      ],
+      recipe_category: [
+        "breakfast",
+        "lunch",
+        "dinner",
+        "dessert",
+        "snack",
+        "vegetarian",
+        "vegan",
+      ],
+      recipe_difficulty: ["easy", "medium", "hard"],
+    },
+  },
+} as const

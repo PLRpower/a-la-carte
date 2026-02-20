@@ -1,4 +1,4 @@
-import { User, Heart, Settings, Edit, LogOut } from "lucide-react";
+import { User, Heart, Settings, Edit, LogOut, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ const Profile = () => {
   const menuItems = [
     { icon: Edit, label: "Modifier le profil", path: "/profile/edit" },
     { icon: Heart, label: "Recettes favorites", path: "/profile/favorites", count: favoriteCount },
+    { icon: Users, label: "Ma famille", path: "/family" },
     { icon: Settings, label: "Préférences de l'application", path: "/profile/preferences" },
   ];
 

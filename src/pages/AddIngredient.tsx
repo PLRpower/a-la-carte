@@ -20,7 +20,7 @@ const AddIngredient = () => {
   const [name, setName] = useState("");
   const [quantity, setQuantity] = useState("");
   const [unit, setUnit] = useState<MeasurementUnit>("g");
-  const [category, setCategory] = useState<IngredientCategory>("other");
+  const [category, setCategory] = useState<IngredientCategory>("autre");
   const [expirationDate, setExpirationDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -154,7 +154,7 @@ const AddIngredient = () => {
                   <SelectItem value="oils">Huiles</SelectItem>
                   <SelectItem value="beverages">Boissons</SelectItem>
                   <SelectItem value="fish">Poisson</SelectItem>
-                  <SelectItem value="other">Autre</SelectItem>
+                  <SelectItem value="autre">Autre</SelectItem>
                 </SelectContent>
               </Select>
             </div>
