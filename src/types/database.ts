@@ -13,6 +13,7 @@ export interface Profile {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+
   stripe_customer_id?: string | null;
   stripe_subscription_id?: string | null;
   subscription_status?: string | null;
@@ -41,7 +42,6 @@ export interface Recipe {
   tags: string[] | null;
   source: RecipeSource | null;
   instructions: string | null;
-  is_public: boolean;
   created_at: string;
   updated_at: string;
 }

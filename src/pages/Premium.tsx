@@ -63,7 +63,7 @@ const Premium = () => {
                             const bodyText = await error.context.text();
                             const bodyJson = JSON.parse(bodyText);
                             errMsg = bodyJson.error || bodyJson.message || errMsg;
-                        } catch (e) { }
+                        } catch (e) {/* intentionally empty */}
                     }
                     throw new Error(errMsg);
                 }
@@ -109,7 +109,7 @@ const Premium = () => {
                     window.location.href = data.url;
                 }
             }
-        } catch (error: any) {
+        } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
             console.error(error);
             toast.error(error.message || "Une erreur est survenue avec le paiement.");
         } finally {

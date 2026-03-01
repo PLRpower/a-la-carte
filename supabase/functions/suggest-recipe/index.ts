@@ -51,7 +51,7 @@ serve(async (req) => {
 Generate a recipe suggestion for a user based on their available stock and preferences.
 
 **User Constraints:**
-- **Available Ingredients:** ${ingredients && ingredients.length > 0 ? ingredients.map((i: any) => `${i.name} (${i.quantity} ${i.unit})`).join(", ") : 'Aucun ingrédient en stock. Suggère une délicieuse recette classique utilisant des ingrédients de base courants.'}.
+- **Available Ingredients:** ${ingredients && ingredients.length > 0 ? ingredients.map((i: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => `${i.name} (${i.quantity} ${i.unit})`).join(", ") : 'Aucun ingrédient en stock. Suggère une délicieuse recette classique utilisant des ingrédients de base courants.'}.
 - **Meal Type:** ${mealType === 'any' ? 'Suitable for any meal' : mealType}.
 - **Creativity Level:** ${creativity} (classic = distinct traditional dish, original = modern twist, crazy = unexpected fusion).
 - **Focus:** ${focus === 'use_stock' ? 'Maximize use of provided ingredients (try to avoid buying new things)' : 'Use provided ingredients as base but feel free to add common complements'}.${avoidText}
@@ -94,7 +94,7 @@ Return ONLY valid JSON with this exact structure:
           }),
         }
       );
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       console.error("Gemini API request failed:", err);
       let userMessage = "L'IA ne répond pas pour le moment.";
       if (err.message?.includes("429")) userMessage = "Le service IA est surchargé (quota dépassé), réessayez dans une minute.";

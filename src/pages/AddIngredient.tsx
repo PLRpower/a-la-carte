@@ -127,11 +127,8 @@ const AddIngredient = () => {
                     <SelectItem value="kg">Kilogrammes (kg)</SelectItem>
                     <SelectItem value="ml">Millilitres (ml)</SelectItem>
                     <SelectItem value="l">Litres (L)</SelectItem>
-                    <SelectItem value="cup">Tasse</SelectItem>
-                    <SelectItem value="tbsp">Cuillère à soupe</SelectItem>
-                    <SelectItem value="tsp">Cuillère à café</SelectItem>
-                    <SelectItem value="oz">Onces</SelectItem>
-                    <SelectItem value="lb">Livres</SelectItem>
+                    <SelectItem value="cuillere_soupe">Cuillère à soupe</SelectItem>
+                    <SelectItem value="cuillere_the">Cuillère à café</SelectItem>
                     <SelectItem value="piece">Pièce</SelectItem>
                   </SelectContent>
                 </Select>

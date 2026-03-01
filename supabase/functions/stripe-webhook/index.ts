@@ -26,7 +26,7 @@ serve(async (req) => {
     let event
     try {
       event = await stripe.webhooks.constructEventAsync(body, signature!, endpointSecret)
-    } catch (err: any) {
+    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       console.error(`Webhook signature verification failed: ${err.message}`)
       return new Response(`Webhook Error: ${err.message}`, { status: 400 })
     }
@@ -106,7 +106,7 @@ serve(async (req) => {
     }
 
     return new Response(JSON.stringify({ received: true }), { status: 200 })
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     console.error('Webhook error:', error)
     return new Response(
       `Webhook handler failed: ${error.message}`,

@@ -11,9 +11,12 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { Switch } from "@/components/ui/switch";
 
 const Family = () => {
     const { user } = useAuth();
+    const { profile, updateProfile } = useProfile();
     const navigate = useNavigate();
     const { families, members, loadingFamilies, loadingMembers, createFamily, joinFamily, isCreating, isJoining, addMemberByEmail, isAddingMember, leaveFamily, removeMember, isLeaving, isRemovingMember } = useFamily();
 
@@ -269,6 +272,8 @@ const Family = () => {
                                 )}
                             </CardContent>
                         </Card>
+
+
 
                         <div className="pt-4 flex justify-center">
                             <Button

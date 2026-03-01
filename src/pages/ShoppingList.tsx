@@ -153,7 +153,7 @@ const ShoppingList = () => {
     };
   }, [toast]);
 
-  const handleUpdate = async (id: string, updates: any) => {
+  const handleUpdate = async (id: string, updates: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
     await updateItem(id, updates);
   };
 

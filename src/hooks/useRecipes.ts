@@ -33,7 +33,6 @@ export const useRecipes = (filters?: RecipeFilters) => {
             ingredient:ingredients(*)
           )
         `)
-        .eq('is_public', true)
         .order('created_at', { ascending: false });
 
       if (category) {

@@ -55,35 +55,6 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  .dark {
-    --background: 25 28% 10%;
-    --foreground: 30 43% 99%;
-
-    --card: 25 28% 15%;
-    --card-foreground: 30 43% 99%;
-
-    --popover: 25 28% 15%;
-    --popover-foreground: 30 43% 99%;
-
-    --primary: 30 43% 99%;
-    --primary-foreground: 25 28% 22%;
-
-    --secondary: 25 23% 30%;
-    --secondary-foreground: 30 43% 99%;
-
-    --muted: 25 20% 20%;
-    --muted-foreground: 30 25% 65%;
-
-    --accent: 15 52% 57%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 25 20% 25%;
-    --input: 25 20% 25%;
-    --ring: 30 43% 99%;
-  }
 }
 
 @layer base {
@@ -102,21 +73,5 @@ All colors MUST be HSL.
   h5,
   h6 {
     @apply font-serif;
-  }
-}
-
-@layer utilities {
-  .animate-spin-slow {
-    animation: spin 8s linear infinite;
-  }
-
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-
-    to {
-      transform: rotate(360deg);
-    }
   }
 }

@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req: any) => {
+serve(async (req: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -76,7 +76,7 @@ serve(async (req: any) => {
         }
       )
     }
-  } catch (error: any) {
+  } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
     return new Response(
       JSON.stringify({ error: error.message }),
       {

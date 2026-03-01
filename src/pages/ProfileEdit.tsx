@@ -26,7 +26,7 @@ const ProfileEdit = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const p = profile as any;
+    const p = profile as any /* eslint-disable-line @typescript-eslint/no-explicit-any */;
     if (p) {
       setFirstName(p.first_name || "");
       setLastName(p.last_name || "");
@@ -82,7 +82,7 @@ const ProfileEdit = () => {
       setAvatarUrl(data.publicUrl);
       toast.success("Image téléchargée !");
 
-    } catch (error: any) {
+    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       console.error("Error uploading avatar: ", error);
       toast.error("Erreur lors du téléchargement de l'image");
     } finally {

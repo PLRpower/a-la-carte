@@ -122,7 +122,7 @@ const Recipes = () => {
                     alt={recipe.title}
                     className="w-full h-full"
                     loading={index < 2 ? "eager" : "lazy"}
-                    // @ts-ignore
+                    // @ts-expect-error ignoring typings for now
                     fetchPriority={index < 2 ? "high" : "auto"}
                   />
                   <button

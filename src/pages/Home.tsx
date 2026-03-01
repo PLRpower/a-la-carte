@@ -68,6 +68,7 @@ const Home = () => {
     }
   }, [location.search, joinFamily]);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [suggestedRecipe, setSuggestedRecipe] = useState<any>(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [showAIOptions, setShowAIOptions] = useState(false);
@@ -91,7 +92,7 @@ const Home = () => {
   const generateAISuggestion = async () => {
     setShowAIOptions(false);
     setLoadingAI(true);
-    let currentHistory = [...generatedTitles];
+    const currentHistory = [...generatedTitles];
     if (suggestedRecipe?.title && !currentHistory.includes(suggestedRecipe.title)) {
       currentHistory.push(suggestedRecipe.title);
       setGeneratedTitles(currentHistory);
@@ -114,7 +115,7 @@ const Home = () => {
       if (data?.error) throw new Error(data.error);
       setSuggestedRecipe(data.recipe);
       toast({ title: "Recette générée !", description: "Voici une suggestion basée sur vos préférences." });
-    } catch (error: any) {
+    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       console.error('AI suggestion error:', error);
       toast({ title: "Erreur", description: error.message || "Impossible de générer une recette.", variant: "destructive" });
     } finally {
@@ -134,10 +135,9 @@ const Home = () => {
         prep_time: suggestedRecipe.prep_time || 15,
         cook_time: suggestedRecipe.cook_time || 15,
         servings: suggestedRecipe.servings || 2,
-        category: (suggestedRecipe.category || 'diner') as any,
+        category: (suggestedRecipe.category || 'diner') as any /* eslint-disable-line @typescript-eslint/no-explicit-any */,
         tags: [suggestedRecipe.category || 'diner'],
         instructions: suggestedRecipe.instructions,
-        is_public: true,
         source: 'website'
       }]).select().single();
 
@@ -160,7 +160,7 @@ const Home = () => {
       toast({ title: "Recette sauvegardée !", description: "Elle est maintenant dans votre carnet." });
       await refetchRecipes();
       navigate(`/recipe/${recipe.id}`);
-    } catch (error: any) {
+    } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
       console.error("Save error:", error);
       toast({ title: "Erreur de sauvegarde", description: "Impossible de sauvegarder la recette.", variant: "destructive" });
     } finally {
@@ -189,7 +189,7 @@ const Home = () => {
               <>
                 <div className="mb-6">
                   <p className="text-lg font-medium text-foreground mb-1">
-                    👋 Bienvenue {(profile as any)?.first_name ? (profile as any).first_name : ""} !
+                    👋 Bienvenue {profile?.first_name ? profile.first_name : ""} !
                   </p>
                   <p className="text-sm text-muted-foreground">Prêt à transformer vos repas ? Voici par où commencer.</p>
                 </div>

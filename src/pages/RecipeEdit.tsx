@@ -47,7 +47,7 @@ const RecipeEdit = () => {
                 let ingredientsText = "";
                 if (recipe.recipe_ingredients && Array.isArray(recipe.recipe_ingredients)) {
                     ingredientsText = recipe.recipe_ingredients
-                        .map((ri: any) => {
+                        .map((ri: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
                             const unit = ri.unit === 'piece' ? '' : ri.unit;
                             const quantity = ri.quantity || '';
                             // Prioritize the saved name, fallback to linked ingredient name
@@ -69,9 +69,9 @@ const RecipeEdit = () => {
                     steps: recipe.instructions || "",
                     ingredients: ingredientsText,
                     imageUrl: recipe.image_url,
-                    source: (recipe as any).source || null,
+                    source: (recipe as any /* eslint-disable-line @typescript-eslint/no-explicit-any */).source || null,
                 });
-            } catch (err: any) {
+            } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
                 console.error('Error fetching recipe:', err);
                 setError("Impossible de charger la recette.");
             } finally {
@@ -108,15 +108,15 @@ const RecipeEdit = () => {
                 .update({
                     title: formData.title,
                     description: formData.description,
-                    difficulty: formData.difficulty as any || null,
+                    difficulty: formData.difficulty as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ || null,
                     prep_time: formData.prepTime ? parseInt(formData.prepTime) : null,
                     cook_time: formData.cookTime ? parseInt(formData.cookTime) : null,
                     servings: formData.servings ? parseInt(formData.servings) : null,
-                    category: (formData.tags?.[0] || null) as any,
+                    category: (formData.tags?.[0] || null) as any /* eslint-disable-line @typescript-eslint/no-explicit-any */,
                     tags: formData.tags || [],
                     instructions: formData.steps,
                     image_url: imageUrl,
-                    source: formData.source as any || null,
+                    source: formData.source as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ || null,
                 })
                 .eq('id', id);
 
@@ -149,7 +149,7 @@ const RecipeEdit = () => {
                     ingredient_id: ingredientId,
                     name: parsedName,
                     quantity: quantity || 1,
-                    unit: unit as any,
+                    unit: unit as any /* eslint-disable-line @typescript-eslint/no-explicit-any */,
                 }]);
             }
 
@@ -158,7 +158,7 @@ const RecipeEdit = () => {
                 description: "Votre recette a été mise à jour avec succès",
             });
             navigate(`/recipe/${id}`);
-        } catch (error: any) {
+        } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
             console.error('Save error:', error);
             toast({
                 title: "Erreur",

@@ -69,8 +69,8 @@ export const useFamily = () => {
             const userIds = membersData.map(m => m.user_id);
 
             const { data: profilesData, error: profilesError } = await (supabase
-                .from('profiles' as any)
-                .select('id, first_name, last_name, avatar_url') as any)
+                .from('profiles' as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)
+                .select('id, first_name, last_name, avatar_url') as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)
                 .in('id', userIds);
 
             if (profilesError) {

@@ -47,18 +47,18 @@ const Profile = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
-                {(profile as any)?.avatar_url ? (
-                  <AvatarImage src={(profile as any).avatar_url} />
+                {profile?.avatar_url ? (
+                  <AvatarImage src={profile.avatar_url} />
                 ) : (
                   <AvatarFallback className="bg-accent text-accent-foreground text-xl">
-                    {(profile as any)?.first_name?.[0] || (profile as any)?.last_name?.[0] || user?.user_metadata?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
+                    {profile?.first_name?.[0] || profile?.last_name?.[0] || user?.user_metadata?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
                   </AvatarFallback>
                 )}
               </Avatar>
               <div className="flex-1">
                 <h2 className="text-lg font-semibold">
-                  {(profile as any)?.first_name || (profile as any)?.last_name
-                    ? `${(profile as any).first_name || ''} ${(profile as any).last_name || ''}`.trim()
+                  {profile?.first_name || profile?.last_name
+                    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
                     : user?.user_metadata?.display_name ||
                     user?.user_metadata?.full_name ||
                     (user?.user_metadata?.first_name || user?.user_metadata?.last_name
@@ -68,9 +68,9 @@ const Profile = () => {
                 <p className="text-sm text-muted-foreground">
                   {user?.email || 'Connectez-vous pour synchroniser vos recettes'}
                 </p>
-                {(profile as any)?.bio && (
+                {profile?.bio && (
                   <p className="text-sm mt-2 text-foreground/80 line-clamp-2 italic">
-                    "{(profile as any).bio}"
+                    "{profile.bio}"
                   </p>
                 )}
               </div>

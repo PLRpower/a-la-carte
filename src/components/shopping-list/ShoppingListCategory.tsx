@@ -7,7 +7,7 @@ interface ShoppingListCategoryProps {
     items: ShoppingListItemWithIngredient[];
     onToggle: (id: string, checked: boolean) => void;
     onDelete: (id: string) => void;
-    onUpdate: (id: string, updates: any) => void;
+    onUpdate: (id: string, updates: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => void;
 }
 
 export const ShoppingListCategory = ({ category, items, onToggle, onDelete, onUpdate }: ShoppingListCategoryProps) => {

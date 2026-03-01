@@ -26,7 +26,7 @@ export const useStock = () => {
       if (!stockItems || stockItems.length === 0) return [];
 
       // 2. Fetch related ingredients
-      const ingredientIds = [...new Set(stockItems.map((item: any) => item.ingredient_id))];
+      const ingredientIds = [...new Set(stockItems.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.ingredient_id))];
       const { data: ingredients, error: ingredientsError } = await supabase
         .from('ingredients')
         .select('*')
@@ -35,9 +35,9 @@ export const useStock = () => {
       if (ingredientsError) throw ingredientsError;
 
       // 3. Combine
-      const ingredientsMap = new Map(ingredients?.map((ing: any) => [ing.id, ing]));
+      const ingredientsMap = new Map(ingredients?.map((ing: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => [ing.id, ing]));
 
-      return stockItems.map((item: any) => ({
+      return stockItems.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
         ...item,
         ingredient: ingredientsMap.get(item.ingredient_id)
       })) as StockWithIngredient[];

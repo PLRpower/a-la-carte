@@ -17,26 +17,51 @@ const UNIT_MAPPINGS: Record<string, MeasurementUnit> = {
     'l': 'l',
     'litre': 'l',
     'litres': 'l',
-    'cup': 'cup',
-    'tasse': 'cup',
-    'tasses': 'cup',
-    'tbsp': 'tbsp',
-    'cs': 'tbsp',
-    'c.s': 'tbsp',
-    'cuillère à soupe': 'tbsp',
-    'cuillères à soupe': 'tbsp',
-    'tsp': 'tsp',
-    'cc': 'tsp',
-    'c.c': 'tsp',
-    'cuillère à café': 'tsp',
-    'cuillères à café': 'tsp',
-    'oz': 'oz',
-    'lb': 'lb',
+    'cup': 'piece',
+    'tasse': 'piece',
+    'tasses': 'piece',
+    'tbsp': 'cuillere_soupe',
+    'cs': 'cuillere_soupe',
+    'c.s': 'cuillere_soupe',
+    'cuillère à soupe': 'cuillere_soupe',
+    'cuillères à soupe': 'cuillere_soupe',
+    'tsp': 'cuillere_the',
+    'cc': 'cuillere_the',
+    'c.c': 'cuillere_the',
+    'cuillère à café': 'cuillere_the',
+    'cuillères à café': 'cuillere_the',
+    'oz': 'g',
+    'lb': 'g',
     'piece': 'piece',
     'pièce': 'piece',
     'pièces': 'piece',
     'pc': 'piece',
     'pcs': 'piece',
+};
+
+const parseQuantityAndUnit = (fractionPart: string | undefined, decimalPart: string | undefined, unitPart: string | undefined) => {
+    let quantity: number | null = null;
+    if (fractionPart) {
+        const fractionParts = fractionPart.split(/\s+/);
+        if (fractionParts.length === 2) {
+            const [whole, frac] = fractionParts;
+            const [num, den] = frac.split('/');
+            quantity = parseInt(whole) + parseInt(num) / parseInt(den);
+        } else {
+            const [num, den] = fractionPart.split('/');
+            quantity = parseInt(num) / parseInt(den);
+        }
+    } else if (decimalPart) {
+        quantity = parseFloat(decimalPart.replace(',', '.'));
+    }
+
+    let unit: MeasurementUnit | null = null;
+    if (unitPart) {
+        unit = UNIT_MAPPINGS[unitPart.toLowerCase()] || null;
+    } else if (quantity !== null) {
+        unit = 'piece';
+    }
+    return { quantity, unit };
 };
 
 export const parseIngredientInput = (input: string): ParsedIngredient => {
@@ -108,32 +133,11 @@ export const parseIngredientInput = (input: string): ParsedIngredient => {
     const parenEndMatch = trimmedInput.match(parenEndRegex);
 
     if (parenEndMatch) {
-        let quantity: number | null = null;
-        const numberPart = parenEndMatch[1];
         const fractionPart = parenEndMatch[2];
         const decimalPart = parenEndMatch[3];
         const unitPart = parenEndMatch[4];
 
-        if (fractionPart) {
-            const fractionParts = fractionPart.split(/\s+/);
-            if (fractionParts.length === 2) {
-                const [whole, frac] = fractionParts;
-                const [num, den] = frac.split('/');
-                quantity = parseInt(whole) + parseInt(num) / parseInt(den);
-            } else {
-                const [num, den] = fractionPart.split('/');
-                quantity = parseInt(num) / parseInt(den);
-            }
-        } else if (decimalPart) {
-            quantity = parseFloat(decimalPart.replace(',', '.'));
-        }
-
-        let unit: MeasurementUnit | null = null;
-        if (unitPart) {
-            unit = UNIT_MAPPINGS[unitPart.toLowerCase()] || null;
-        } else if (quantity !== null) {
-            unit = 'piece';
-        }
+        const { quantity, unit } = parseQuantityAndUnit(fractionPart, decimalPart, unitPart);
 
         const name = trimmedInput.slice(0, parenEndMatch.index).trim();
         return { name, quantity, unit };
@@ -146,32 +150,11 @@ export const parseIngredientInput = (input: string): ParsedIngredient => {
     const endMatch = trimmedInput.match(endRegex);
 
     if (endMatch) {
-        let quantity: number | null = null;
-        const numberPart = endMatch[1]; // The full number part
         const fractionPart = endMatch[2]; // If fraction
         const decimalPart = endMatch[3]; // If decimal
         const unitPart = endMatch[4]; // The unit part
 
-        if (fractionPart) {
-            const fractionParts = fractionPart.split(/\s+/);
-            if (fractionParts.length === 2) {
-                const [whole, frac] = fractionParts;
-                const [num, den] = frac.split('/');
-                quantity = parseInt(whole) + parseInt(num) / parseInt(den);
-            } else {
-                const [num, den] = fractionPart.split('/');
-                quantity = parseInt(num) / parseInt(den);
-            }
-        } else if (decimalPart) {
-            quantity = parseFloat(decimalPart.replace(',', '.'));
-        }
-
-        let unit: MeasurementUnit | null = null;
-        if (unitPart) {
-            unit = UNIT_MAPPINGS[unitPart.toLowerCase()] || null;
-        } else if (quantity !== null) {
-            unit = 'piece';
-        }
+        const { quantity, unit } = parseQuantityAndUnit(fractionPart, decimalPart, unitPart);
 
         // Name is everything before the match
         const name = trimmedInput.slice(0, endMatch.index).trim();
