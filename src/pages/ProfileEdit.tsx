@@ -26,11 +26,12 @@ const ProfileEdit = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (profile) {
-      setFirstName(profile.first_name || "");
-      setLastName(profile.last_name || "");
-      setBio(profile.bio || "");
-      setAvatarUrl(profile.avatar_url || null);
+    const p = profile as any;
+    if (p) {
+      setFirstName(p.first_name || "");
+      setLastName(p.last_name || "");
+      setBio(p.bio || "");
+      setAvatarUrl(p.avatar_url || null);
     }
   }, [profile]);
 
@@ -102,10 +103,15 @@ const ProfileEdit = () => {
   return (
     <div className="pb-20 min-h-screen">
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <div className="flex items-center gap-4 mb-4">
-          <button onClick={() => navigate("/profile")}>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-primary-foreground hover:bg-white/20 -ml-2"
+            onClick={() => navigate("/profile")}
+          >
             <ArrowLeft className="w-6 h-6" />
-          </button>
+          </Button>
           <h1 className="text-2xl font-bold">Modifier le profil</h1>
         </div>
       </header>

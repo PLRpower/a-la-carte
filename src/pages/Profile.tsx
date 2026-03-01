@@ -1,4 +1,4 @@
-import { User, Heart, Settings, Edit, LogOut, Users } from "lucide-react";
+import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,6 @@ const Profile = () => {
   const favoriteCount = recipes.filter(r => r.is_favorited).length;
 
   const menuItems = [
-    { icon: Edit, label: "Modifier le profil", path: "/profile/edit" },
     { icon: Heart, label: "Recettes favorites", path: "/profile/favorites", count: favoriteCount },
     { icon: Users, label: "Ma famille", path: "/family" },
     { icon: Settings, label: "Préférences de l'application", path: "/profile/preferences" },
@@ -30,7 +29,16 @@ const Profile = () => {
     <div className="pb-20 min-h-screen">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <h1 className="text-2xl font-bold">Profil</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Profil</h1>
+          <Button
+            size="icon"
+            className="bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={() => navigate("/profile/edit")}
+          >
+            <Edit className="w-5 h-5" />
+          </Button>
+        </div>
       </header>
 
       {/* User Info */}
@@ -39,18 +47,18 @@ const Profile = () => {
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <Avatar className="w-16 h-16">
-                {profile?.avatar_url ? (
-                  <AvatarImage src={profile.avatar_url} />
+                {(profile as any)?.avatar_url ? (
+                  <AvatarImage src={(profile as any).avatar_url} />
                 ) : (
                   <AvatarFallback className="bg-accent text-accent-foreground text-xl">
-                    {profile?.first_name?.[0] || profile?.last_name?.[0] || user?.user_metadata?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
+                    {(profile as any)?.first_name?.[0] || (profile as any)?.last_name?.[0] || user?.user_metadata?.first_name?.[0] || user?.email?.[0]?.toUpperCase() || <User className="w-8 h-8" />}
                   </AvatarFallback>
                 )}
               </Avatar>
               <div className="flex-1">
                 <h2 className="text-lg font-semibold">
-                  {profile?.first_name || profile?.last_name
-                    ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+                  {(profile as any)?.first_name || (profile as any)?.last_name
+                    ? `${(profile as any).first_name || ''} ${(profile as any).last_name || ''}`.trim()
                     : user?.user_metadata?.display_name ||
                     user?.user_metadata?.full_name ||
                     (user?.user_metadata?.first_name || user?.user_metadata?.last_name
@@ -60,9 +68,9 @@ const Profile = () => {
                 <p className="text-sm text-muted-foreground">
                   {user?.email || 'Connectez-vous pour synchroniser vos recettes'}
                 </p>
-                {profile?.bio && (
+                {(profile as any)?.bio && (
                   <p className="text-sm mt-2 text-foreground/80 line-clamp-2 italic">
-                    "{profile.bio}"
+                    "{(profile as any).bio}"
                   </p>
                 )}
               </div>
@@ -98,6 +106,35 @@ const Profile = () => {
               <div className="text-xs text-muted-foreground mt-1">Articles</div>
             </CardContent>
           </Card>
+        </div>
+      </section>
+
+      {/* Premium Banner - Only show if not premium, or show a simplified 'Manage' banner */}
+      <section className="px-6 mt-6">
+        <div
+          onClick={() => navigate('/premium')}
+          className={`rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all active:scale-[0.98] relative overflow-hidden group border border-white/10 ${profile?.subscription_status === 'active'
+              ? 'bg-gradient-to-br from-primary to-primary/80'
+              : 'bg-gradient-to-br from-accent to-orange-400/90'
+            }`}
+        >
+          {/* Decorative background glow */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-colors"></div>
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-bold text-xl flex items-center gap-2 text-white">
+                <Star className="w-5 h-5 fill-white text-white" />
+                {profile?.subscription_status === 'active' ? 'Statut Premium' : 'À la carte Premium'}
+              </h3>
+              <Sparkles className="w-6 h-6 text-white animate-pulse" />
+            </div>
+            <p className="text-sm text-white font-medium leading-relaxed max-w-[240px]">
+              {profile?.subscription_status === 'active'
+                ? 'Merci de votre soutien ! Gérez votre abonnement en un clic.'
+                : 'Libérez toute la puissance de l\'IA et partagez avec votre famille.'}
+            </p>
+          </div>
         </div>
       </section>
 

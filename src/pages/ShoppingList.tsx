@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, ChevronDown, ChevronRight, Bell } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Bell, ShoppingCart, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,6 +21,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useIngredients } from "@/hooks/useIngredients";
 import { parseIngredientInput } from "@/lib/ingredient-parser";
 import { Ingredient } from "@/types/database";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ShoppingList = () => {
 
@@ -191,12 +193,15 @@ const ShoppingList = () => {
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 sticky top-0 z-10 shadow-sm">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Liste de courses</h1>
+          <h1 className="text-2xl font-bold">Ma liste de courses</h1>
 
           <Dialog>
             <DialogTrigger asChild>
-              <Button size="icon" variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/20 rounded-full">
-                <Bell className="w-6 h-6" />
+              <Button
+                size="icon"
+                className="bg-accent text-accent-foreground hover:bg-accent/90"
+              >
+                <Bell className="w-5 h-5" />
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -220,11 +225,34 @@ const ShoppingList = () => {
       </header>
 
       {/* Shopping List Content */}
-      <div className="px-4 mt-4 pb-6">
+      <div className="px-6 mt-6 pb-6">
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Chargement...</p>
+          <div className="space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="flex items-center gap-3 py-2">
+                <Skeleton className="h-5 w-5 rounded" />
+                <Skeleton className="h-5 flex-1" />
+              </div>
+            ))}
           </div>
+        ) : items.length === 0 && !isAdding ? (
+          <EmptyState
+            icon={ShoppingCart}
+            title="Votre liste est vide"
+            description="Anticipez vos prochaines courses. Les articles cochés ici peuvent être envoyés directement dans votre stock."
+            actions={[
+              {
+                label: "Ajouter un article",
+                icon: Plus,
+                onClick: () => setIsAdding(true),
+                variant: "default",
+              }
+            ]}
+            tip={{
+              icon: Users,
+              text: "Saviez-vous que la liste est partagée ? Votre famille peut voir et modifier la liste en temps réel !"
+            }}
+          />
         ) : (
           <>
             {/* Unchecked Items */}
@@ -239,12 +267,6 @@ const ShoppingList = () => {
                   onUpdate={handleUpdate}
                 />
               ))}
-
-              {uncheckedItems.length === 0 && !isAdding && (
-                <div className="text-center py-8 text-muted-foreground italic">
-                  Liste vide
-                </div>
-              )}
             </div>
 
             {/* Add Item Row */}
@@ -290,7 +312,7 @@ const ShoppingList = () => {
                   className="flex items-center gap-3 w-full py-3 px-1 text-muted-foreground hover:text-foreground transition-colors text-left"
                 >
                   <Plus className="w-5 h-5" />
-                  <span className="text-base font-medium">Élément de liste</span>
+                  <span className="text-base font-medium">Ajouter un élément</span>
                 </button>
               )}
             </div>

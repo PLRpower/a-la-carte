@@ -9,6 +9,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import RecipeFilters from "@/components/RecipeFilters";
 import { useRecipes } from "@/hooks/useRecipes";
 import { RecipeCategory, RecipeDifficulty } from "@/types/database";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Recipes = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -41,8 +43,8 @@ const Recipes = () => {
     <div className="pb-20 min-h-screen relative">
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold">Toutes les recettes</h1>
+        <div className={`flex items-center justify-between ${(loading || recipes.length > 0 || searchQuery) ? "mb-4" : ""}`}>
+          <h1 className="text-2xl font-bold">Mes recettes</h1>
           <Button
             size="icon"
             className="bg-accent text-accent-foreground hover:bg-accent/90"
@@ -52,26 +54,28 @@ const Recipes = () => {
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Rechercher des recettes..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-background text-foreground"
-            />
-          </div>
+        {(loading || recipes.length > 0 || searchQuery) && (
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher des recettes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-background text-foreground"
+              />
+            </div>
 
-          <Button
-            variant="secondary"
-            className="shrink-0"
-            onClick={() => setShowFilters(true)}
-          >
-            <Filter className="w-4 h-4 mr-2" />
-            Filtres
-          </Button>
-        </div>
+            <Button
+              variant="secondary"
+              className="shrink-0"
+              onClick={() => setShowFilters(true)}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Filtres
+            </Button>
+          </div>
+        )}
       </header>
 
       {showFilters && (
@@ -90,8 +94,19 @@ const Recipes = () => {
       {/* Recipe Grid */}
       <section className="px-6 mt-6 pb-6">
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Chargement des recettes...</p>
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="overflow-hidden shadow-sm border-none">
+                <Skeleton className="h-40 w-full rounded-none" />
+                <CardContent className="p-4">
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <div className="flex gap-4">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : (
           <div className="space-y-4">
@@ -169,9 +184,23 @@ const Recipes = () => {
         )}
 
         {!loading && recipes.length === 0 && (
-          <div className="text-center py-12 text-muted-foreground">
-            <p>Aucune recette trouvée</p>
-          </div>
+          <EmptyState
+            icon={ChefHat}
+            title="Votre carnet est vide"
+            description="Commencez à organiser vos secrets culinaires. Ajoutez vos propres recettes ou importez-en depuis vos sites préférés."
+            actions={[
+              {
+                label: "Ajouter une recette",
+                icon: Plus,
+                onClick: () => navigate("/recipes/new-method"),
+                variant: "default",
+              }
+            ]}
+            tip={{
+              icon: Camera,
+              text: "Prenez en photo une recette dans un livre, notre IA l'ajoutera automatiquement à votre collection !"
+            }}
+          />
         )}
       </section>
     </div>

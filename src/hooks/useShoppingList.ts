@@ -28,7 +28,6 @@ export const useShoppingList = () => {
       return data as ShoppingListItemWithIngredient[];
     },
     enabled: !!user,
-    refetchInterval: 5000,
   });
 
   // Real-time subscription
@@ -63,27 +62,18 @@ export const useShoppingList = () => {
       const { name, quantity, unit } = parseIngredientInput(input);
       let finalIngredientId: string | null = null;
 
-      // Fetch all ingredients to perform smart matching
       const ingredients = await queryClient.ensureQueryData({
         queryKey: ['ingredients'],
         queryFn: async () => {
-          const { data, error } = await supabase
-            .from('ingredients')
-            .select('*')
-            .order('name');
-
+          const { data, error } = await supabase.from('ingredients').select('*').order('name');
           if (error) throw error;
           return data as Ingredient[];
         },
-        staleTime: 1000 * 60 * 60 * 24, // 24 hours
+        staleTime: 1000 * 60 * 60 * 24,
       });
 
-      // Client-side matching logic
       const bestMatch = findBestIngredientMatch(name, ingredients);
-
-      if (bestMatch) {
-        finalIngredientId = bestMatch.id;
-      }
+      if (bestMatch) finalIngredientId = bestMatch.id;
 
       const { data, error } = await supabase
         .from('shopping_list')
@@ -95,94 +85,157 @@ export const useShoppingList = () => {
           ingredient_id: finalIngredientId,
           checked: false
         })
-        .select(`
-          *,
-          ingredient:ingredients(*)
-        `)
+        .select(`*, ingredient:ingredients(*)`)
         .single();
 
       if (error) throw error;
       return data as ShoppingListItemWithIngredient;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(queryKey);
+
+      const { name, quantity, unit } = parseIngredientInput(input);
+      const tempId = crypto.randomUUID();
+      const newItem: ShoppingListItemWithIngredient = {
+        id: tempId,
+        user_id: user?.id || '',
+        name,
+        quantity: quantity || null,
+        unit: unit || null,
+        ingredient_id: null,
+        checked: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        ingredient: null
+      };
+
+      queryClient.setQueryData<ShoppingListItemWithIngredient[]>(queryKey, (old) => [newItem, ...(old || [])]);
+      return { previousItems };
+    },
+    onError: (err, newItem, context) => {
+      if (context?.previousItems) {
+        queryClient.setQueryData(queryKey, context.previousItems);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const toggleItemMutation = useMutation({
     mutationFn: async ({ id, checked }: { id: string; checked: boolean }) => {
-      const { error } = await supabase
-        .from('shopping_list')
-        .update({ checked })
-        .eq('id', id);
+      const { error } = await supabase.from('shopping_list').update({ checked }).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
+    onMutate: async ({ id, checked }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(queryKey);
+
+      queryClient.setQueryData<ShoppingListItemWithIngredient[]>(queryKey, (old) =>
+        old?.map((item) => (item.id === id ? { ...item, checked } : item))
+      );
+
+      return { previousItems };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousItems) {
+        queryClient.setQueryData(queryKey, context.previousItems);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('shopping_list')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from('shopping_list').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(queryKey);
+
+      queryClient.setQueryData<ShoppingListItemWithIngredient[]>(queryKey, (old) =>
+        old?.filter((item) => item.id !== id)
+      );
+
+      return { previousItems };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousItems) {
+        queryClient.setQueryData(queryKey, context.previousItems);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ShoppingListItem> }) => {
-      // If name is updated, re-evaluate ingredient matching
       if (updates.name) {
-        // Fetch all ingredients to perform smart matching (similar to addSmartItem)
         const ingredients = await queryClient.ensureQueryData({
           queryKey: ['ingredients'],
           queryFn: async () => {
-            const { data, error } = await supabase
-              .from('ingredients')
-              .select('*')
-              .order('name');
-
+            const { data, error } = await supabase.from('ingredients').select('*').order('name');
             if (error) throw error;
             return data as Ingredient[];
           },
-          staleTime: 1000 * 60 * 60 * 24, // 24 hours
+          staleTime: 1000 * 60 * 60 * 24,
         });
 
-        // Find best match for the new name
         const bestMatch = findBestIngredientMatch(updates.name, ingredients);
         updates.ingredient_id = bestMatch?.id || null;
       }
 
-      const { error } = await supabase
-        .from('shopping_list')
-        .update(updates)
-        .eq('id', id);
+      const { error } = await supabase.from('shopping_list').update(updates).eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
+    onMutate: async ({ id, updates }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(queryKey);
+
+      queryClient.setQueryData<ShoppingListItemWithIngredient[]>(queryKey, (old) =>
+        old?.map((item) => (item.id === id ? { ...item, ...updates } : item))
+      );
+
+      return { previousItems };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousItems) {
+        queryClient.setQueryData(queryKey, context.previousItems);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const clearCheckedItemsMutation = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error('No user');
-      const { error } = await supabase
-        .from('shopping_list')
-        .delete()
-        .eq('checked', true); // Removed user_id check to clear ALL checked items or just my own? 
-      // "Partagés... tout les utilisateurs sont dans la même maison".
-      // Logically, "Finish shopping" clears checked items for everyone.
+      const { error } = await supabase.from('shopping_list').delete().eq('checked', true);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(queryKey);
+
+      queryClient.setQueryData<ShoppingListItemWithIngredient[]>(queryKey, (old) =>
+        old?.filter((item) => !item.checked)
+      );
+
+      return { previousItems };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousItems) {
+        queryClient.setQueryData(queryKey, context.previousItems);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 

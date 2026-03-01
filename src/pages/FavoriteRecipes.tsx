@@ -16,12 +16,12 @@ const FavoriteRecipes = () => {
 
     return (
         <div className="min-h-screen bg-background pb-20">
-            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 sticky top-0 z-10">
-                <div className="flex items-center gap-2 mb-2">
+            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
+                <div className="flex items-center gap-4">
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="text-primary-foreground hover:text-primary-foreground/80 -ml-2"
+                        className="text-primary-foreground hover:bg-white/20 -ml-2"
                         onClick={() => navigate("/profile")}
                     >
                         <ArrowLeft className="w-6 h-6" />

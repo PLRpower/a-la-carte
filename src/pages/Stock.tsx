@@ -1,10 +1,12 @@
-import { Plus, AlertCircle, ShoppingCart, Trash2, Pencil } from "lucide-react";
+import { Plus, AlertCircle, ShoppingCart, Trash2, Pencil, Carrot, Sparkles, Globe } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useStock } from "@/hooks/useStock";
 import { useToast } from "@/hooks/use-toast";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Stock = () => {
   const navigate = useNavigate();
@@ -34,8 +36,15 @@ const Stock = () => {
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
         <div className="flex items-center gap-3">
 
-          <div>
-            <h1 className="text-2xl font-bold">Mes Ingrédients</h1>
+          <div className="flex items-center justify-between w-full">
+            <h1 className="text-2xl font-bold">Mes ingrédients</h1>
+            <Button
+              size="icon"
+              className="bg-accent text-accent-foreground hover:bg-accent/90"
+              onClick={() => navigate("/stock/add")}
+            >
+              <Plus className="w-6 h-6" />
+            </Button>
           </div>
         </div>
       </header>
@@ -65,23 +74,29 @@ const Stock = () => {
         </section>
       )}
 
-      {/* Action Buttons */}
-      <section className="px-6 mt-4">
-        <Button className="w-full" onClick={() => navigate("/stock/add")}>
-          <Plus className="w-4 h-4 mr-2" />
-          Ajouter un article manuellement
-        </Button>
-      </section>
+
 
       {/* Stock Items */}
       <section className="px-6 mt-6 pb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Tous les articles ({items.length})</h2>
-        </div>
+        {!loading && items.length > 0 && (
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">Tous les articles ({items.length})</h2>
+          </div>
+        )}
 
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">Chargement du stock...</p>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="shadow-sm border-none">
+                <CardContent className="p-4 flex gap-4 items-center">
+                  <Skeleton className="w-10 h-10 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/4" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : items.length > 0 ? (
           <div className="space-y-3">
@@ -135,19 +150,23 @@ const Stock = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 rounded-full bg-muted mx-auto flex items-center justify-center mb-4">
-              <AlertCircle className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="font-semibold mb-2">Aucun article en stock</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Commencez à ajouter des ingrédients pour suivre votre garde-manger
-            </p>
-            <Button onClick={() => navigate("/stock/add")}>
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter le premier article
-            </Button>
-          </div>
+          <EmptyState
+            icon={Carrot}
+            title="Garde-manger vide"
+            description="Le secret d'une bonne cuisine commence par un inventaire bien tenu. Suivez vos ingrédients ici."
+            actions={[
+              {
+                label: "Ajouter au stock",
+                icon: Plus,
+                onClick: () => navigate("/stock/add"),
+                variant: "default",
+              }
+            ]}
+            tip={{
+              icon: Sparkles,
+              text: "L'IA utilise votre stock pour vous suggérer des recettes que vous pouvez cuisiner immédiatement sans faire de courses !"
+            }}
+          />
         )}
       </section>
     </div>

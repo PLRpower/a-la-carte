@@ -1,6 +1,7 @@
 import { Home, BookOpen, ShoppingCart, Carrot, User } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { NavLink } from "./NavLink";
+import { useQueryClient } from "@tanstack/react-query";
 
 const navItems = [
   { to: "/", icon: Home, label: "Accueil" },
@@ -12,6 +13,7 @@ const navItems = [
 
 export const BottomNav = () => {
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   if (location.pathname === "/auth") return null;
 
@@ -24,6 +26,14 @@ export const BottomNav = () => {
             to={item.to}
             className="flex flex-col items-center justify-center flex-1 py-2 px-1 text-muted-foreground transition-colors"
             activeClassName="text-primary"
+            onPointerDown={() => {
+              // Pre-fetch data for the section the user is about to click
+              // PointerDown triggers as soon as the finger touches the screen, 
+              // giving a small head start before the navigation click completes.
+              if (item.to === "/recipes") queryClient.prefetchQuery({ queryKey: ['recipes'] });
+              if (item.to === "/stock") queryClient.prefetchQuery({ queryKey: ['stock'] });
+              if (item.to === "/shopping-list") queryClient.prefetchQuery({ queryKey: ['shopping-list'] });
+            }}
           >
             {({ isActive }) => (
               <>

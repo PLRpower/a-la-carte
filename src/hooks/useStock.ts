@@ -121,8 +121,23 @@ export const useStock = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stock'] });
+    onMutate: async ({ id, updates }) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousStock = queryClient.getQueryData<StockWithIngredient[]>(queryKey);
+
+      queryClient.setQueryData<StockWithIngredient[]>(queryKey, (old) =>
+        old?.map((item) => (item.id === id ? { ...item, ...updates } : item))
+      );
+
+      return { previousStock };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousStock) {
+        queryClient.setQueryData(queryKey, context.previousStock);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 
@@ -135,8 +150,23 @@ export const useStock = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stock'] });
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousStock = queryClient.getQueryData<StockWithIngredient[]>(queryKey);
+
+      queryClient.setQueryData<StockWithIngredient[]>(queryKey, (old) =>
+        old?.filter((item) => item.id !== id)
+      );
+
+      return { previousStock };
+    },
+    onError: (err, id, context) => {
+      if (context?.previousStock) {
+        queryClient.setQueryData(queryKey, context.previousStock);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     },
   });
 

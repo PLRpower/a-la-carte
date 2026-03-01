@@ -54,19 +54,43 @@ export const useFamily = () => {
         queryFn: async () => {
             if (!mainFamilyId) return [];
 
-            const { data, error } = await supabase
+            const { data: membersData, error: membersError } = await supabase
                 .from('family_members')
-                .select(`
-          *,
-          profile:profiles(first_name, last_name, avatar_url)
-        `)
+                .select('*')
                 .eq('family_id', mainFamilyId);
 
-            if (error) {
+            if (membersError) {
                 toast.error("Erreur lors de la récupération des membres de la famille");
-                throw error;
+                throw membersError;
             }
-            return data as unknown as FamilyMember[];
+
+            if (!membersData || membersData.length === 0) return [];
+
+            const userIds = membersData.map(m => m.user_id);
+
+            const { data: profilesData, error: profilesError } = await (supabase
+                .from('profiles' as any)
+                .select('id, first_name, last_name, avatar_url') as any)
+                .in('id', userIds);
+
+            if (profilesError) {
+                toast.error("Erreur lors de la récupération des profils de la famille");
+                throw profilesError;
+            }
+
+            const combinedData = membersData.map(member => {
+                const profile = profilesData.find(p => p.id === member.user_id);
+                return {
+                    ...member,
+                    profile: profile ? {
+                        first_name: profile.first_name,
+                        last_name: profile.last_name,
+                        avatar_url: profile.avatar_url
+                    } : undefined
+                };
+            });
+
+            return combinedData as unknown as FamilyMember[];
         },
         enabled: !!user && !!mainFamilyId,
     });
@@ -107,20 +131,70 @@ export const useFamily = () => {
 
     // Add Member by Email Mutation
     const addMemberByEmailMutation = useMutation({
-        mutationFn: async ({ email, familyId }: { email: string, familyId: string }) => {
-            const { data, error } = await supabase.rpc('add_family_member_by_email', {
-                p_email: email,
-                p_family_id: familyId
+        mutationFn: async ({ email, familyId, shareCode }: { email: string, familyId: string, shareCode: string }) => {
+            // Check if we can add by direct RPC, or if we send the email via Edge Function
+            // Actually, we will trigger the edge function here or in the UI.
+            // Wait, the edge function will send the email. The original RPC just added if user exists.
+            // Let's call the Edge Function instead.
+            const { data, error } = await supabase.functions.invoke('invite-family', {
+                body: { email, familyId, shareCode }
             });
-            if (error) throw error;
+            if (error) {
+                // If EDGE function fails, try RPC as fallback if user already exists
+                const fallback = await supabase.rpc('add_family_member_by_email', { p_email: email, p_family_id: familyId });
+                if (fallback.error) throw error;
+            }
             return data;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['family_members', mainFamilyId] });
-            toast.success("Membre ajouté avec succès !");
+            toast.success("Invitation envoyée !");
         },
         onError: (error) => {
-            toast.error("Impossible d'ajouter le membre. L'utilisateur existe-t-il ?");
+            toast.error("Impossible d'ajouter le membre ou d'envoyer l'email.");
+            console.error(error);
+        }
+    });
+
+    // Remove Member Mutation
+    const removeMemberMutation = useMutation({
+        mutationFn: async (userIdToRemove: string) => {
+            if (!mainFamilyId) throw new Error("No family ID");
+            const { error } = await supabase
+                .from('family_members')
+                .delete()
+                .eq('family_id', mainFamilyId)
+                .eq('user_id', userIdToRemove);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['family_members', mainFamilyId] });
+            toast.success("Membre retiré de la famille.");
+        },
+        onError: (error) => {
+            toast.error("Erreur lors de la suppression du membre.");
+            console.error(error);
+        }
+    });
+
+    // Leave Family Mutation
+    const leaveFamilyMutation = useMutation({
+        mutationFn: async () => {
+            if (!mainFamilyId || !user?.id) throw new Error("No family or user ID");
+            const { error } = await supabase
+                .from('family_members')
+                .delete()
+                .eq('family_id', mainFamilyId)
+                .eq('user_id', user.id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['families', user?.id] });
+            queryClient.invalidateQueries({ queryKey: ['family_members', mainFamilyId] });
+            toast.success("Vous avez quitté la famille.");
+        },
+        onError: (error) => {
+            toast.error("Erreur, impossible de quitter la famille.");
             console.error(error);
         }
     });
@@ -136,5 +210,9 @@ export const useFamily = () => {
         isJoining: joinFamilyMutation.isPending,
         addMemberByEmail: addMemberByEmailMutation.mutate,
         isAddingMember: addMemberByEmailMutation.isPending,
+        removeMember: removeMemberMutation.mutate,
+        isRemovingMember: removeMemberMutation.isPending,
+        leaveFamily: leaveFamilyMutation.mutate,
+        isLeaving: leaveFamilyMutation.isPending,
     };
 };

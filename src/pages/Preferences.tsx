@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 
@@ -19,9 +20,14 @@ const Preferences = () => {
     <div className="pb-20 min-h-screen">
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-primary-foreground hover:bg-white/20 -ml-2"
+            onClick={() => navigate(-1)}
+          >
             <ArrowLeft className="w-6 h-6" />
-          </button>
+          </Button>
           <h1 className="text-2xl font-bold">Préférences</h1>
         </div>
       </header>

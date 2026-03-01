@@ -14,8 +14,10 @@ export const useRecipes = (filters?: RecipeFilters) => {
   const queryClient = useQueryClient();
   const { category, difficulty, searchQuery } = filters || {};
 
-  const { data: recipes = [], isLoading: loading, error } = useQuery({
-    queryKey: ['recipes', user?.id, category, difficulty, searchQuery],
+  const queryKey = ['recipes', user?.id, category, difficulty];
+
+  const { data: allRecipes = [], isLoading: loading, error } = useQuery({
+    queryKey,
     queryFn: async () => {
       if (!user) return [];
 
@@ -43,26 +45,8 @@ export const useRecipes = (filters?: RecipeFilters) => {
         query = query.eq('difficulty', difficulty);
       }
 
-      // Removed DB-side search to handle accents client-side
-      // if (searchQuery) {
-      //   query = query.ilike('title', `%${searchQuery}%`);
-      // }
-
       const { data, error } = await query;
-
       if (error) throw error;
-
-      // Filter by search query (accent-insensitive)
-      let filteredData = data;
-      if (searchQuery) {
-        const normalizeText = (str: string) =>
-          str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-
-        const normalizedQuery = normalizeText(searchQuery);
-        filteredData = data.filter(recipe =>
-          normalizeText(recipe.title).includes(normalizedQuery)
-        );
-      }
 
       // Check if recipes are favorited by current user
       const { data: favorites } = await supabase
@@ -72,7 +56,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
 
       const favoritedIds = new Set(favorites?.map(f => f.recipe_id) || []);
 
-      return filteredData.map(recipe => ({
+      return data.map(recipe => ({
         ...recipe,
         is_favorited: favoritedIds.has(recipe.id)
       })) as RecipeWithDetails[];
@@ -129,9 +113,7 @@ export const useRecipes = (filters?: RecipeFilters) => {
     mutationFn: async (recipeId: string) => {
       if (!user) throw new Error('No user');
 
-      // We need to know current state, but simple insert/delete based on existence check is fine
-      // Alternatively we could optimistic update, but let's stick to simple logic first
-      const recipe = recipes.find(r => r.id === recipeId);
+      const recipe = allRecipes.find(r => r.id === recipeId);
 
       if (recipe?.is_favorited) {
         const { error } = await supabase
@@ -147,8 +129,23 @@ export const useRecipes = (filters?: RecipeFilters) => {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+    onMutate: async (recipeId) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previousRecipes = queryClient.getQueryData<RecipeWithDetails[]>(queryKey);
+
+      queryClient.setQueryData<RecipeWithDetails[]>(queryKey, (old) =>
+        old?.map(r => r.id === recipeId ? { ...r, is_favorited: !r.is_favorited } : r)
+      );
+
+      return { previousRecipes };
+    },
+    onError: (err, recipeId, context) => {
+      if (context?.previousRecipes) {
+        queryClient.setQueryData(queryKey, context.previousRecipes);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
     }
   });
 
@@ -188,8 +185,18 @@ export const useRecipes = (filters?: RecipeFilters) => {
     }
   };
 
+  const normalizeText = (str: string) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+  const recipes = searchQuery && allRecipes
+    ? allRecipes.filter(recipe =>
+      normalizeText(recipe.title).includes(normalizeText(searchQuery))
+    )
+    : allRecipes;
+
   return {
     recipes,
+    allRecipes, // Also export all recipes
     loading,
     error: error as Error | null,
     createRecipe,

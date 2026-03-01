@@ -13,6 +13,11 @@ export interface Profile {
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
+  subscription_status?: string | null;
+  plan_id?: string | null;
+  current_period_end?: string | null;
 }
 
 export interface UserRole {

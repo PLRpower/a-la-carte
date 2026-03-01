@@ -4,16 +4,18 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Users, Copy, Plus, ClipboardPaste, User, UserPlus } from "lucide-react";
+import { ArrowLeft, Users, Copy, Plus, ClipboardPaste, User, UserPlus, Trash2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const Family = () => {
+    const { user } = useAuth();
     const navigate = useNavigate();
-    const { families, members, loadingFamilies, loadingMembers, createFamily, joinFamily, isCreating, isJoining, addMemberByEmail, isAddingMember } = useFamily();
+    const { families, members, loadingFamilies, loadingMembers, createFamily, joinFamily, isCreating, isJoining, addMemberByEmail, isAddingMember, leaveFamily, removeMember, isLeaving, isRemovingMember } = useFamily();
 
     const [newFamilyName, setNewFamilyName] = useState("");
     const [shareCode, setShareCode] = useState("");
@@ -35,27 +37,27 @@ const Family = () => {
 
     const handleAddMember = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMemberEmail.trim() || !currentFamily) return;
-        addMemberByEmail({ email: newMemberEmail, familyId: currentFamily.id });
+        if (!newMemberEmail.trim() || !currentFamily || !currentFamily.share_code) return;
+        addMemberByEmail({ email: newMemberEmail, familyId: currentFamily.id, shareCode: currentFamily.share_code });
         setNewMemberEmail("");
     };
 
     const copyToClipboard = (code: string | null) => {
         if (!code) return;
-        navigator.clipboard.writeText(code);
-        toast.success("Code copié dans le presse-papier !");
+        const link = `${window.location.origin}/?family_code=${code}`;
+        navigator.clipboard.writeText(link);
+        toast.success("Lien d'invitation copié !");
     };
 
     if (loadingFamilies) {
         return (
             <div className="pb-20 min-h-screen">
-                <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 sticky top-0 z-10 shadow-md">
-                    <div className="flex justify-between items-center mb-4">
-                        <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/90" onClick={() => navigate(-1)}>
+                <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
+                    <div className="flex items-center gap-4">
+                        <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-white/20 -ml-2" onClick={() => navigate(-1)}>
                             <ArrowLeft className="w-5 h-5" />
                         </Button>
-                        <h1 className="text-xl font-bold">Ma famille</h1>
-                        <div className="w-10"></div>
+                        <h1 className="text-2xl font-bold">Ma famille</h1>
                     </div>
                 </header>
                 <div className="p-6 space-y-4">
@@ -70,15 +72,12 @@ const Family = () => {
 
     return (
         <div className="pb-20 min-h-screen">
-            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 sticky top-0 z-10 shadow-md">
-                <div className="flex justify-between items-center mb-4">
-                    <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary/90" onClick={() => navigate("/profile")}>
+            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-white/20 -ml-2" onClick={() => navigate("/profile")}>
                         <ArrowLeft className="w-5 h-5" />
                     </Button>
-                    <h1 className="text-xl font-bold flex items-center gap-2">
-                        <Users className="w-6 h-6" /> Ma famille
-                    </h1>
-                    <div className="w-10"></div>
+                    <h1 className="text-2xl font-bold">Ma famille</h1>
                 </div>
             </header>
 
@@ -173,15 +172,15 @@ const Family = () => {
                                             Code de partage
                                         </Label>
                                         <div className="flex items-center gap-2">
-                                            <code className="flex-1 bg-muted px-4 py-2 rounded-lg font-mono text-sm border truncate">
-                                                {currentFamily?.share_code || 'Généré au chargement...'}
+                                            <code className="flex-1 bg-muted px-4 py-2 rounded-lg font-mono text-xs border truncate">
+                                                {currentFamily?.share_code ? `${window.location.origin}/?family_code=${currentFamily.share_code}` : 'Générique au chargement...'}
                                             </code>
                                             <Button variant="outline" size="icon" onClick={() => copyToClipboard(currentFamily?.share_code || '')}>
                                                 <Copy className="h-4 w-4" />
                                             </Button>
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-2">
-                                            Donnez ce code à vos proches pour qu'ils rejoignent votre famille.
+                                            Partagez ce lien à vos proches pour qu'ils rejoignent votre famille.
                                         </p>
                                     </div>
                                     <Separator />
@@ -237,19 +236,55 @@ const Family = () => {
                                                     </Avatar>
                                                     <div>
                                                         <p className="font-medium text-sm">
-                                                            {member.profile?.first_name || 'Membre'} {member.profile?.last_name || ''}
+                                                            {member.profile?.first_name ? (
+                                                                `${member.profile.first_name} ${member.profile.last_name || ''}`.trim()
+                                                            ) : 'Utilisateur'}
+                                                            {member.user_id === user?.id && " (Vous)"}
                                                         </p>
                                                         <p className="text-xs text-muted-foreground capitalize">
                                                             {member.role === 'admin' ? 'Administrateur' : 'Membre'}
                                                         </p>
                                                     </div>
                                                 </div>
+
+                                                {/* Allow admin to remove others */}
+                                                {(members.find(m => m.user_id === user?.id)?.role === 'admin') && member.user_id !== user?.id && (
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => {
+                                                            if (window.confirm("Voulez-vous vraiment retirer ce membre de la famille ?")) {
+                                                                removeMember(member.user_id);
+                                                            }
+                                                        }}
+                                                        disabled={isRemovingMember}
+                                                        className="text-destructive hover:bg-destructive/10"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
                                 )}
                             </CardContent>
                         </Card>
+
+                        <div className="pt-4 flex justify-center">
+                            <Button
+                                variant="destructive"
+                                className="w-full sm:w-auto flex items-center gap-2"
+                                onClick={() => {
+                                    if (window.confirm("Êtes-vous sûr de vouloir quitter cette famille ? Vous perdrez l'accès à ses recettes et son stock.")) {
+                                        leaveFamily();
+                                    }
+                                }}
+                                disabled={isLeaving}
+                            >
+                                <LogOut className="w-4 h-4" />
+                                Quitter la famille
+                            </Button>
+                        </div>
                     </>
                 )}
             </main>

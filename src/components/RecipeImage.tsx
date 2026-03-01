@@ -9,9 +9,11 @@ interface RecipeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 
 export const RecipeImage = ({ src, alt, className, containerClassName, ...props }: RecipeImageProps) => {
     const [hasError, setHasError] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
         setHasError(false);
+        setIsLoaded(false);
     }, [src]);
 
     if (!src || hasError) {
@@ -28,12 +30,24 @@ export const RecipeImage = ({ src, alt, className, containerClassName, ...props 
     }
 
     return (
-        <img
-            src={src}
-            alt={alt}
-            className={cn("w-full h-full object-cover", className)}
-            onError={() => setHasError(true)}
-            {...props}
-        />
+        <div className={cn("relative w-full h-full overflow-hidden", containerClassName)}>
+            {!isLoaded && (
+                <div className="absolute inset-0 bg-muted animate-pulse flex items-center justify-center">
+                    <ChefHat className="w-1/4 h-1/4 text-muted-foreground/10" />
+                </div>
+            )}
+            <img
+                src={src}
+                alt={alt}
+                className={cn(
+                    "w-full h-full object-cover transition-opacity duration-500",
+                    isLoaded ? "opacity-100" : "opacity-0",
+                    className
+                )}
+                onLoad={() => setIsLoaded(true)}
+                onError={() => setHasError(true)}
+                {...props}
+            />
+        </div>
     );
 };
