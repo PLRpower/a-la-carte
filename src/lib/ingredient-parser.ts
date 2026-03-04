@@ -177,6 +177,8 @@ export const parseIngredientInput = (input: string): ParsedIngredient => {
 import { Ingredient } from "@/types/database";
 
 export const findBestIngredientMatch = (inputName: string, allIngredients: Ingredient[]): Ingredient | null => {
+    if (!allIngredients) return null;
+
     const lowerInput = inputName.toLowerCase();
     let bestMatch: Ingredient | null = null;
     let maxLen = -1;

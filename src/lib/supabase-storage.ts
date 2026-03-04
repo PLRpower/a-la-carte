@@ -8,9 +8,10 @@ export const uploadFile = async (
 ): Promise<{ url: string | null; error: Error | null }> => {
   try {
     const compressedFile = await compressImage(file);
-    const fileExt = compressedFile.name.split('.').pop() || file.name.split('.').pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = userId ? `${userId}/${fileName}` : fileName;
+    const originalName = compressedFile.name || file.name || 'photo.jpg';
+    const fileExt = originalName.split('.').pop() || 'jpg';
+    const newFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = userId ? `${userId}/${newFileName}` : newFileName;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
