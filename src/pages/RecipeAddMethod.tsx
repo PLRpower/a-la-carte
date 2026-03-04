@@ -1,12 +1,14 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, Globe, PenTool } from "lucide-react";
+import { ArrowLeft, Camera, Globe, PenTool, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const RecipeAddMethod = () => {
     const navigate = useNavigate();
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -19,7 +21,15 @@ const RecipeAddMethod = () => {
         <div className="min-h-screen bg-background pb-20">
             <input
                 type="file"
-                ref={fileInputRef}
+                ref={cameraInputRef}
+                className="hidden"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileSelect}
+            />
+            <input
+                type="file"
+                ref={galleryInputRef}
                 className="hidden"
                 accept="image/*"
                 onChange={handleFileSelect}
@@ -42,16 +52,44 @@ const RecipeAddMethod = () => {
             <div className="p-6 space-y-4">
                 <Card
                     className="cursor-pointer hover:bg-accent/5 transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setShowPhotoOptions(!showPhotoOptions)}
                 >
-                    <CardContent className="flex items-center gap-4 p-6">
-                        <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
-                            <Camera className="w-6 h-6" />
+                    <CardContent className="p-6">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                                <Camera className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="font-semibold text-lg">À partir d'une image</h3>
+                                <p className="text-sm text-muted-foreground">Prenez une photo ou importez depuis votre galerie</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="font-semibold text-lg">Scanner une photo</h3>
-                            <p className="text-sm text-muted-foreground">Prenez en photo une recette d'un livre ou magazine</p>
-                        </div>
+
+                        {showPhotoOptions && (
+                            <div className="mt-6 flex flex-col sm:flex-row gap-3 pt-4 border-t border-border animate-in fade-in slide-in-from-top-4">
+                                <Button
+                                    className="flex-1 flex gap-2"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        cameraInputRef.current?.click();
+                                    }}
+                                >
+                                    <Camera className="w-4 h-4" />
+                                    Prendre une photo
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 flex gap-2"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        galleryInputRef.current?.click();
+                                    }}
+                                >
+                                    <ImageIcon className="w-4 h-4" />
+                                    Choisir depuis la galerie
+                                </Button>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 

@@ -233,14 +233,16 @@ const Family = () => {
                                                             <AvatarImage src={member.profile.avatar_url} />
                                                         ) : (
                                                             <AvatarFallback className="bg-primary/20 text-primary">
-                                                                {member.profile?.first_name?.[0] || member.profile?.last_name?.[0] || <User className="w-4 h-4" />}
+                                                                {member.profile?.first_name?.[0] || member.profile?.last_name?.[0] || member.profile?.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
                                                             </AvatarFallback>
                                                         )}
                                                     </Avatar>
                                                     <div>
                                                         <p className="font-medium text-sm">
-                                                            {member.profile?.first_name ? (
-                                                                `${member.profile.first_name} ${member.profile.last_name || ''}`.trim()
+                                                            {member.profile?.first_name || member.profile?.last_name ? (
+                                                                `${member.profile.first_name || ''} ${member.profile.last_name || ''}`.trim()
+                                                            ) : member.profile?.email ? (
+                                                                member.profile.email
                                                             ) : 'Utilisateur'}
                                                             {member.user_id === user?.id && " (Vous)"}
                                                         </p>

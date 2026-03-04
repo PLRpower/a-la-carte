@@ -21,6 +21,7 @@ interface FamilyMember {
         first_name: string | null;
         last_name: string | null;
         avatar_url: string | null;
+        email?: string | null;
     };
 }
 
@@ -70,7 +71,7 @@ export const useFamily = () => {
 
             const { data: profilesData, error: profilesError } = await (supabase
                 .from('profiles' as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)
-                .select('id, first_name, last_name, avatar_url') as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)
+                .select('id, first_name, last_name, avatar_url, email') as any /* eslint-disable-line @typescript-eslint/no-explicit-any */)
                 .in('id', userIds);
 
             if (profilesError) {
@@ -85,7 +86,8 @@ export const useFamily = () => {
                     profile: profile ? {
                         first_name: profile.first_name,
                         last_name: profile.last_name,
-                        avatar_url: profile.avatar_url
+                        avatar_url: profile.avatar_url,
+                        email: profile.email
                     } : undefined
                 };
             });
