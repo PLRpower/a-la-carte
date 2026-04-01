@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { X, HelpCircle } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingListItemWithIngredient } from "@/types/database";
@@ -11,7 +11,7 @@ interface ShoppingListItemProps {
     onUpdate: (id: string, updates: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => void;
 }
 
-export const ShoppingListItem = ({ item, onToggle, onDelete, onUpdate }: ShoppingListItemProps) => {
+const ShoppingListItemComponent = ({ item, onToggle, onDelete, onUpdate }: ShoppingListItemProps) => {
     // Construct initial display value
     const getDisplayValue = () => {
         let display = item.name;
@@ -28,10 +28,19 @@ export const ShoppingListItem = ({ item, onToggle, onDelete, onUpdate }: Shoppin
 
     // Update local value if item changes externally
     useEffect(() => {
+        const getDisplayValue = () => {
+            let display = item.name;
+            if (item.quantity) {
+                const unitDisplay = (item.unit && item.unit !== 'piece') ? item.unit : '';
+                display += ` (${item.quantity}${unitDisplay})`;
+            }
+            return display;
+        };
+
         if (!isFocused) {
             setValue(getDisplayValue());
         }
-    }, [item.name, item.quantity, item.unit]);
+    }, [item.name, item.quantity, item.unit, isFocused]);
 
     const handleBlur = () => {
         setIsFocused(false);
@@ -114,3 +123,5 @@ export const ShoppingListItem = ({ item, onToggle, onDelete, onUpdate }: Shoppin
         </div>
     );
 };
+
+export const ShoppingListItem = memo(ShoppingListItemComponent);

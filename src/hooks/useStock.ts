@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Stock, StockWithIngredient, MeasurementUnit } from '@/types/database';
@@ -9,7 +9,7 @@ export const useStock = () => {
   const queryClient = useQueryClient();
 
   // Use a shared query key since data is shared
-  const queryKey = ['stock'];
+  const queryKey = useMemo(() => ['stock'], []);
 
   const { data: stock = [], isLoading: loading, error } = useQuery({
     queryKey,
@@ -19,28 +19,11 @@ export const useStock = () => {
       // 1. Fetch stock items (ALL items, shared)
       const { data: stockItems, error: stockError } = await supabase
         .from('stock')
-        .select('*')
+        .select('*, ingredient:ingredients(*)')
         .order('created_at', { ascending: false });
 
       if (stockError) throw stockError;
-      if (!stockItems || stockItems.length === 0) return [];
-
-      // 2. Fetch related ingredients
-      const ingredientIds = [...new Set(stockItems.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.ingredient_id))];
-      const { data: ingredients, error: ingredientsError } = await supabase
-        .from('ingredients')
-        .select('*')
-        .in('id', ingredientIds);
-
-      if (ingredientsError) throw ingredientsError;
-
-      // 3. Combine
-      const ingredientsMap = new Map(ingredients?.map((ing: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => [ing.id, ing]));
-
-      return stockItems.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
-        ...item,
-        ingredient: ingredientsMap.get(item.ingredient_id)
-      })) as StockWithIngredient[];
+      return (stockItems || []) as StockWithIngredient[];
     },
     enabled: !!user,
   });
@@ -68,7 +51,7 @@ export const useStock = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, queryClient]);
+  }, [user, queryClient, queryKey]);
 
   const addStockMutation = useMutation({
     mutationFn: async ({
