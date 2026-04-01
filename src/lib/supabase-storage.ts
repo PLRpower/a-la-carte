@@ -9,12 +9,12 @@ export const uploadFile = async (
   try {
     const compressedFile = await compressImage(file);
     let fileExt = compressedFile.name.split('.').pop() || file.name.split('.').pop();
-    
+
     // Force .webp extension if the file is WebP
     if (compressedFile.type === 'image/webp') {
         fileExt = 'webp';
     }
-    
+
     const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = userId ? `${userId}/${fileName}` : fileName;
 

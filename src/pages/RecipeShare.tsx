@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIngredients } from "@/hooks/useIngredients";
 import { uploadFile } from "@/lib/supabase-storage";
 import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
+import { saveRecipeIngredients } from "@/lib/recipe-helpers";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
