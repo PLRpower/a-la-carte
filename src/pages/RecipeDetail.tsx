@@ -5,7 +5,6 @@ import { ArrowLeft, Heart, Clock, ChefHat, MoreVertical, Edit, Trash2 } from "lu
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useRecipes } from "@/hooks/useRecipes";
 import {
@@ -19,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 const RecipeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { recipes, toggleFavorite } = useRecipes();
+  const { recipes, toggleFavorite, deleteRecipe } = useRecipes();
   const { toast } = useToast();
   const [servings, setServings] = useState(4);
   const [photos, setPhotos] = useState<string[]>([]);
@@ -106,10 +105,7 @@ const RecipeDetail = () => {
               <DropdownMenuItem
                 onClick={async () => {
                   if (!id) return;
-                  const { error } = await supabase
-                    .from('recipes')
-                    .delete()
-                    .eq('id', id);
+                  const { error } = await deleteRecipe(id);
 
                   if (error) {
                     toast({

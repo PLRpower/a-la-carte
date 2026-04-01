@@ -25,6 +25,14 @@ export const DataPrefetcher = () => {
                     .order('created_at', { ascending: false });
                 if (error) throw error;
 
+                // Prefetch images for the first 5 recipes to make the initial view faster
+                data.slice(0, 8).forEach(recipe => {
+                    if (recipe.image_url) {
+                        const img = new Image();
+                        img.src = recipe.image_url;
+                    }
+                });
+
                 const { data: favorites } = await supabase
                     .from('favorites')
                     .select('recipe_id')
@@ -44,26 +52,11 @@ export const DataPrefetcher = () => {
             queryFn: async () => {
                 const { data: stockItems, error: stockError } = await supabase
                     .from('stock')
-                    .select('*')
+                    .select('*, ingredient:ingredients(*)')
                     .order('created_at', { ascending: false });
 
                 if (stockError) throw stockError;
-                if (!stockItems || stockItems.length === 0) return [];
-
-                const ingredientIds = [...new Set(stockItems.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => item.ingredient_id))];
-                const { data: ingredients, error: ingredientsError } = await supabase
-                    .from('ingredients')
-                    .select('*')
-                    .in('id', ingredientIds);
-
-                if (ingredientsError) throw ingredientsError;
-
-                const ingredientsMap = new Map(ingredients?.map((ing: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => [ing.id, ing]));
-
-                return stockItems.map((item: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => ({
-                    ...item,
-                    ingredient: ingredientsMap.get(item.ingredient_id)
-                }));
+                return (stockItems || []) as StockWithIngredient[];
             }
         });
 

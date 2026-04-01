@@ -8,10 +8,15 @@ export const uploadFile = async (
 ): Promise<{ url: string | null; error: Error | null }> => {
   try {
     const compressedFile = await compressImage(file);
-    const originalName = compressedFile.name || file.name || 'photo.jpg';
-    const fileExt = originalName.split('.').pop() || 'jpg';
-    const newFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = userId ? `${userId}/${newFileName}` : newFileName;
+    let fileExt = compressedFile.name.split('.').pop() || file.name.split('.').pop();
+
+    // Force .webp extension if the file is WebP
+    if (compressedFile.type === 'image/webp') {
+        fileExt = 'webp';
+    }
+
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = userId ? `${userId}/${fileName}` : fileName;
 
     const { error: uploadError } = await supabase.storage
       .from(bucket)
@@ -21,7 +26,7 @@ export const uploadFile = async (
       });
 
     if (uploadError) {
-      throw uploadError;
+      return { url: null, error: uploadError as Error };
     }
 
     const { data: { publicUrl } } = supabase.storage
@@ -45,7 +50,7 @@ export const deleteFile = async (
       .remove([filePath]);
 
     if (error) {
-      throw error;
+      return { error: error as Error };
     }
 
     return { error: null };
@@ -64,4 +69,21 @@ export const getPublicUrl = (
     .getPublicUrl(filePath);
 
   return publicUrl;
+};
+
+export const getFilePathFromUrl = (
+  bucket: 'avatars' | 'recipe-images' | 'ingredient-images',
+  url: string
+): string | null => {
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split(`${bucket}/`);
+    if (pathParts.length > 1) {
+      return pathParts[pathParts.length - 1];
+    }
+    return null;
+  } catch (error) {
+    console.error('Error parsing URL:', error);
+    return null;
+  }
 };

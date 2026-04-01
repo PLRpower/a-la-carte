@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { toast } from "sonner";
@@ -49,6 +49,51 @@ export const useFamily = () => {
 
     // Fetch members for the first family (assuming simple case for now - one family per user)
     const mainFamilyId = families[0]?.id;
+
+    // Real-time subscription
+    useEffect(() => {
+        if (!user) return;
+
+        // Channel for family members changes
+        const membersChannel = supabase
+            .channel('family-members-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'family_members',
+                },
+                () => {
+                    queryClient.invalidateQueries({ queryKey: ['families', user?.id] });
+                    if (mainFamilyId) {
+                        queryClient.invalidateQueries({ queryKey: ['family_members', mainFamilyId] });
+                    }
+                }
+            )
+            .subscribe();
+
+        // Channel for families changes (in case name or code changes)
+        const familiesChannel = supabase
+            .channel('families-changes')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'families',
+                },
+                () => {
+                    queryClient.invalidateQueries({ queryKey: ['families', user?.id] });
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(membersChannel);
+            supabase.removeChannel(familiesChannel);
+        };
+    }, [user, mainFamilyId, queryClient]);
 
     const { data: members = [], isLoading: loadingMembers } = useQuery({
         queryKey: ['family_members', mainFamilyId],
@@ -134,15 +179,10 @@ export const useFamily = () => {
     // Add Member by Email Mutation
     const addMemberByEmailMutation = useMutation({
         mutationFn: async ({ email, familyId, shareCode }: { email: string, familyId: string, shareCode: string }) => {
-            // Check if we can add by direct RPC, or if we send the email via Edge Function
-            // Actually, we will trigger the edge function here or in the UI.
-            // Wait, the edge function will send the email. The original RPC just added if user exists.
-            // Let's call the Edge Function instead.
             const { data, error } = await supabase.functions.invoke('invite-family', {
                 body: { email, familyId, shareCode }
             });
             if (error) {
-                // If EDGE function fails, try RPC as fallback if user already exists
                 const fallback = await supabase.rpc('add_family_member_by_email', { p_email: email, p_family_id: familyId });
                 if (fallback.error) throw error;
             }

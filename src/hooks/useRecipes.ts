@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Recipe, RecipeWithDetails, RecipeCategory, RecipeDifficulty } from '@/types/database';
 import { useAuth } from './useAuth';
+import { deleteFile, getFilePathFromUrl } from '@/lib/supabase-storage';
 
 interface RecipeFilters {
   category?: RecipeCategory | string;
@@ -96,12 +97,37 @@ export const useRecipes = (filters?: RecipeFilters) => {
 
   const deleteRecipeMutation = useMutation({
     mutationFn: async (id: string) => {
+      // 1. Get image URLs from the recipe and its associated photos
+      const { data: recipe } = await supabase
+        .from('recipes')
+        .select('image_url')
+        .eq('id', id)
+        .single();
+        
+      const { data: photos } = await supabase
+        .from('recipe_photos')
+        .select('url')
+        .eq('recipe_id', id);
+
+      // 2. Delete recipe (this should cascade to recipe_photos in the database)
       const { error } = await supabase
         .from('recipes')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+
+      // 3. Delete files from storage
+      const urlsToDelete: string[] = [];
+      if (recipe?.image_url) urlsToDelete.push(recipe.image_url);
+      if (photos) photos.forEach(p => urlsToDelete.push(p.url));
+
+      for (const url of urlsToDelete) {
+        const filePath = getFilePathFromUrl('recipe-images', url);
+        if (filePath) {
+          await deleteFile('recipe-images', filePath);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipes'] });

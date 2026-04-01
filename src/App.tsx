@@ -15,7 +15,7 @@ const Onboarding = lazy(() => import("./pages/Onboarding"));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 2, // 2 minutes : les données restent "fraîches" 2 minutes avant de tenter un refetch
+      staleTime: 1000 * 60 * 5, // 5 minutes (plus long pour éviter les refetchs inutiles)
       gcTime: 1000 * 60 * 60 * 24, // 24 heures de cache en mémoire
       retry: 1,
       refetchOnWindowFocus: false,

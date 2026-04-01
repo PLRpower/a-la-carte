@@ -82,7 +82,7 @@
     "jsdom": "^27.0.1",
     "lovable-tagger": "^1.1.11",
     "postcss": "^8.5.6",
-    "supabase": "^2.58.5",
+    "supabase": "^2.84.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
