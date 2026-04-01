@@ -7,8 +7,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIngredients } from "@/hooks/useIngredients";
 import { uploadFile } from "@/lib/supabase-storage";
 import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Recipe, RecipeCategory, RecipeDifficulty, RecipeSource, MeasurementUnit } from "@/types/database";
+import {useRecipes} from "@/hooks/useRecipes.ts";
+import {ArrowLeft, Loader2, Trash2} from "lucide-react";
+import {Button} from "@/components/ui/button.tsx";
+
+interface RecipeIngredientWithRelation {
+    quantity: number | null;
+    unit: MeasurementUnit | null;
+    name: string | null;
+    ingredient: {
+        name: string;
+    } | null;
+}
 
 const RecipeEdit = () => {
     const { id } = useParams();
@@ -16,17 +27,19 @@ const RecipeEdit = () => {
     const { toast } = useToast();
     const { user } = useAuth();
     const { ingredients: allIngredients } = useIngredients();
+    const { deleteRecipe } = useRecipes();
 
     const [loading, setLoading] = useState(true);
     const [initialData, setInitialData] = useState<Partial<RecipeFormData>>({});
     const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchRecipe = async () => {
             if (!id) return;
             try {
-                const { data: recipe, error } = await supabase
+                const { data, error } = await supabase
                     .from('recipes')
                     .select(`
             *,
@@ -42,13 +55,20 @@ const RecipeEdit = () => {
                     .eq('id', id)
                     .single();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('Error fetching recipe:', error);
+                    setError("Impossible de charger la recette.");
+                    setLoading(false);
+                    return;
+                }
+                const recipe = data as Recipe & { recipe_ingredients: RecipeIngredientWithRelation[] };
+// ... rest of the logic
 
                 let ingredientsText = "";
                 if (recipe.recipe_ingredients && Array.isArray(recipe.recipe_ingredients)) {
                     ingredientsText = recipe.recipe_ingredients
-                        .map((ri: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => {
-                            const unit = ri.unit === 'piece' ? '' : ri.unit;
+                        .map((ri) => {
+                            const unit = ri.unit === 'piece' ? '' : (ri.unit || '');
                             const quantity = ri.quantity || '';
                             // Prioritize the saved name, fallback to linked ingredient name
                             const name = ri.name || ri.ingredient?.name || '';
@@ -69,9 +89,9 @@ const RecipeEdit = () => {
                     steps: recipe.instructions || "",
                     ingredients: ingredientsText,
                     imageUrl: recipe.image_url,
-                    source: (recipe as any /* eslint-disable-line @typescript-eslint/no-explicit-any */).source || null,
+                    source: recipe.source || null,
                 });
-            } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+            } catch (err: unknown) {
                 console.error('Error fetching recipe:', err);
                 setError("Impossible de charger la recette.");
             } finally {
@@ -98,9 +118,17 @@ const RecipeEdit = () => {
         try {
             let imageUrl = formData.imageUrl;
             if (formData.imageFile) {
-                const { url, error: uploadError } = await uploadFile('recipe-images', formData.imageFile, user.id);
-                if (uploadError) throw uploadError;
-                imageUrl = url;
+                const uploadResult = await uploadFile('recipe-images', formData.imageFile, user.id);
+                if (uploadResult.error) {
+                    toast({
+                        title: "Erreur",
+                        description: "Échec du téléchargement de l'image",
+                        variant: "destructive",
+                    });
+                    setSaving(false);
+                    return;
+                }
+                imageUrl = uploadResult.url;
             }
 
             const { error: recipeError } = await supabase
@@ -108,19 +136,27 @@ const RecipeEdit = () => {
                 .update({
                     title: formData.title,
                     description: formData.description,
-                    difficulty: formData.difficulty as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ || null,
+                    difficulty: (formData.difficulty || null) as RecipeDifficulty | null,
                     prep_time: formData.prepTime ? parseInt(formData.prepTime) : null,
                     cook_time: formData.cookTime ? parseInt(formData.cookTime) : null,
                     servings: formData.servings ? parseInt(formData.servings) : null,
-                    category: (formData.tags?.[0] || null) as any /* eslint-disable-line @typescript-eslint/no-explicit-any */,
+                    category: (formData.tags?.[0] || null) as RecipeCategory | null,
                     tags: formData.tags || [],
                     instructions: formData.steps,
                     image_url: imageUrl,
-                    source: formData.source as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ || null,
+                    source: (formData.source || null) as RecipeSource | null,
                 })
                 .eq('id', id);
 
-            if (recipeError) throw recipeError;
+            if (recipeError) {
+                toast({
+                    title: "Erreur",
+                    description: "Impossible de mettre à jour la recette",
+                    variant: "destructive",
+                });
+                setSaving(false);
+                return;
+            }
 
             // Delete existing ingredients
             const { error: deleteError } = await supabase
@@ -128,7 +164,15 @@ const RecipeEdit = () => {
                 .delete()
                 .eq('recipe_id', id);
 
-            if (deleteError) throw deleteError;
+            if (deleteError) {
+                toast({
+                    title: "Erreur",
+                    description: "Impossible de mettre à jour les ingrédients",
+                    variant: "destructive",
+                });
+                setSaving(false);
+                return;
+            }
 
             // Add new ingredients
             const ingredientLines = formData.ingredients.split('\n').filter(line => line.trim());
@@ -142,14 +186,13 @@ const RecipeEdit = () => {
                 if (match) {
                     ingredientId = match.id;
                 }
-                // If no match, we just save the name without an ingredient_id
 
                 await supabase.from('recipe_ingredients').insert([{
                     recipe_id: id,
                     ingredient_id: ingredientId,
                     name: parsedName,
                     quantity: quantity || 1,
-                    unit: unit as any /* eslint-disable-line @typescript-eslint/no-explicit-any */,
+                    unit: (unit || 'piece') as MeasurementUnit,
                 }]);
             }
 
@@ -158,15 +201,42 @@ const RecipeEdit = () => {
                 description: "Votre recette a été mise à jour avec succès",
             });
             navigate(`/recipe/${id}`);
-        } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+        } catch (error: unknown) {
             console.error('Save error:', error);
+            const errorMessage = error instanceof Error ? error.message : "Échec de la modification de la recette";
             toast({
                 title: "Erreur",
-                description: error.message || "Échec de la modification de la recette",
+                description: errorMessage,
                 variant: "destructive",
             });
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!id) return;
+
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.")) {
+            setDeleting(true);
+            const { error: deleteError } = await deleteRecipe(id);
+
+            if (deleteError) {
+                const errorMessage = deleteError instanceof Error ? deleteError.message : "Impossible de supprimer la recette";
+                toast({
+                    title: "Erreur",
+                    description: errorMessage,
+                    variant: "destructive",
+                });
+                setDeleting(false);
+                return;
+            }
+
+            toast({
+                title: "Recette supprimée",
+                description: "La recette a été supprimée avec succès",
+            });
+            navigate('/recipes');
         }
     };
 
@@ -207,6 +277,26 @@ const RecipeEdit = () => {
                     isSubmitting={saving}
                     submitLabel="Mettre à jour"
                 />
+
+                <div className="mt-12 pt-6 border-t border-border">
+                    <h2 className="text-lg font-semibold text-destructive mb-2">Zone de danger</h2>
+                    <p className="text-sm text-muted-foreground mb-4">
+                        La suppression de la recette est définitive et supprimera également les images associées.
+                    </p>
+                    <Button
+                        variant="outline"
+                        className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                        onClick={handleDelete}
+                        disabled={saving || deleting}
+                    >
+                        {deleting ? (
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        ) : (
+                            <Trash2 className="w-4 h-4 mr-2" />
+                        )}
+                        Supprimer la recette
+                    </Button>
+                </div>
             </div>
         </div>
     );

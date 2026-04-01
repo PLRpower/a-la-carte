@@ -1,25 +1,17 @@
 import { useState, useEffect } from "react";
 import { RecipeImage } from "@/components/RecipeImage";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Heart, Clock, ChefHat, MoreVertical, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Heart, Clock, ChefHat, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useRecipes } from "@/hooks/useRecipes";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useToast } from "@/hooks/use-toast";
 
 const RecipeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { recipes, toggleFavorite, deleteRecipe } = useRecipes();
-  const { toast } = useToast();
+  const { recipes, toggleFavorite } = useRecipes();
   const [servings, setServings] = useState(4);
   const [photos, setPhotos] = useState<string[]>([]);
 
@@ -68,66 +60,33 @@ const RecipeDetail = () => {
         <Button
           variant="ghost"
           size="icon"
-          className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm hover:bg-white"
+          className="absolute top-4 left-4 w-12 h-12 bg-white/90 backdrop-blur-sm hover:bg-white rounded-full shadow-sm"
           onClick={() => navigate('/recipes')}
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-6 h-6" />
         </Button>
 
-        <div className="absolute top-4 right-4 flex gap-2">
+        <div className="absolute top-4 right-4 flex gap-3">
           <Button
             variant="ghost"
             size="icon"
-            className="bg-white/90 backdrop-blur-sm hover:bg-white"
+            className="w-12 h-12 bg-white/90 backdrop-blur-sm hover:bg-white rounded-full shadow-sm"
             onClick={() => toggleFavorite(recipe.id)}
           >
             <Heart
-              className={`w-5 h-5 ${recipe.is_favorited ? "fill-accent text-accent" : "text-accent"
+              className={`w-6 h-6 ${recipe.is_favorited ? "fill-accent text-accent" : "text-accent"
                 }`}
             />
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="bg-white/90 backdrop-blur-sm hover:bg-white"
-              >
-                <MoreVertical className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate(`/recipes/edit/${id}`)}>
-                <Edit className="w-4 h-4 mr-2" />
-                Modifier
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={async () => {
-                  if (!id) return;
-                  const { error } = await deleteRecipe(id);
-
-                  if (error) {
-                    toast({
-                      title: "Erreur",
-                      description: "Impossible de supprimer la recette",
-                      variant: "destructive",
-                    });
-                  } else {
-                    toast({
-                      title: "Recette supprimée",
-                      description: "La recette a été supprimée avec succès",
-                    });
-                    navigate('/recipes');
-                  }
-                }}
-                className="text-destructive focus:text-destructive"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Supprimer
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="w-12 h-12 bg-white/90 backdrop-blur-sm hover:bg-white rounded-full shadow-sm"
+            onClick={() => navigate(`/recipes/edit/${id}`)}
+          >
+            <Edit className="w-6 h-6 text-foreground" />
+          </Button>
         </div>
 
         <div className="absolute bottom-4 left-6 right-6">
