@@ -1,4 +1,4 @@
-import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles } from "lucide-react";
+import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles, FlaskConical, ArrowRight, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useStock } from "@/hooks/useStock";
+import { isBetaEnvironment, getBetaUrl, getProductionUrl } from "@/utils/environment";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const Profile = () => {
   const { profile } = useProfile();
   const { recipes, loading: recipesLoading } = useRecipes();
   const { stock, loading: stockLoading } = useStock();
+  const isBeta = isBetaEnvironment();
 
   const favoriteCount = recipes.filter(r => r.is_favorited).length;
 
@@ -167,6 +169,63 @@ const Profile = () => {
         </Card>
       </section>
 
+      {/* Beta Program Section */}
+      <section className="px-6 mt-6">
+        {isBeta ? (
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 flex-shrink-0">
+                  <FlaskConical className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm">Version Bêta active</span>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded font-mono font-medium">develop</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Prévisualisation des futures fonctionnalités.
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-amber-500/30 hover:bg-amber-500/10 shrink-0 text-xs"
+                onClick={() => window.location.href = getProductionUrl()}
+              >
+                Retour prod
+                <ExternalLink className="w-3 h-3 ml-1" />
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center text-primary flex-shrink-0">
+                  <FlaskConical className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="font-semibold text-sm">Tester la version Bêta</div>
+                  <p className="text-xs text-muted-foreground">
+                    Accédez aux nouveautés avec votre compte et vos données.
+                  </p>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                className="bg-primary text-primary-foreground hover:bg-primary/90 shrink-0 text-xs font-medium"
+                onClick={() => window.location.href = getBetaUrl()}
+              >
+                Rejoindre
+                <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </section>
+
       {/* Sign Out */}
       {user && (
         <section className="px-6 mt-6">
@@ -181,7 +240,7 @@ const Profile = () => {
 
       {/* App Version */}
       <div className="text-center text-xs text-muted-foreground pb-6">
-        À la carte v1.2.0
+        À la carte v1.2.0 {isBeta ? "(Bêta · develop)" : ""}
       </div>
     </div>
   );

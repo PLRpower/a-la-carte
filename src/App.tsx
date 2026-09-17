@@ -9,6 +9,9 @@ import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./hooks/useAuth";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { DataPrefetcher } from "./components/DataPrefetcher";
+import { DemoBanner } from "./components/DemoBanner";
+import { BetaBanner } from "./components/BetaBanner";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 
@@ -35,49 +38,58 @@ const App = () => {
 
   if (showOnboarding) {
     return (
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <BetaBanner />
+              <Suspense fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              }>
+                <Routes>
+                  <Route path="*" element={<Onboarding onComplete={() => setShowOnboarding(false)} />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    );
+  }
+
+  return (
+    <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <Suspense fallback={
-              <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <ScrollToTop />
+            <AuthProvider>
+              <DataPrefetcher />
+              <div className="max-w-2xl mx-auto bg-background min-h-screen relative overflow-x-hidden flex flex-col">
+                <BetaBanner />
+                <DemoBanner />
+                <div className="flex-1">
+                  <Suspense fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                    </div>
+                  }>
+                    <AnimatedRoutes />
+                  </Suspense>
+                </div>
+                <BottomNav />
               </div>
-            }>
-              <Routes>
-                <Route path="*" element={<Onboarding onComplete={() => setShowOnboarding(false)} />} />
-              </Routes>
-            </Suspense>
+            </AuthProvider>
           </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
-    );
-  }
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <ScrollToTop />
-          <AuthProvider>
-            <DataPrefetcher />
-            <div className="max-w-2xl mx-auto bg-background min-h-screen relative overflow-x-hidden">
-              <Suspense fallback={
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-                </div>
-              }>
-                <AnimatedRoutes />
-              </Suspense>
-              <BottomNav />
-            </div>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

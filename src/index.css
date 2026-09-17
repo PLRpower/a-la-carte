@@ -75,3 +75,30 @@ All colors MUST be HSL.
     @apply font-serif;
   }
 }
+
+@media print {
+  @page {
+    margin: 1.2cm;
+    size: auto;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Hide app chrome during printing */
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Allow containers to use full page width on paper */
+  .max-w-2xl,
+  .max-w-md,
+  .max-w-xl {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

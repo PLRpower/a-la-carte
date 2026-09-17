@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { RecipeImage } from "@/components/RecipeImage";
-import { ArrowLeft, Clock, Heart } from "lucide-react";
+import { ArrowLeft, Clock, Heart, Coins } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useRecipes } from "@/hooks/useRecipes";
+import { calculateRecipeCost } from "@/lib/recipe-cost";
 
 const FavoriteRecipes = () => {
     const navigate = useNavigate();
@@ -87,12 +88,16 @@ const FavoriteRecipes = () => {
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                                         <div className="flex items-center gap-1">
                                             <Clock className="w-3.5 h-3.5" />
                                             {(recipe.prep_time || 0) + (recipe.cook_time || 0)} min
                                         </div>
                                         {recipe.difficulty && <div>{recipe.difficulty}</div>}
+                                        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                                            <Coins className="w-3.5 h-3.5" />
+                                            {calculateRecipeCost(recipe).formattedCostPerServing}
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>

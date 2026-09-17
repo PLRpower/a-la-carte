@@ -12,6 +12,9 @@ dist
 dist-ssr
 dev-dist
 *.local
+.codegraph
+.agents
+scripts
 
 # Editor directories and files
 .vscode/*

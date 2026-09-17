@@ -129,6 +129,59 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_plans: {
+        Row: {
+          id: string
+          user_id: string
+          date: string
+          slot: string
+          recipe_id: string | null
+          catalog_recipe_id: string | null
+          custom_title: string | null
+          servings: number
+          notes: string | null
+          recipe_snapshot: Json | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          date: string
+          slot: string
+          recipe_id?: string | null
+          catalog_recipe_id?: string | null
+          custom_title?: string | null
+          servings?: number
+          notes?: string | null
+          recipe_snapshot?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          date?: string
+          slot?: string
+          recipe_id?: string | null
+          catalog_recipe_id?: string | null
+          custom_title?: string | null
+          servings?: number
+          notes?: string | null
+          recipe_snapshot?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_plans_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -253,6 +306,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      recipe_user_notes: {
+        Row: {
+          cooked_count: number
+          created_at: string
+          id: string
+          last_cooked_at: string | null
+          notes: string
+          recipe_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cooked_count?: number
+          created_at?: string
+          id?: string
+          last_cooked_at?: string | null
+          notes?: string
+          recipe_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cooked_count?: number
+          created_at?: string
+          id?: string
+          last_cooked_at?: string | null
+          notes?: string
+          recipe_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       recipes: {
         Row: {
@@ -430,6 +516,10 @@ export type Database = {
         Returns: undefined
       }
       create_family: { Args: { p_name: string }; Returns: string }
+      get_shared_recipe: {
+        Args: { p_recipe_id: string }
+        Returns: Json
+      }
       get_or_create_ingredient: {
         Args: {
           _category?: Database["public"]["Enums"]["ingredient_category"]

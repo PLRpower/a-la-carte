@@ -1,12 +1,14 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, Globe, PenTool, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Camera, Globe, PenTool, Image as ImageIcon, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SocialImportDialog } from "@/components/recipe/SocialImportDialog";
 
 const RecipeAddMethod = () => {
     const navigate = useNavigate();
     const [showPhotoOptions, setShowPhotoOptions] = useState(false);
+    const [showSocialImport, setShowSocialImport] = useState(false);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
 
@@ -110,6 +112,21 @@ const RecipeAddMethod = () => {
 
                 <Card
                     className="cursor-pointer hover:bg-accent/5 transition-colors"
+                    onClick={() => setShowSocialImport(true)}
+                >
+                    <CardContent className="flex items-center gap-4 p-6">
+                        <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                            <Video className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-lg">Réseaux sociaux & Vidéos</h3>
+                            <p className="text-sm text-muted-foreground">TikTok, Instagram Reels, YouTube Shorts par lien ou texte</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card
+                    className="cursor-pointer hover:bg-accent/5 transition-colors"
                     onClick={() => navigate("/recipes/add")}
                 >
                     <CardContent className="flex items-center gap-4 p-6">
@@ -123,6 +140,7 @@ const RecipeAddMethod = () => {
                     </CardContent>
                 </Card>
             </div>
+            <SocialImportDialog open={showSocialImport} onOpenChange={setShowSocialImport} />
         </div>
     );
 };

@@ -1,4 +1,5 @@
-import { Plus, AlertCircle, ShoppingCart, Trash2, Pencil, Carrot, Sparkles, Globe } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, AlertCircle, ShoppingCart, Trash2, Pencil, Carrot, Sparkles, Globe, ScanBarcode, Receipt, AlertTriangle, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -7,12 +8,19 @@ import { useStock } from "@/hooks/useStock";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BarcodeScannerDialog } from "@/components/scanner/BarcodeScannerDialog";
+import { ReceiptScannerDialog } from "@/components/scanner/ReceiptScannerDialog";
+import { getExpiringStockItems, getExpirationStatus } from "@/lib/expiration-tracker";
 
 const Stock = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { stock: items, loading, deleteStock } = useStock();
   const lowStockCount = items.filter((item) => item.low_stock).length;
+  const urgentExpiringItems = useMemo(() => getExpiringStockItems(items, 48), [items]);
+
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [showReceiptScanner, setShowReceiptScanner] = useState(false);
 
   const handleDelete = async (id: string) => {
     const { error } = await deleteStock(id);
@@ -38,20 +46,79 @@ const Stock = () => {
 
           <div className="flex items-center justify-between w-full">
             <h1 className="text-2xl font-bold">Mes ingrédients</h1>
-            <Button
-              size="icon"
-              className="bg-accent text-accent-foreground hover:bg-accent/90"
-              onClick={() => navigate("/stock/add")}
-            >
-              <Plus className="w-6 h-6" />
-            </Button>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-primary-foreground hover:bg-primary-foreground/15 h-9 w-9"
+                onClick={() => setShowBarcodeScanner(true)}
+                title="Scanner un code-barres"
+              >
+                <ScanBarcode className="w-5 h-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="text-primary-foreground hover:bg-primary-foreground/15 h-9 w-9"
+                onClick={() => setShowReceiptScanner(true)}
+                title="Scanner un ticket de caisse / Facture Drive"
+              >
+                <Receipt className="w-5 h-5" />
+              </Button>
+              <Button
+                size="icon"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 h-9 w-9"
+                onClick={() => navigate("/stock/add")}
+                title="Ajouter manuellement"
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
+      {/* Anti-Gaspi Alert (< 48h) */}
+      {urgentExpiringItems.length > 0 && (
+        <section className="px-6 -mt-4 mb-4">
+          <Card className="bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg border-0">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-white/20 shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-sm">
+                      Alerte Anti-Gaspillage
+                    </h3>
+                    <Badge className="bg-white/25 text-white border-0 text-[10px] px-1.5 py-0 font-medium">
+                      DLC &lt; 48h
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-white/90 mb-3 leading-relaxed">
+                    <span className="font-semibold">{urgentExpiringItems.length} produit{urgentExpiringItems.length > 1 ? "s" : ""}</span> arrive{urgentExpiringItems.length > 1 ? "nt" : ""} à expiration :{" "}
+                    {urgentExpiringItems.map((i) => i.ingredient?.name).filter(Boolean).slice(0, 3).join(", ")}
+                    {urgentExpiringItems.length > 3 && ` (+${urgentExpiringItems.length - 3})`}
+                  </p>
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs font-semibold bg-white text-amber-700 hover:bg-white/90 shadow-sm"
+                    onClick={() => navigate("/", { state: { autoChefGaspi: true } })}
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-600" />
+                    Cuisiner avec le Chef IA
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
       {/* Low Stock Alert */}
       {lowStockCount > 0 && (
-        <section className="px-6 -mt-4">
+        <section className={`px-6 ${urgentExpiringItems.length > 0 ? "mb-4" : "-mt-4"}`}>
           <Card className="bg-accent text-accent-foreground shadow-lg">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
@@ -73,8 +140,6 @@ const Stock = () => {
           </Card>
         </section>
       )}
-
-
 
       {/* Stock Items */}
       <section className="px-6 mt-6 pb-6">
@@ -113,8 +178,8 @@ const Stock = () => {
                             className="w-10 h-10 rounded-full object-cover bg-muted"
                           />
                         )}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1">
                             <h3 className="font-medium">{item.ingredient?.name}</h3>
                             <span className="text-sm text-muted-foreground">
                               - {item.quantity} {item.unit}
@@ -125,6 +190,42 @@ const Stock = () => {
                               </Badge>
                             )}
                           </div>
+
+                          {/* DLC Expiration badge */}
+                          {item.expiration_date && (
+                            <div className="flex items-center gap-1.5 pt-0.5">
+                              {(() => {
+                                const status = getExpirationStatus(item.expiration_date);
+                                if (status.urgency === "expired") {
+                                  return (
+                                    <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                                      {status.label}
+                                    </Badge>
+                                  );
+                                }
+                                if (status.urgency === "critical") {
+                                  return (
+                                    <Badge className="bg-amber-600 text-white text-[10px] px-1.5 py-0 flex items-center gap-1 border-0 shadow-xs font-semibold">
+                                      <Clock className="w-3 h-3" />
+                                      <span>{status.label}</span>
+                                    </Badge>
+                                  );
+                                }
+                                if (status.urgency === "warning") {
+                                  return (
+                                    <Badge variant="outline" className="text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-700 text-[10px] px-1.5 py-0">
+                                      {status.label}
+                                    </Badge>
+                                  );
+                                }
+                                return (
+                                  <span className="text-[11px] text-muted-foreground">
+                                    DLC : {status.formattedDate}
+                                  </span>
+                                );
+                              })()}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -160,6 +261,18 @@ const Stock = () => {
                 icon: Plus,
                 onClick: () => navigate("/stock/add"),
                 variant: "default",
+              },
+              {
+                label: "Scanner code-barres",
+                icon: ScanBarcode,
+                onClick: () => setShowBarcodeScanner(true),
+                variant: "outline",
+              },
+              {
+                label: "Scanner un ticket / Drive",
+                icon: Receipt,
+                onClick: () => setShowReceiptScanner(true),
+                variant: "outline",
               }
             ]}
             tip={{
@@ -169,6 +282,18 @@ const Stock = () => {
           />
         )}
       </section>
+
+      <BarcodeScannerDialog
+        open={showBarcodeScanner}
+        onOpenChange={setShowBarcodeScanner}
+        defaultDestination="stock"
+      />
+
+      <ReceiptScannerDialog
+        open={showReceiptScanner}
+        onOpenChange={setShowReceiptScanner}
+        defaultDestination="stock"
+      />
     </div>
   );
 };
