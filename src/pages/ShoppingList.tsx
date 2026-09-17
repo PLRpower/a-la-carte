@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, ChevronDown, ChevronRight, Bell, ShoppingCart, Users } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Bell, ShoppingCart, Users, Route, ScanBarcode, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,15 +14,21 @@ import {
 
 import { useShoppingList } from "@/hooks/useShoppingList";
 import { useToast } from "@/hooks/use-toast";
-import { groupItemsByCategory, sortCategories } from "@/lib/shopping-list-utils";
+import { groupItemsByCategory, sortCategories, getAisleOrder } from "@/lib/shopping-list-utils";
 import { ShoppingListCategory } from "@/components/shopping-list/ShoppingListCategory";
 import { ShoppingListItem } from "@/components/shopping-list/ShoppingListItem";
+import { InStoreMode } from "@/components/shopping-list/InStoreMode";
+import { AisleOrderModal } from "@/components/shopping-list/AisleOrderModal";
+import { PredictiveSuggestionsBar } from "@/components/shopping-list/PredictiveSuggestionsBar";
+import { usePredictiveShopping } from "@/hooks/usePredictiveShopping";
 import { supabase } from "@/integrations/supabase/client";
 import { useIngredients } from "@/hooks/useIngredients";
 import { parseIngredientInput } from "@/lib/ingredient-parser";
 import { Ingredient } from "@/types/database";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BarcodeScannerDialog } from "@/components/scanner/BarcodeScannerDialog";
+import { ReceiptScannerDialog } from "@/components/scanner/ReceiptScannerDialog";
 
 const ShoppingList = () => {
 
@@ -33,7 +39,19 @@ const ShoppingList = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [newItemInput, setNewItemInput] = useState("");
   const [showChecked, setShowChecked] = useState(true);
+  const [aisleOrder, setAisleOrder] = useState<string[]>(() => getAisleOrder());
+  const [inStoreOpen, setInStoreOpen] = useState(false);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [showReceiptScanner, setShowReceiptScanner] = useState(false);
   const addItemInputRef = useRef<HTMLInputElement>(null);
+
+  const {
+    suggestions: predictiveSuggestions,
+    addSuggestion,
+    addAllSuggestions,
+    dismissSuggestion,
+    addingName,
+  } = usePredictiveShopping();
 
   const checkedItems = items.filter((item) => item.checked);
   const uncheckedItems = items.filter((item) => !item.checked);
@@ -186,46 +204,135 @@ const ShoppingList = () => {
   };
 
   const groupedUnchecked = groupItemsByCategory(uncheckedItems);
-  const sortedCategories = sortCategories(Object.keys(groupedUnchecked));
+  const sortedCategories = sortCategories(Object.keys(groupedUnchecked), aisleOrder);
 
   return (
     <div className="pb-40 min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 sticky top-0 z-10 shadow-sm">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Ma liste de courses</h1>
+      <header className="bg-primary text-primary-foreground pt-7 pb-5 px-6 sticky top-0 z-10 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Ma liste de courses</h1>
 
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button
-                size="icon"
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-              >
-                <Bell className="w-5 h-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Notifier la famille ?</DialogTitle>
-                <DialogDescription>
-                  Voulez-vous envoyer une notification à tous les utilisateurs pour les informer que la liste de courses a été actualisée ?
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter className="flex gap-2 sm:justify-end">
-                <DialogClose asChild>
-                  <Button variant="outline" type="button">Annuler</Button>
-                </DialogClose>
-                <DialogClose asChild>
-                  <Button onClick={handleSendNotification}>Envoyer</Button>
-                </DialogClose>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            <div className="flex items-center gap-2 sm:hidden">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-9 w-9 text-primary-foreground hover:bg-primary-foreground/15"
+                  >
+                    <Bell className="w-5 h-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Notifier la famille ?</DialogTitle>
+                    <DialogDescription>
+                      Voulez-vous envoyer une notification à tous les utilisateurs pour les informer que la liste de courses a été actualisée ?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="flex gap-2 sm:justify-end">
+                    <DialogClose asChild>
+                      <Button variant="outline" type="button">Annuler</Button>
+                    </DialogClose>
+                    <DialogClose asChild>
+                      <Button onClick={handleSendNotification}>Envoyer</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          {/* Action Toolbar: Mode Magasin & Parcours rayons */}
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setInStoreOpen(true)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 h-9 px-3.5 shadow-sm text-sm"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span>Mode Magasin</span>
+            </Button>
+
+            <AisleOrderModal
+              onOrderChange={(newOrder) => setAisleOrder(newOrder)}
+              trigger={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border-primary-foreground/25 gap-1.5 h-9 text-sm"
+                >
+                  <Route className="w-4 h-4" />
+                  <span>Rayons</span>
+                </Button>
+              }
+            />
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border-primary-foreground/25 gap-1.5 h-9 text-sm"
+              onClick={() => setShowBarcodeScanner(true)}
+              title="Scanner un code-barres"
+            >
+              <ScanBarcode className="w-4 h-4" />
+              <span className="hidden sm:inline">Code-barres</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border-primary-foreground/25 gap-1.5 h-9 text-sm"
+              onClick={() => setShowReceiptScanner(true)}
+              title="Scanner un ticket de caisse / Drive"
+            >
+              <Receipt className="w-4 h-4" />
+              <span className="hidden sm:inline">Ticket</span>
+            </Button>
+
+            <div className="hidden sm:block">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    size="icon"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90 h-9 w-9"
+                  >
+                    <Bell className="w-5 h-5" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Notifier la famille ?</DialogTitle>
+                    <DialogDescription>
+                      Voulez-vous envoyer une notification à tous les utilisateurs pour les informer que la liste de courses a été actualisée ?
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter className="flex gap-2 sm:justify-end">
+                    <DialogClose asChild>
+                      <Button variant="outline" type="button">Annuler</Button>
+                    </DialogClose>
+                    <DialogClose asChild>
+                      <Button onClick={handleSendNotification}>Envoyer</Button>
+                    </DialogClose>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
         </div>
       </header>
 
       {/* Shopping List Content */}
       <div className="px-6 mt-6 pb-6">
+        {/* Predictive Suggestions */}
+        <PredictiveSuggestionsBar
+          suggestions={predictiveSuggestions}
+          onAdd={addSuggestion}
+          onAddAll={addAllSuggestions}
+          onDismiss={dismissSuggestion}
+          addingName={addingName}
+        />
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -246,6 +353,18 @@ const ShoppingList = () => {
                 icon: Plus,
                 onClick: () => setIsAdding(true),
                 variant: "default",
+              },
+              {
+                label: "Scanner code-barres",
+                icon: ScanBarcode,
+                onClick: () => setShowBarcodeScanner(true),
+                variant: "outline",
+              },
+              {
+                label: "Scanner un ticket / Drive",
+                icon: Receipt,
+                onClick: () => setShowReceiptScanner(true),
+                variant: "outline",
               }
             ]}
             tip={{
@@ -352,6 +471,28 @@ const ShoppingList = () => {
           </>
         )}
       </div>
+
+      {/* Fullscreen One-Handed In-Store Mode */}
+      {inStoreOpen && (
+        <InStoreMode
+          items={items}
+          onToggleItem={toggleItem}
+          onFinishShopping={finishShopping}
+          onClose={() => setInStoreOpen(false)}
+        />
+      )}
+
+      <BarcodeScannerDialog
+        open={showBarcodeScanner}
+        onOpenChange={setShowBarcodeScanner}
+        defaultDestination="shopping-list"
+      />
+
+      <ReceiptScannerDialog
+        open={showReceiptScanner}
+        onOpenChange={setShowReceiptScanner}
+        defaultDestination="shopping-list"
+      />
     </div>
   );
 };

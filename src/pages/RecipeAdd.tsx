@@ -111,6 +111,8 @@ const RecipeAdd = () => {
             };
 
             scanImage();
+        } else if (location.state?.prefilledRecipe) {
+            setScannedData(convertAiRecipeToFormData(location.state.prefilledRecipe, null));
         }
     }, [location.state]);
 
@@ -253,7 +255,7 @@ const RecipeAdd = () => {
                         <ArrowLeft className="w-6 h-6" />
                     </Button>
                     <h1 className="text-2xl font-bold">
-                        {location.state?.file ? "Vérifier la recette" : "Nouvelle recette"}
+                        {location.state?.file || location.state?.prefilledRecipe ? "Vérifier la recette" : "Nouvelle recette"}
                         {pendingRecipes.length > 0 && <span className="text-sm font-normal ml-2 opacity-80">(+{pendingRecipes.length} autres)</span>}
                     </h1>
                 </div>

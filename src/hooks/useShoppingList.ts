@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ShoppingListItem, ShoppingListItemWithIngredient, Ingredient } from '@/types/database';
 import { parseIngredientInput, findBestIngredientMatch } from '@/lib/ingredient-parser';
+import { recordPurchases } from '@/lib/shopping-predictive';
 import { useAuth } from './useAuth';
 
 const queryKey = ['shopping-list'];
@@ -119,6 +120,58 @@ export const useShoppingList = () => {
       }
     },
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
+  });
+
+  const addItemsMutation = useMutation({
+    mutationFn: async (
+      newItems: Array<{
+        name: string;
+        quantity?: number | null;
+        unit?: MeasurementUnit | null;
+        ingredient_id?: string | null;
+      }>
+    ) => {
+      if (!user) throw new Error('No user');
+      if (!newItems || newItems.length === 0) return [];
+
+      const ingredients = await queryClient.ensureQueryData({
+        queryKey: ['ingredients'],
+        queryFn: async () => {
+          const { data, error } = await supabase.from('ingredients').select('*').order('name');
+          if (error) throw error;
+          return data as Ingredient[];
+        },
+        staleTime: 1000 * 60 * 60 * 24,
+      });
+
+      const rows = newItems.map((item) => {
+        let finalIngredientId = item.ingredient_id || null;
+        if (!finalIngredientId) {
+          const bestMatch = findBestIngredientMatch(item.name, ingredients);
+          if (bestMatch) finalIngredientId = bestMatch.id;
+        }
+
+        return {
+          user_id: user.id,
+          name: item.name,
+          quantity: item.quantity ?? null,
+          unit: item.unit ?? null,
+          ingredient_id: finalIngredientId,
+          checked: false,
+        };
+      });
+
+      const { data, error } = await supabase
+        .from('shopping_list')
+        .insert(rows)
+        .select(`*, ingredient:ingredients(*)`);
+
+      if (error) throw error;
+      return data as ShoppingListItemWithIngredient[];
+    },
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
     },
   });
@@ -253,6 +306,13 @@ export const useShoppingList = () => {
       if (fetchError) throw fetchError;
       if (!checkedItems || checkedItems.length === 0) return;
 
+      // Track purchase history for predictive replenishment
+      recordPurchases(
+        checkedItems.map((item) => ({
+          name: item.name,
+        }))
+      );
+
       // 2. Process each item
       for (const item of checkedItems) {
         let targetIngredientId = item.ingredient_id;
@@ -348,6 +408,22 @@ export const useShoppingList = () => {
     }
   };
 
+  const addItems = async (
+    newItems: Array<{
+      name: string;
+      quantity?: number | null;
+      unit?: MeasurementUnit | null;
+      ingredient_id?: string | null;
+    }>
+  ) => {
+    try {
+      const data = await addItemsMutation.mutateAsync(newItems);
+      return { data, error: null };
+    } catch (err) {
+      return { data: null, error: err as Error };
+    }
+  };
+
   const toggleItem = async (id: string, checked: boolean) => {
     try {
       await toggleItemMutation.mutateAsync({ id, checked });
@@ -398,6 +474,7 @@ export const useShoppingList = () => {
     loading,
     error: error as Error | null,
     addSmartItem,
+    addItems,
     toggleItem,
     updateItem,
     deleteItem,

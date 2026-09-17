@@ -2,11 +2,17 @@ import { useState, useEffect, createContext, useContext, ReactNode } from 'react
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { processPendingStarterPack } from '@/lib/recipe-clone';
+import { useToast } from '@/hooks/use-toast';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  isDemo: boolean;
+  enterDemoMode: () => void;
+  exitDemoMode: () => void;
   signUp: (email: string, password: string, firstName?: string, lastName?: string) => Promise<{ data?: any /* eslint-disable-line @typescript-eslint/no-explicit-any */; error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
@@ -28,7 +34,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState<boolean>(() => {
+    return localStorage.getItem('isDemoMode') === 'true';
+  });
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const enterDemoMode = () => {
+    localStorage.setItem('isDemoMode', 'true');
+    setIsDemo(true);
+  };
+
+  const exitDemoMode = () => {
+    localStorage.removeItem('isDemoMode');
+    setIsDemo(false);
+  };
+
+  useEffect(() => {
+    if (user) {
+      setIsDemo(false);
+      localStorage.removeItem('isDemoMode');
+
+      // Check and clone any pending starter pack recipes
+      processPendingStarterPack(user.id).then((count) => {
+        if (count > 0) {
+          queryClient.invalidateQueries({ queryKey: ['recipes'] });
+          toast({
+            title: "Pack de bienvenue activé ! 🎉",
+            description: `${count} recettes ont été ajoutées à votre carnet personnel.`
+          });
+        }
+      });
+    }
+  }, [user, queryClient, toast]);
 
   useEffect(() => {
     // Check if we arrived via a password reset link
@@ -129,7 +168,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut, resetPassword, updatePassword }}>
+    <AuthContext.Provider value={{ user, session, loading, isDemo, enterDemoMode, exitDemoMode, signUp, signIn, signOut, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

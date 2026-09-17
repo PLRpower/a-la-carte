@@ -1,16 +1,21 @@
-import { X } from "lucide-react";
+import { X, Sparkles, PiggyBank } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 interface RecipeFiltersProps {
   category: string;
   difficulty: string;
   maxTime: string;
+  onlyCookable?: boolean;
+  onlyBudget?: boolean;
   onCategoryChange: (value: string) => void;
   onDifficultyChange: (value: string) => void;
   onMaxTimeChange: (value: string) => void;
+  onOnlyCookableChange?: (value: boolean) => void;
+  onOnlyBudgetChange?: (value: boolean) => void;
   onReset: () => void;
   onClose: () => void;
 }
@@ -19,9 +24,13 @@ const RecipeFilters = ({
   category,
   difficulty,
   maxTime,
+  onlyCookable = false,
+  onlyBudget = false,
   onCategoryChange,
   onDifficultyChange,
   onMaxTimeChange,
+  onOnlyCookableChange,
+  onOnlyBudgetChange,
   onReset,
   onClose,
 }: RecipeFiltersProps) => {
@@ -39,6 +48,41 @@ const RecipeFilters = ({
           <Separator />
 
           <div className="space-y-4">
+            {/* Frigo Match Toggle */}
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30">
+              <div className="space-y-0.5 pr-2">
+                <Label htmlFor="only-cookable" className="font-bold text-sm text-foreground cursor-pointer flex items-center gap-1.5">
+                  <span>🥗</span> Cuisinable maintenant
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Uniquement les plats avec 100% des ingrédients en stock
+                </p>
+              </div>
+              <Switch
+                id="only-cookable"
+                checked={onlyCookable}
+                onCheckedChange={(checked) => onOnlyCookableChange?.(checked)}
+              />
+            </div>
+
+            {/* Fin de mois difficile / Petit Budget Toggle */}
+            <div className="flex items-center justify-between p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+              <div className="space-y-0.5 pr-2">
+                <Label htmlFor="only-budget" className="font-bold text-sm text-foreground cursor-pointer flex items-center gap-1.5">
+                  <PiggyBank className="w-4 h-4 text-amber-600" />
+                  <span>Fin de mois difficile / Petit budget</span>
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Recettes à moins de 2,50 € / portion
+                </p>
+              </div>
+              <Switch
+                id="only-budget"
+                checked={onlyBudget}
+                onCheckedChange={(checked) => onOnlyBudgetChange?.(checked)}
+              />
+            </div>
+
             <div className="space-y-2">
               <Label>Catégorie</Label>
               <Select value={category} onValueChange={onCategoryChange}>

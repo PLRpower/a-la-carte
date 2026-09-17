@@ -27,7 +27,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { ingredients, preferences, avoidRecipes } = await req.json();
+    const { ingredients, preferences, avoidRecipes, expiringIngredients } = await req.json();
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
     if (!GEMINI_API_KEY) {
@@ -47,14 +47,18 @@ serve(async (req) => {
       ? `\n- **Avoid these previously suggested recipes (the user wants something different):** ${avoidRecipes.join(", ")}`
       : "";
 
+    const expiringText = expiringIngredients && expiringIngredients.length > 0
+      ? `\n- 🚨 **PRIORITÉ ABSOLUE ANTI-GASPILLAGE (DLC < 48H) :** Les ingrédients suivants périment dans moins de 48 heures et DOIVENT IMPÉRATIVEMENT être cuisinés en priorité dans cette recette : ${expiringIngredients.map((i: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => `${i.name} (${i.quantity} ${i.unit})`).join(", ")}. Conçois la recette autour de ces ingrédients pour éviter tout gaspillage !`
+      : "";
+
     const systemPrompt = `You are a creative professional chef assistant. 
-Generate a recipe suggestion for a user based on their available stock and preferences.
+Generate a recipe suggestion for a user based on their available stock, anti-waste urgency, and preferences.
 
 **User Constraints:**
 - **Available Ingredients:** ${ingredients && ingredients.length > 0 ? ingredients.map((i: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => `${i.name} (${i.quantity} ${i.unit})`).join(", ") : 'Aucun ingrédient en stock. Suggère une délicieuse recette classique utilisant des ingrédients de base courants.'}.
 - **Meal Type:** ${mealType === 'any' ? 'Suitable for any meal' : mealType}.
 - **Creativity Level:** ${creativity} (classic = distinct traditional dish, original = modern twist, crazy = unexpected fusion).
-- **Focus:** ${focus === 'use_stock' ? 'Maximize use of provided ingredients (try to avoid buying new things)' : 'Use provided ingredients as base but feel free to add common complements'}.${avoidText}
+- **Focus:** ${focus === 'use_stock' ? 'Maximize use of provided ingredients (try to avoid buying new things)' : 'Use provided ingredients as base but feel free to add common complements'}.${avoidText}${expiringText}
 
 **Output Requirements:**
 Return ONLY valid JSON with this exact structure:
@@ -67,6 +71,7 @@ Return ONLY valid JSON with this exact structure:
   "servings": number,
   "category": "petit_dejeuner" | "dejeuner" | "diner" | "dessert" | "encas" | "vegetarien" | "vegan",
   "instructions": "Step-by-step instructions in French.",
+  "anti_gaspi_ingredients": ["list of expiring ingredients saved by this dish"],
   "ingredients": [
     {
       "name": "ingredient name (French)",

@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { RecipeImage } from "@/components/RecipeImage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, ChefHat, Sparkles, Book, GraduationCap, Globe, Lightbulb, Save, RefreshCw, Coffee, Utensils, IceCream, Apple, Heart, ArrowRight, Salad, Camera, Carrot, Users, Plus, ShoppingCart } from "lucide-react";
+import { Clock, ChefHat, Sparkles, Book, GraduationCap, Globe, Lightbulb, Save, RefreshCw, Coffee, Utensils, IceCream, Apple, Heart, ArrowRight, Salad, Camera, Carrot, Users, Plus, ShoppingCart, CalendarDays, Flame, AlertTriangle, Coins, PiggyBank } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useStock } from "@/hooks/useStock";
@@ -27,6 +27,10 @@ import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
 import { useIngredients } from "@/hooks/useIngredients";
+import { CATALOG_RECIPES } from "@/data/recipesCatalog";
+import { StarterPackModal } from "@/components/StarterPackModal";
+import { calculateRecipeCost } from "@/lib/recipe-cost";
+import { getExpiringStockItems } from "@/lib/expiration-tracker";
 
 
 const HomeSkeleton = () => (
@@ -68,20 +72,47 @@ const Home = () => {
     }
   }, [location.search, joinFamily]);
 
+  const urgentStock = useMemo(() => getExpiringStockItems(stock, 48), [stock]);
+  const [prioritizeAntiGaspi, setPrioritizeAntiGaspi] = useState(true);
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (location.state && (location.state as any).autoChefGaspi) {
+      setPrioritizeAntiGaspi(true);
+      setShowAIOptions(true);
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [suggestedRecipe, setSuggestedRecipe] = useState<any>(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [showAIOptions, setShowAIOptions] = useState(false);
   const [savingRecipe, setSavingRecipe] = useState(false);
+  const [showStarterPackModal, setShowStarterPackModal] = useState(false);
 
   const [creativity, setCreativity] = useState("original");
   const [mealType, setMealType] = useState("any");
   const [focus, setFocus] = useState("use_stock");
 
-  const featuredRecipe = allRecipes?.[0];
+  const featuredRecipe = allRecipes?.[0] || (CATALOG_RECIPES.length > 0 ? (CATALOG_RECIPES[0] as unknown as RecipeWithDetails) : null);
   const quickRecipes = allRecipes?.filter(r =>
     (r.prep_time || 0) + (r.cook_time || 0) <= 60 && r.difficulty === 'facile'
   ).slice(0, 4);
+
+  const featuredCost = useMemo(() => {
+    if (!featuredRecipe) return null;
+    return calculateRecipeCost(featuredRecipe);
+  }, [featuredRecipe]);
+
+  const suggestedCost = useMemo(() => {
+    if (!suggestedRecipe) return null;
+    return calculateRecipeCost({
+      servings: suggestedRecipe.servings || 2,
+      category: suggestedRecipe.category,
+      ingredients: suggestedRecipe.ingredients,
+    });
+  }, [suggestedRecipe]);
 
   const handleGenerateClick = () => {
     setShowAIOptions(true);
@@ -99,6 +130,15 @@ const Home = () => {
     }
     setSuggestedRecipe(null);
 
+    const expiringPayload = prioritizeAntiGaspi && urgentStock.length > 0
+      ? urgentStock.map((s) => ({
+          name: s.ingredient?.name,
+          quantity: s.quantity,
+          unit: s.unit,
+          expiration_date: s.expiration_date,
+        }))
+      : [];
+
     try {
       const { data, error } = await supabase.functions.invoke('suggest-recipe', {
         body: {
@@ -107,6 +147,7 @@ const Home = () => {
             quantity: s.quantity,
             unit: s.unit
           })),
+          expiringIngredients: expiringPayload,
           preferences: { creativity, mealType, focus },
           avoidRecipes: currentHistory
         }
@@ -187,12 +228,33 @@ const Home = () => {
           <section className="px-6 mb-8">
             {recipes.length === 0 && stock.length === 0 ? (
               <>
-                <div className="mb-6">
+                <div className="mb-4">
                   <p className="text-lg font-medium text-foreground mb-1">
                     👋 Bienvenue {profile?.first_name ? profile.first_name : ""} !
                   </p>
                   <p className="text-sm text-muted-foreground">Prêt à transformer vos repas ? Voici par où commencer.</p>
                 </div>
+
+                {/* Starter Pack banner */}
+                <div className="mb-6 p-4 rounded-2xl bg-accent/10 border border-accent/25 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0 text-accent">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-sm">Pack de bienvenue</div>
+                      <div className="text-[11px] text-muted-foreground">Activez 12 recettes en 1 clic</div>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-semibold shrink-0"
+                    onClick={() => setShowStarterPackModal(true)}
+                  >
+                    Choisir mon pack
+                  </Button>
+                </div>
+
                 <h2 className="text-xl font-semibold mb-3">Vos premiers pas</h2>
                 <div className="grid grid-cols-2 gap-3">
                   <button onClick={() => navigate('/stock/add')} className="flex flex-col items-center gap-3 p-4 rounded-xl bg-accent/10 hover:bg-accent/20 transition-colors border border-accent/20 text-center">
@@ -250,6 +312,55 @@ const Home = () => {
             )}
           </section>
 
+          {/* Anti-Gaspi Alert Banner (< 48h) */}
+          {urgentStock.length > 0 && (
+            <section className="px-6 mb-6">
+              <Card className="bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md border-0">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 rounded-xl bg-white/20 shrink-0">
+                      <AlertTriangle className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-bold text-sm">Anti-Gaspillage Proactif</h3>
+                        <Badge className="bg-white/25 text-white border-0 text-[10px] px-1.5 py-0 font-medium">
+                          DLC &lt; 48h
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-white/90 mb-3 leading-relaxed">
+                        <span className="font-semibold">{urgentStock.length} ingrédient{urgentStock.length > 1 ? "s" : ""}</span> à consommer d'urgence :{" "}
+                        {urgentStock.map((s) => s.ingredient?.name).filter(Boolean).slice(0, 3).join(", ")}
+                        {urgentStock.length > 3 && ` (+${urgentStock.length - 3})`}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          className="h-8 text-xs font-semibold bg-white text-amber-700 hover:bg-white/90 shadow-sm"
+                          onClick={() => {
+                            setPrioritizeAntiGaspi(true);
+                            setShowAIOptions(true);
+                          }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-600" />
+                          Sauver avec le Chef IA
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="h-8 text-xs bg-white/20 hover:bg-white/30 text-white border-0"
+                          onClick={() => navigate("/stock")}
+                        >
+                          Gérer le stock
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+          )}
+
           {/* AI Cards and rest of content... */}
           <section className="px-6 -mt-4 mb-8">
             <Card className="bg-accent text-accent-foreground shadow-lg border-none">
@@ -273,6 +384,67 @@ const Home = () => {
             </Card>
           </section>
 
+          {/* Planification & Organisation (Forte Rétention) */}
+          <section className="px-6 mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h2 className="text-xl font-semibold text-foreground">Menu & Organisation</h2>
+                <p className="text-xs text-muted-foreground">Anticipez la semaine et gagnez du temps</p>
+              </div>
+              <Button variant="ghost" size="sm" className="text-xs" onClick={() => navigate('/planning')}>
+                Voir planning <ArrowRight className="w-3 h-3 ml-1" />
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/planning')}
+                className="p-3.5 rounded-2xl bg-card border border-border/80 hover:border-primary/50 hover:shadow-sm transition-all text-left flex flex-col justify-between h-32 group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+                    <CalendarDays className="w-4 h-4" />
+                  </div>
+                  <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-primary/30 text-primary">
+                    Midi & Soir
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-foreground mb-0.5 group-hover:text-primary transition-colors">
+                    Menu de la semaine
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground line-clamp-2">
+                    Planning 7 jours & liste de courses automatique
+                  </p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => navigate('/planning')}
+                className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/25 hover:border-amber-500/50 hover:shadow-sm transition-all text-left flex flex-col justify-between h-32 group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                    <Flame className="w-4 h-4" />
+                  </div>
+                  <Badge className="bg-amber-500 text-white text-[9px] px-1.5 py-0">
+                    Week-end
+                  </Badge>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-foreground mb-0.5 group-hover:text-amber-600 transition-colors">
+                    Batch Cooking
+                  </h4>
+                  <p className="text-[10px] text-muted-foreground line-clamp-2">
+                    Feuille de route unifiée : 3-4 repas prêts en 1h30
+                  </p>
+                </div>
+              </button>
+            </div>
+          </section>
+
           {recipes.some(r => r.is_favorited) && (
             <section className="px-6 mt-8">
               <div className="flex items-center justify-between mb-3">
@@ -290,7 +462,16 @@ const Home = () => {
                     </div>
                     <CardContent className="p-3">
                       <h3 className="font-semibold text-sm line-clamp-1 mb-1">{recipe.title}</h3>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground"><Clock className="w-3 h-3" />{(recipe.prep_time || 0) + (recipe.cook_time || 0)} min</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {(recipe.prep_time || 0) + (recipe.cook_time || 0)} min
+                        </div>
+                        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                          <Coins className="w-3 h-3" />
+                          {calculateRecipeCost(recipe).formattedCostPerServing}
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -312,6 +493,18 @@ const Home = () => {
                     <Badge variant="outline" className="flex gap-1 items-center"><Clock className="w-3 h-3" />{(suggestedRecipe.prep_time || 0) + (suggestedRecipe.cook_time || 0)} min</Badge>
                     <Badge variant="outline" className="flex gap-1 items-center"><ChefHat className="w-3 h-3" />{suggestedRecipe.difficulty}</Badge>
                     {suggestedRecipe.category && <Badge variant="outline">{suggestedRecipe.category}</Badge>}
+                    {suggestedCost && (
+                      <Badge variant="outline" className="flex gap-1 items-center font-medium text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                        <Coins className="w-3 h-3" />
+                        {suggestedCost.formattedCostPerServing}
+                      </Badge>
+                    )}
+                    {suggestedRecipe.anti_gaspi_ingredients && suggestedRecipe.anti_gaspi_ingredients.length > 0 && (
+                      <Badge className="bg-amber-600 text-white flex gap-1 items-center border-0 shadow-xs font-semibold">
+                        <AlertTriangle className="w-3 h-3" />
+                        Anti-gaspi : sauve {suggestedRecipe.anti_gaspi_ingredients.join(", ")}
+                      </Badge>
+                    )}
                   </div>
                   <Button onClick={saveSuggestedRecipe} className="w-full" disabled={savingRecipe}>{savingRecipe ? "Sauvegarde..." : <><Save className="w-4 h-4 mr-2" />Sauvegarder et cuisiner</>}</Button>
                 </CardContent>
@@ -332,9 +525,15 @@ const Home = () => {
                   </div>
                 </div>
                 <CardContent className="p-4">
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3 flex-wrap">
                     <div className="flex items-center gap-1"><Clock className="w-4 h-4" />{(featuredRecipe.prep_time || 0) + (featuredRecipe.cook_time || 0)} min</div>
                     <div className="flex items-center gap-1"><ChefHat className="w-4 h-4" />{featuredRecipe.difficulty}</div>
+                    {featuredCost && (
+                      <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                        <Coins className="w-4 h-4" />
+                        {featuredCost.formattedCostPerServing}
+                      </div>
+                    )}
                   </div>
                   {featuredRecipe.description && <p className="text-sm text-muted-foreground line-clamp-2">{featuredRecipe.description}</p>}
                 </CardContent>
@@ -358,6 +557,24 @@ const Home = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader><DialogTitle>Configurer l'IA</DialogTitle><DialogDescription>Personnalisez la suggestion de recette.</DialogDescription></DialogHeader>
           <div className="grid gap-4 py-4">
+            {urgentStock.length > 0 && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">
+                <div className="space-y-0.5 min-w-0 pr-2">
+                  <Label htmlFor="anti-gaspi-toggle" className="font-bold text-xs text-foreground flex items-center gap-1.5 cursor-pointer">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Priorité Anti-Gaspillage ({urgentStock.length} sous 48h)</span>
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground line-clamp-1">
+                    Cuisiner d'urgence : {urgentStock.map(s => s.ingredient?.name).filter(Boolean).slice(0, 3).join(", ")}
+                  </p>
+                </div>
+                <Switch
+                  id="anti-gaspi-toggle"
+                  checked={prioritizeAntiGaspi}
+                  onCheckedChange={setPrioritizeAntiGaspi}
+                />
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Créativité</Label>
               <RadioGroup value={creativity} onValueChange={setCreativity} className="flex gap-4">
@@ -378,6 +595,8 @@ const Home = () => {
           <DialogFooter><Button variant="outline" onClick={() => setShowAIOptions(false)}>Annuler</Button><Button onClick={generateAISuggestion} disabled={loadingAI}>{loadingAI ? "Réflexion..." : "Générer"}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <StarterPackModal open={showStarterPackModal} onOpenChange={setShowStarterPackModal} />
     </div>
   );
 };

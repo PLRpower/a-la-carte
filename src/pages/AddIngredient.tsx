@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ScanBarcode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,8 @@ import { useStock } from "@/hooks/useStock";
 import { useIngredients } from "@/hooks/useIngredients";
 import { IngredientCategory, MeasurementUnit } from "@/types/database";
 import { parseIngredientInput } from "@/lib/ingredient-parser";
+import { BarcodeScannerDialog } from "@/components/scanner/BarcodeScannerDialog";
+import { ScannedProduct } from "@/lib/openfoodfacts";
 
 const AddIngredient = () => {
   const navigate = useNavigate();
@@ -23,6 +25,15 @@ const AddIngredient = () => {
   const [category, setCategory] = useState<IngredientCategory>("autre");
   const [expirationDate, setExpirationDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+
+  const handleProductScanned = (product: ScannedProduct) => {
+    setName(product.name);
+    if (product.quantity) setQuantity(product.quantity.toString());
+    if (product.unit) setUnit(product.unit);
+    if (product.category) setCategory(product.category);
+    toast.success("Produit scanné et formulaire pré-rempli !");
+  };
 
   const handleNameBlur = () => {
     if (!name) return;
@@ -80,15 +91,36 @@ const AddIngredient = () => {
   return (
     <div className="pb-20 min-h-screen">
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(-1)}>
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-2xl font-bold">Ajouter un ingrédient</h1>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-2xl font-bold">Ajouter un ingrédient</h1>
+          </div>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-primary-foreground hover:bg-primary-foreground/15 h-9 w-9"
+            onClick={() => setShowBarcodeScanner(true)}
+            title="Scanner un code-barres"
+          >
+            <ScanBarcode className="w-5 h-5" />
+          </Button>
         </div>
       </header>
 
       <section className="px-6 mt-6 space-y-6">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full gap-2 border-dashed border-primary/40 hover:border-primary text-primary h-11 text-sm font-medium"
+          onClick={() => setShowBarcodeScanner(true)}
+        >
+          <ScanBarcode className="w-4 h-4" />
+          Scanner un code-barres (OpenFoodFacts)
+        </Button>
+
         <Card>
           <CardContent className="p-6 space-y-4">
             <div className="space-y-2">
@@ -173,6 +205,13 @@ const AddIngredient = () => {
           {isSubmitting ? "Ajout en cours..." : "Ajouter au stock"}
         </Button>
       </section>
+
+      <BarcodeScannerDialog
+        open={showBarcodeScanner}
+        onOpenChange={setShowBarcodeScanner}
+        defaultDestination="stock"
+        onProductAdded={(prod) => handleProductScanned(prod)}
+      />
     </div>
   );
 };

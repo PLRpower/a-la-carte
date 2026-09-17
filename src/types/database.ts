@@ -116,3 +116,70 @@ export interface StockWithIngredient extends Stock {
 export interface ShoppingListItemWithIngredient extends ShoppingListItem {
   ingredient?: Ingredient;
 }
+
+export type MealPlanSlot = 'lunch' | 'dinner';
+
+export interface MealPlanRecipeSnapshot {
+  id?: string;
+  title: string;
+  description?: string | null;
+  image_url?: string | null;
+  prep_time?: number | null;
+  cook_time?: number | null;
+  difficulty?: RecipeDifficulty | null;
+  category?: RecipeCategory | null;
+  tags?: string[] | null;
+  instructions?: string | null;
+  servings?: number | null;
+  ingredients?: Array<{
+    name: string;
+    quantity: number | null;
+    unit: MeasurementUnit | null;
+    ingredient_id?: string | null;
+    category?: IngredientCategory | null;
+  }>;
+}
+
+export interface MealPlan {
+  id: string;
+  user_id: string;
+  date: string; // YYYY-MM-DD
+  slot: MealPlanSlot;
+  recipe_id: string | null;
+  catalog_recipe_id?: string | null;
+  custom_title: string | null;
+  servings: number;
+  notes?: string | null;
+  recipe_snapshot?: MealPlanRecipeSnapshot | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MealPlanWithRecipe extends MealPlan {
+  recipe?: RecipeWithDetails | null;
+}
+
+export interface BatchCookingTask {
+  id: string;
+  category: 'prep' | 'oven' | 'stovetop' | 'packaging';
+  title: string;
+  description: string;
+  durationMinutes: number;
+  associatedRecipes: string[];
+  ingredients?: string[];
+  completed?: boolean;
+}
+
+export interface BatchCookingSession {
+  selectedRecipes: Array<RecipeWithDetails | MealPlanRecipeSnapshot>;
+  estimatedTotalMinutes: number;
+  savedMinutes: number;
+  tasks: BatchCookingTask[];
+  storageAdvice: Array<{
+    recipeTitle: string;
+    shelfLifeDays: number;
+    location: 'fridge' | 'freezer';
+    containerType: string;
+    tip: string;
+  }>;
+}
