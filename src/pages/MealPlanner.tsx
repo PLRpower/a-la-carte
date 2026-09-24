@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMealPlanner } from "@/hooks/useMealPlanner";
-import { formatWeekRangeDisplay, DayInfo } from "@/lib/meal-planner-utils";
+import { formatWeekRangeDisplay } from "@/lib/meal-planner-utils";
 import { MealSlotCard } from "@/components/meal-planner/MealSlotCard";
 import { AssignRecipeModal } from "@/components/meal-planner/AssignRecipeModal";
 import { WeeklyShoppingListModal } from "@/components/meal-planner/WeeklyShoppingListModal";
@@ -8,9 +8,9 @@ import { AIMealPlannerDialog } from "@/components/meal-planner/AIMealPlannerDial
 import { BatchCookingView } from "@/components/meal-planner/BatchCookingView";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MealPlanSlot, RecipeWithDetails } from "@/types/database";
+import { MealPlanSlot, RecipeWithDetails, MealPlanRecipeSnapshot } from "@/types/database";
 import { CatalogRecipe } from "@/data/recipesCatalog";
 import { 
   ChevronLeft, 
@@ -19,10 +19,7 @@ import {
   ShoppingCart, 
   Sparkles, 
   Flame, 
-  Trash2, 
-  RotateCcw, 
-  Check, 
-  Layers 
+  Trash2 
 } from "lucide-react";
 
 const MealPlanner: React.FC = () => {
@@ -31,7 +28,6 @@ const MealPlanner: React.FC = () => {
     currentWeekDays,
     weekPlans,
     plansByDateAndSlot,
-    loading,
     nextWeek,
     prevWeek,
     goToToday,
@@ -90,12 +86,12 @@ const MealPlanner: React.FC = () => {
   // Extract all recipes planned in the week for Batch Cooking view
   const activeRecipesInWeek = weekPlans
     .map((p) => p.recipe || p.recipe_snapshot)
-    .filter((r): r is any => !!r);
+    .filter((r): r is RecipeWithDetails | MealPlanRecipeSnapshot => !!r);
 
   return (
-    <div className="pb-24 min-h-screen">
+    <div className="pb-24 md:pb-12 min-h-screen">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground pt-7 pb-6 px-6 shadow-xs">
+      <header className="bg-primary text-primary-foreground pt-7 pb-6 px-6 md:px-8 md:rounded-2xl md:my-6 shadow-xs">
         <div className="flex items-center justify-between mb-3">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Menu de la semaine</h1>
@@ -114,7 +110,7 @@ const MealPlanner: React.FC = () => {
         </div>
 
         {/* Week Navigator */}
-        <div className="flex items-center justify-between bg-black/15 backdrop-blur-xs rounded-xl p-1.5 mt-2">
+        <div className="flex items-center justify-between bg-black/15 backdrop-blur-xs rounded-xl p-1.5 mt-2 max-w-lg mx-auto">
           <Button
             variant="ghost"
             size="icon"
@@ -149,7 +145,7 @@ const MealPlanner: React.FC = () => {
       {/* Main Container */}
       <main className="px-4 sm:px-6 mt-4 space-y-4">
         {/* Navigation Tabs between Weekly Calendar & Batch Cooking Session */}
-        <Tabs value={activeViewTab} onValueChange={(v: any) => setActiveViewTab(v)} className="w-full">
+        <Tabs value={activeViewTab} onValueChange={(v) => setActiveViewTab(v as "calendar" | "batch")} className="w-full">
           <TabsList className="grid grid-cols-2 w-full mb-4">
             <TabsTrigger value="calendar" className="text-xs flex items-center gap-2">
               <CalendarDays className="w-4 h-4" />
@@ -209,7 +205,7 @@ const MealPlanner: React.FC = () => {
             </div>
 
             {/* 7 Days List */}
-            <div className="space-y-4 pt-1">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 pt-1">
               {currentWeekDays.map((day) => {
                 const dayPlans = plansByDateAndSlot[day.dateKey] || {};
                 const hasPlans = !!dayPlans.lunch || !!dayPlans.dinner;

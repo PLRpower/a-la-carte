@@ -25,7 +25,7 @@ export const BottomNav = () => {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-[#fff8f6] dark:bg-card border-t border-border z-40 pb-safe print:hidden">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#fff8f6] dark:bg-card border-t border-border z-40 pb-safe print:hidden">
       <div className="flex items-center justify-around h-16 max-w-2xl mx-auto px-2 relative">
         {navItems.map((item) => (
           <NavLink

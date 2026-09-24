@@ -160,7 +160,7 @@ export const RecipeForm = ({
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <Label htmlFor="difficulty">Difficulté *</Label>
                     <Select value={difficulty} onValueChange={setDifficulty}>
@@ -175,31 +175,29 @@ export const RecipeForm = ({
                     </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <Label className="mb-2 block">Tags / Catégories</Label>
-                        <MultiSelect
-                            options={CATEGORY_OPTIONS}
-                            selected={tags}
-                            onChange={setTags}
-                            placeholder="Choisir des catégories..."
-                        />
-                    </div>
+                <div>
+                    <Label className="mb-2 block">Tags / Catégories</Label>
+                    <MultiSelect
+                        options={CATEGORY_OPTIONS}
+                        selected={tags}
+                        onChange={setTags}
+                        placeholder="Choisir des catégories..."
+                    />
+                </div>
 
-                    <div>
-                        <Label htmlFor="source">Source</Label>
-                        <Select value={source} onValueChange={setSource}>
-                            <SelectTrigger className="mt-1.5">
-                                <SelectValue placeholder="Sélectionner" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="book">Livre de recette</SelectItem>
-                                <SelectItem value="cooking_class">Cours de cuisine</SelectItem>
-                                <SelectItem value="website">Site internet</SelectItem>
-                                <SelectItem value="photo">Photo / Scan</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <div>
+                    <Label htmlFor="source">Source</Label>
+                    <Select value={source} onValueChange={setSource}>
+                        <SelectTrigger className="mt-1.5">
+                            <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="book">Livre de recette</SelectItem>
+                            <SelectItem value="cooking_class">Cours de cuisine</SelectItem>
+                            <SelectItem value="website">Site internet</SelectItem>
+                            <SelectItem value="photo">Photo / Scan</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
             </div>
 
@@ -241,31 +239,33 @@ export const RecipeForm = ({
                 </div>
             </div>
 
-            <div>
-                <Label htmlFor="ingredients">Ingrédients *</Label>
-                <Textarea
-                    id="ingredients"
-                    placeholder="1 tasse de farine&#10;2 oeufs&#10;100 g de sucre"
-                    value={ingredients}
-                    onChange={(e) => setIngredients(e.target.value)}
-                    rows={6}
-                    className="mt-1.5"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                    Entrez chaque ingrédient sur une nouvelle ligne (ex: "2 tasses de farine")
-                </p>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div>
+                    <Label htmlFor="ingredients">Ingrédients *</Label>
+                    <Textarea
+                        id="ingredients"
+                        placeholder="1 tasse de farine&#10;2 oeufs&#10;100 g de sucre"
+                        value={ingredients}
+                        onChange={(e) => setIngredients(e.target.value)}
+                        rows={8}
+                        className="mt-1.5"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                        Entrez chaque ingrédient sur une nouvelle ligne (ex: "2 tasses de farine")
+                    </p>
+                </div>
 
-            <div>
-                <Label htmlFor="steps">Étapes de préparation *</Label>
-                <Textarea
-                    id="steps"
-                    placeholder="1. Première étape&#10;2. Deuxième étape&#10;3. Troisième étape"
-                    value={steps}
-                    onChange={(e) => setSteps(e.target.value)}
-                    rows={8}
-                    className="mt-1.5"
-                />
+                <div>
+                    <Label htmlFor="steps">Étapes de préparation *</Label>
+                    <Textarea
+                        id="steps"
+                        placeholder="1. Première étape&#10;2. Deuxième étape&#10;3. Troisième étape"
+                        value={steps}
+                        onChange={(e) => setSteps(e.target.value)}
+                        rows={8}
+                        className="mt-1.5"
+                    />
+                </div>
             </div>
 
             {/* Photos Section */}
@@ -346,10 +346,10 @@ export const RecipeForm = ({
                 </div>
             </div>
 
-            <div className="pt-4 space-y-3">
+            <div className="pt-4 flex flex-col sm:flex-row-reverse gap-3">
                 <Button
                     onClick={handleSubmit}
-                    className="w-full"
+                    className="w-full sm:w-auto sm:min-w-[200px]"
                     disabled={isSubmitting}
                 >
                     {isSubmitting ? "Sauvegarde..." : submitLabel}
@@ -357,7 +357,7 @@ export const RecipeForm = ({
                 <Button
                     variant="ghost"
                     onClick={onCancel}
-                    className="w-full"
+                    className="w-full sm:w-auto"
                     disabled={isSubmitting}
                 >
                     Annuler

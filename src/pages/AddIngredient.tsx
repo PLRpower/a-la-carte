@@ -89,8 +89,8 @@ const AddIngredient = () => {
   };
 
   return (
-    <div className="pb-20 min-h-screen">
-      <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
+    <div className="pb-20 md:pb-12 min-h-screen">
+      <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:px-8 md:rounded-2xl md:my-6 shadow-xs">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => navigate(-1)}>
@@ -110,7 +110,7 @@ const AddIngredient = () => {
         </div>
       </header>
 
-      <section className="px-6 mt-6 space-y-6">
+      <section className="px-6 mt-6 space-y-6 max-w-xl mx-auto">
         <Button
           type="button"
           variant="outline"

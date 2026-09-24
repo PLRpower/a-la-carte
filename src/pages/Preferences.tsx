@@ -18,7 +18,7 @@ const Preferences = () => {
 
   return (
     <div className="pb-20 min-h-screen">
-      <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
+      <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:rounded-2xl md:my-6">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -32,7 +32,7 @@ const Preferences = () => {
         </div>
       </header>
 
-      <section className="px-6 mt-6 pb-6">
+      <section className="px-6 mt-6 pb-6 max-w-2xl mx-auto">
         <Card>
           <CardContent className="p-0">
             {/* Dark Mode */}

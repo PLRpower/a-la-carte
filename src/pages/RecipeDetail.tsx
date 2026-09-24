@@ -169,6 +169,34 @@ const RecipeDetail = () => {
     fetchPhotos();
   }, [recipe, id, userRecipe]);
 
+  const initialServings = recipe?.servings || 4;
+  const servingsScale = servings / initialServings;
+
+  const stockAnalysis = useMemo(() => {
+    if (!recipe?.ingredients) return null;
+    return analyzeRecipeStock(recipe.ingredients as RecipeIngredientLike[], stock, servingsScale);
+  }, [recipe?.ingredients, stock, servingsScale]);
+
+  const destockingResult = useMemo(() => {
+    if (!recipe?.ingredients) return null;
+    return calculateRecipeDestocking(recipe.ingredients as RecipeIngredientLike[], stock, servingsScale);
+  }, [recipe?.ingredients, stock, servingsScale]);
+
+  const costAnalysis = useMemo(() => {
+    if (!recipe) return null;
+    return calculateRecipeCost({
+      servings,
+      tags: recipe.tags,
+      category: recipe.category,
+      ingredients: recipe.ingredients?.map((i) => ({
+        name: i.name,
+        quantity: i.quantity * servingsScale,
+        unit: i.unit,
+        category: i.ingredient?.category,
+      })),
+    });
+  }, [recipe, servings, servingsScale]);
+
   if (!recipe) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
@@ -225,34 +253,6 @@ const RecipeDetail = () => {
       handleClone();
     }
   };
-
-  const initialServings = recipe.servings || 4;
-  const servingsScale = servings / initialServings;
-
-  const stockAnalysis = useMemo(() => {
-    if (!recipe.ingredients) return null;
-    return analyzeRecipeStock(recipe.ingredients as RecipeIngredientLike[], stock, servingsScale);
-  }, [recipe.ingredients, stock, servingsScale]);
-
-  const destockingResult = useMemo(() => {
-    if (!recipe.ingredients) return null;
-    return calculateRecipeDestocking(recipe.ingredients as RecipeIngredientLike[], stock, servingsScale);
-  }, [recipe.ingredients, stock, servingsScale]);
-
-  const costAnalysis = useMemo(() => {
-    if (!recipe) return null;
-    return calculateRecipeCost({
-      servings,
-      tags: recipe.tags,
-      category: recipe.category,
-      ingredients: recipe.ingredients?.map((i) => ({
-        name: i.name,
-        quantity: i.quantity * servingsScale,
-        unit: i.unit,
-        category: i.ingredient?.category,
-      })),
-    });
-  }, [recipe, servings, servingsScale]);
 
   const handleOpenShoppingModal = () => {
     if (!user) {
@@ -344,7 +344,7 @@ const RecipeDetail = () => {
         />
 
         {/* Image Header */}
-        <div className="relative h-72 w-full bg-muted">
+        <div className="relative h-72 md:h-96 w-full bg-muted md:rounded-2xl md:mt-6 md:overflow-hidden md:shadow-md">
           <RecipeImage
             src={recipe.image_url}
             alt={recipe.title}
@@ -517,296 +517,305 @@ const RecipeDetail = () => {
         </div>
       )}
 
-      {/* Description */}
-      {recipe.description && (
-        <section className="px-6 mt-4">
-          <p className="text-sm text-muted-foreground leading-relaxed italic">
-            "{recipe.description}"
-          </p>
-        </section>
-      )}
+      {/* Main Content Grid: 2 columns on desktop/tablet, stacked on mobile */}
+      <div className="px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6">
+        {/* Left Column: Description & Ingredients */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Description */}
+          {recipe.description && (
+            <div className="p-4 bg-muted/40 rounded-2xl border border-border/60">
+              <p className="text-sm text-muted-foreground leading-relaxed italic">
+                "{recipe.description}"
+              </p>
+            </div>
+          )}
 
-      {/* Ingredients Section */}
-      <section className="px-6 mt-6">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold">Ingrédients</h2>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setSelectedSubSearch("");
-                setShowSubstitutionsModal(true);
-              }}
-              className="h-7 px-2 text-[11px] font-medium rounded-full bg-background border-border/70 text-muted-foreground hover:text-foreground"
-              title="Aide aux substitutions d'ingrédients"
-            >
-              <Sparkles className="w-3 h-3 mr-1 text-accent" />
-              Substitutions
-            </Button>
-          </div>
-          <div className="flex items-center gap-2 bg-muted/50 rounded-full px-2 py-1 border border-border/50">
-            <button
-              onClick={() => setServings(Math.max(1, servings - 1))}
-              className="w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted font-bold text-sm"
-              aria-label="Diminuer les portions"
-            >
-              -
-            </button>
-            <span className="text-xs font-semibold min-w-[65px] text-center">
-              {servings} portions
-            </span>
-            <button
-              onClick={() => setServings(servings + 1)}
-              className="w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted font-bold text-sm"
-              aria-label="Augmenter les portions"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
-        {/* Frigo Match status banner */}
-        {stockAnalysis && (
-          <div className="mb-3 p-3 rounded-2xl bg-muted/40 border border-border/70 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 min-w-0">
-              {stockAnalysis.isCookable ? (
-                <div className="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-600 shrink-0">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-600 shrink-0">
-                  <AlertCircle className="w-4 h-4" />
-                </div>
-              )}
-              <div className="min-w-0">
-                <p className="text-xs font-bold text-foreground truncate">
-                  {stockAnalysis.isCookable
-                    ? "Prêt à cuisiner ! (100% en stock)"
-                    : `Frigo Match : ${stockAnalysis.availableCount}/${stockAnalysis.totalCount} en stock (${stockAnalysis.matchPercentage}%)`}
-                </p>
-                <p className="text-[11px] text-muted-foreground truncate">
-                  {stockAnalysis.missingCount === 0
-                    ? "Tous les ingrédients sont disponibles"
-                    : `${stockAnalysis.missingCount} ingrédient${stockAnalysis.missingCount > 1 ? "s" : ""} manquant${stockAnalysis.missingCount > 1 ? "s" : ""}`}
-                </p>
+          {/* Ingredients Section */}
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold">Ingrédients</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedSubSearch("");
+                    setShowSubstitutionsModal(true);
+                  }}
+                  className="h-7 px-2 text-[11px] font-medium rounded-full bg-background border-border/70 text-muted-foreground hover:text-foreground"
+                  title="Aide aux substitutions d'ingrédients"
+                >
+                  <Sparkles className="w-3 h-3 mr-1 text-accent" />
+                  Substitutions
+                </Button>
+              </div>
+              <div className="flex items-center gap-2 bg-muted/50 rounded-full px-2 py-1 border border-border/50">
+                <button
+                  onClick={() => setServings(Math.max(1, servings - 1))}
+                  className="w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted font-bold text-sm"
+                  aria-label="Diminuer les portions"
+                >
+                  -
+                </button>
+                <span className="text-xs font-semibold min-w-[65px] text-center">
+                  {servings} portions
+                </span>
+                <button
+                  onClick={() => setServings(servings + 1)}
+                  className="w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted font-bold text-sm"
+                  aria-label="Augmenter les portions"
+                >
+                  +
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => navigate('/planning')}
-                className="h-8 text-xs font-medium bg-background shadow-xs hover:bg-accent hover:text-accent-foreground border-border/80"
-              >
-                <CalendarDays className="w-3.5 h-3.5 mr-1" />
-                Planifier
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleOpenShoppingModal}
-                className="h-8 text-xs font-medium bg-background shadow-xs hover:bg-accent hover:text-accent-foreground border-border/80"
-              >
-                <ShoppingCart className="w-3.5 h-3.5 mr-1" />
-                {stockAnalysis.missingCount > 0
-                  ? `Courses (${stockAnalysis.missingCount})`
-                  : "Courses"}
-              </Button>
-            </div>
-          </div>
-        )}
+            {/* Frigo Match status banner */}
+            {stockAnalysis && (
+              <div className="mb-3 p-3 rounded-2xl bg-muted/40 border border-border/70 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  {stockAnalysis.isCookable ? (
+                    <div className="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-600 shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-amber-600 shrink-0">
+                      <AlertCircle className="w-4 h-4" />
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-foreground truncate">
+                      {stockAnalysis.isCookable
+                        ? "Prêt à cuisiner ! (100% en stock)"
+                        : `Frigo Match : ${stockAnalysis.availableCount}/${stockAnalysis.totalCount} en stock (${stockAnalysis.matchPercentage}%)`}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {stockAnalysis.missingCount === 0
+                        ? "Tous les ingrédients sont disponibles"
+                        : `${stockAnalysis.missingCount} ingrédient${stockAnalysis.missingCount > 1 ? "s" : ""} manquant${stockAnalysis.missingCount > 1 ? "s" : ""}`}
+                    </p>
+                  </div>
+                </div>
 
-        <Card className="border-border/70 shadow-xs">
-          <CardContent className="p-4">
-            <ul className="space-y-3">
-              {recipe.ingredients?.map((ing, index) => {
-                const initialServings = recipe.servings || 4;
-                const scale = servings / initialServings;
-                const quantity = ing.quantity ? ing.quantity * scale : null;
-                const formattedQuantity = quantity
-                  ? Number(quantity.toFixed(1)).toString()
-                  : "";
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => navigate('/planning')}
+                    className="h-8 text-xs font-medium bg-background shadow-xs hover:bg-accent hover:text-accent-foreground border-border/80"
+                  >
+                    <CalendarDays className="w-3.5 h-3.5 mr-1" />
+                    Planifier
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleOpenShoppingModal}
+                    className="h-8 text-xs font-medium bg-background shadow-xs hover:bg-accent hover:text-accent-foreground border-border/80"
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5 mr-1" />
+                    {stockAnalysis.missingCount > 0
+                      ? `Courses (${stockAnalysis.missingCount})`
+                      : "Courses"}
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                const status = stockAnalysis?.statuses.find((s) => s.name === ing.name);
-                const sub = status && !status.isAvailable ? findIngredientSubstitution(ing.name) : null;
+            <Card className="border-border/70 shadow-xs">
+              <CardContent className="p-4">
+                <ul className="space-y-3">
+                  {recipe.ingredients?.map((ing, index) => {
+                    const initialServings = recipe.servings || 4;
+                    const scale = servings / initialServings;
+                    const quantity = ing.quantity ? ing.quantity * scale : null;
+                    const formattedQuantity = quantity
+                      ? Number(quantity.toFixed(1)).toString()
+                      : "";
 
-                return (
-                  <li key={index} className="py-1">
-                    <div className="flex items-center justify-between gap-3 text-sm py-0.5">
-                      <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-2 h-2 rounded-full bg-accent shrink-0" />
-                        <span className="font-medium truncate">
-                          {formattedQuantity}{" "}
-                          {ing.unit !== "piece" && ing.unit}{" "}
-                          <span className="text-muted-foreground font-normal">
-                            {ing.name}
-                          </span>
-                        </span>
-                      </div>
+                    const status = stockAnalysis?.statuses.find((s) => s.name === ing.name);
+                    const sub = status && !status.isAvailable ? findIngredientSubstitution(ing.name) : null;
 
-                      {status && (
-                        <div className="shrink-0">
-                          {status.isAvailable ? (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] bg-emerald-500/10 text-emerald-700 border-emerald-500/30 flex items-center gap-1 font-medium"
-                            >
-                              <Check className="w-2.5 h-2.5" />
-                              <span>En stock ({status.stockQuantity} {status.stockUnit !== "piece" ? status.stockUnit : ""})</span>
-                            </Badge>
-                          ) : status.stockItem ? (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30 font-medium"
-                            >
-                              Manque {status.missingQuantity} {status.unit !== "piece" ? status.unit : ""}
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-[10px] text-muted-foreground border-border/60"
-                            >
-                              Non en stock
-                            </Badge>
+                    return (
+                      <li key={index} className="py-1">
+                        <div className="flex items-center justify-between gap-3 text-sm py-0.5">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-2 h-2 rounded-full bg-accent shrink-0" />
+                            <span className="font-medium truncate">
+                              {formattedQuantity}{" "}
+                              {ing.unit !== "piece" && ing.unit}{" "}
+                              <span className="text-muted-foreground font-normal">
+                                {ing.name}
+                              </span>
+                            </span>
+                          </div>
+
+                          {status && (
+                            <div className="shrink-0">
+                              {status.isAvailable ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] bg-emerald-500/10 text-emerald-700 border-emerald-500/30 flex items-center gap-1 font-medium"
+                                >
+                                  <Check className="w-2.5 h-2.5" />
+                                  <span>En stock ({status.stockQuantity} {status.stockUnit !== "piece" ? status.stockUnit : ""})</span>
+                                </Badge>
+                              ) : status.stockItem ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] bg-amber-500/10 text-amber-700 border-amber-500/30 font-medium"
+                                >
+                                  Manque {status.missingQuantity} {status.unit !== "piece" ? status.unit : ""}
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] text-muted-foreground border-border/60"
+                                >
+                                  Non en stock
+                                </Badge>
+                              )}
+                            </div>
                           )}
                         </div>
-                      )}
-                    </div>
 
-                    {sub && (
-                      <div className="mt-1 ml-5 text-xs bg-amber-500/10 border border-amber-500/25 rounded-xl p-2 flex items-center justify-between gap-2 text-amber-800 dark:text-amber-200">
-                        <span className="truncate text-[11px]">
-                          💡 {sub.quickHint}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedSubSearch(sub.canonicalName);
-                            setShowSubstitutionsModal(true);
-                          }}
-                          className="text-[11px] font-bold underline shrink-0 hover:text-accent"
-                        >
-                          Équivalences
-                        </button>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
-        </Card>
-      </section>
-
-      {/* Preparation Steps */}
-      {recipe.instructions && (
-        <section className="px-6 mt-6">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold">Étapes de préparation</h2>
-            <Button
-              size="sm"
-              onClick={() => setShowCookingMode(true)}
-              className="h-8 text-xs font-bold bg-accent text-accent-foreground hover:bg-accent/90 shadow-xs"
-            >
-              <ChefHat className="w-3.5 h-3.5 mr-1.5" />
-              Mode Cuisine
-            </Button>
-          </div>
-          <Card className="border-border/70 shadow-xs">
-            <CardContent className="p-4">
-              <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                {segmentTextWithDurations(recipe.instructions).map((seg, idx) => {
-                  if (seg.type === "duration" && seg.seconds) {
-                    return (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setActiveTimerSeconds(seg.seconds!);
-                          setActiveTimerLabel(seg.label || "Minuteur");
-                          setShowTimerWidget(true);
-                        }}
-                        className="inline-flex items-center gap-1 font-semibold text-accent bg-accent/15 hover:bg-accent/25 px-2 py-0.5 rounded-lg text-xs mx-1 border border-accent/30 shadow-2xs transition-all align-baseline cursor-pointer"
-                        title="Démarrer ce minuteur"
-                      >
-                        <Clock className="w-3 h-3 text-accent" />
-                        {seg.content}
-                      </button>
+                        {sub && (
+                          <div className="mt-1 ml-5 text-xs bg-amber-500/10 border border-amber-500/25 rounded-xl p-2 flex items-center justify-between gap-2 text-amber-800 dark:text-amber-200">
+                            <span className="truncate text-[11px]">
+                              💡 {sub.quickHint}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSelectedSubSearch(sub.canonicalName);
+                                setShowSubstitutionsModal(true);
+                              }}
+                              className="text-[11px] font-bold underline shrink-0 hover:text-accent"
+                            >
+                              Équivalences
+                            </button>
+                          </div>
+                        )}
+                      </li>
                     );
-                  }
-                  return <span key={idx}>{seg.content}</span>;
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-      )}
+                  })}
+                </ul>
+              </CardContent>
+            </Card>
+          </section>
+        </div>
 
-      {/* Photos Section */}
-      {photos.length > 0 && (
-        <section className="px-6 mt-6">
-          <h2 className="text-lg font-bold mb-3">Photos de préparation</h2>
-          <div className="flex flex-col gap-4">
-            {photos.map((url, idx) => (
-              <div key={idx} className="rounded-xl overflow-hidden border bg-muted">
-                <img
-                  src={url}
-                  alt={`Photo originale ${idx + 1}`}
-                  className="w-full h-auto object-contain max-h-[400px]"
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+        {/* Right Column: Cooking actions, Steps, Photos, Journal */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Section Déstockage : J'ai cuisiné ce plat */}
+          <section>
+            <Card className="bg-primary/5 border-primary/20 shadow-xs">
+              <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                    <ChefHat className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground">Vous préparez ce plat ?</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Cuisinez les mains-libres ou déduisez automatiquement les ingrédients ({servings} portions) de votre stock.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Button
+                    onClick={() => setShowCookingMode(true)}
+                    variant="outline"
+                    className="flex-1 sm:flex-initial text-xs h-9 font-semibold border-primary/30 hover:bg-primary/10"
+                  >
+                    <ChefHat className="w-4 h-4 mr-1.5 text-primary" />
+                    Mode Cuisine
+                  </Button>
+                  <Button
+                    onClick={handleOpenCookModal}
+                    className="flex-1 sm:flex-initial bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs h-9 shadow-xs shrink-0"
+                  >
+                    <Check className="w-4 h-4 mr-1.5" />
+                    J'ai cuisiné
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
 
-      {/* Journal de Cuisine & Notes Personnelles */}
-      <RecipeJournalSection
-        recipeId={recipe.id}
-        recipeTitle={recipe.title}
-      />
+          {/* Preparation Steps */}
+          {recipe.instructions && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold">Étapes de préparation</h2>
+                <Button
+                  size="sm"
+                  onClick={() => setShowCookingMode(true)}
+                  className="h-8 text-xs font-bold bg-accent text-accent-foreground hover:bg-accent/90 shadow-xs"
+                >
+                  <ChefHat className="w-3.5 h-3.5 mr-1.5" />
+                  Mode Cuisine
+                </Button>
+              </div>
+              <Card className="border-border/70 shadow-xs">
+                <CardContent className="p-4">
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {segmentTextWithDurations(recipe.instructions).map((seg, idx) => {
+                      if (seg.type === "duration" && seg.seconds) {
+                        return (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => {
+                              setActiveTimerSeconds(seg.seconds!);
+                              setActiveTimerLabel(seg.label || "Minuteur");
+                              setShowTimerWidget(true);
+                            }}
+                            className="inline-flex items-center gap-1 font-semibold text-accent bg-accent/15 hover:bg-accent/25 px-2 py-0.5 rounded-lg text-xs mx-1 border border-accent/30 shadow-2xs transition-all align-baseline cursor-pointer"
+                            title="Démarrer ce minuteur"
+                          >
+                            <Clock className="w-3 h-3 text-accent" />
+                            {seg.content}
+                          </button>
+                        );
+                      }
+                      return <span key={idx}>{seg.content}</span>;
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            </section>
+          )}
 
-      {/* Section Déstockage : J'ai cuisiné ce plat */}
-      <section className="px-6 mt-8">
-        <Card className="bg-primary/5 border-primary/20 shadow-xs">
-          <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                <ChefHat className="w-5 h-5" />
+          {/* Photos Section */}
+          {photos.length > 0 && (
+            <section>
+              <h2 className="text-lg font-bold mb-3">Photos de préparation</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {photos.map((url, idx) => (
+                  <div key={idx} className="rounded-xl overflow-hidden border bg-muted">
+                    <img
+                      src={url}
+                      alt={`Photo originale ${idx + 1}`}
+                      className="w-full h-auto object-contain max-h-[400px]"
+                    />
+                  </div>
+                ))}
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Vous préparez ce plat ?</h3>
-                <p className="text-xs text-muted-foreground">
-                  Cuisinez les mains-libres ou déduisez automatiquement les ingrédients ({servings} portions) de votre stock.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <Button
-                onClick={() => setShowCookingMode(true)}
-                variant="outline"
-                className="flex-1 sm:flex-initial text-xs h-9 font-semibold border-primary/30 hover:bg-primary/10"
-              >
-                <ChefHat className="w-4 h-4 mr-1.5 text-primary" />
-                Mode Cuisine
-              </Button>
-              <Button
-                onClick={handleOpenCookModal}
-                className="flex-1 sm:flex-initial bg-primary text-primary-foreground hover:bg-primary/90 font-semibold text-xs h-9 shadow-xs shrink-0"
-              >
-                <Check className="w-4 h-4 mr-1.5" />
-                J'ai cuisiné
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+            </section>
+          )}
+
+          {/* Journal de Cuisine & Notes Personnelles */}
+          <RecipeJournalSection
+            recipeId={recipe.id}
+            recipeTitle={recipe.title}
+          />
+        </div>
+      </div>
 
       {/* Floating Timer Widget on RecipeDetail page */}
       {showTimerWidget && (
-        <div className="fixed bottom-20 right-4 z-40 max-w-xs w-full shadow-2xl animate-in fade-in slide-in-from-bottom-4">
+        <div className="fixed bottom-20 md:bottom-6 right-4 z-40 max-w-xs w-full shadow-2xl animate-in fade-in slide-in-from-bottom-4">
           <CookingTimerWidget
             initialSeconds={activeTimerSeconds}
             label={activeTimerLabel}

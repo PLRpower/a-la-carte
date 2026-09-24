@@ -105,9 +105,9 @@ export const PrintableRecipeSheet = ({
             {steps.map((step, idx) => (
               <li key={idx} className="flex items-start gap-2.5 break-inside-avoid">
                 <span className="w-5 h-5 rounded-full bg-black text-white font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                  {idx + 1}
+                  {step.stepNumber || idx + 1}
                 </span>
-                <span className="flex-1">{step}</span>
+                <span className="flex-1">{step.text}</span>
               </li>
             ))}
           </ol>

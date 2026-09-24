@@ -370,7 +370,7 @@ const Recipes = () => {
       />
 
       {/* Header */}
-      <header className="bg-primary text-primary-foreground pt-7 pb-4 px-6 sticky top-0 z-30 shadow-sm">
+      <header className="bg-primary text-primary-foreground pt-7 pb-4 px-6 md:px-8 sticky top-0 md:top-16 z-30 md:rounded-2xl md:my-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Recettes</h1>
           <div className="flex items-center gap-2">
@@ -397,7 +397,7 @@ const Recipes = () => {
         </div>
 
         {/* Tab Switcher: Mon Carnet vs Découvrir */}
-        <div className="flex p-1 bg-black/15 rounded-xl mb-3">
+        <div className="flex p-1 bg-black/15 rounded-xl mb-3 max-w-md">
           <button
             type="button"
             onClick={() => switchTab("carnet")}
@@ -452,7 +452,7 @@ const Recipes = () => {
         </div>
 
         {/* Quick Filters Pill Bar (Frigo Match + Budget + Themes) */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-1 -mx-6 px-6 no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-1 -mx-6 md:mx-0 px-6 md:px-0 no-scrollbar">
           <button
             type="button"
             onClick={() => setOnlyCookable(!onlyCookable)}
@@ -523,8 +523,8 @@ const Recipes = () => {
       {activeTab === "carnet" && (
         <section className="px-6 mt-6 pb-6">
           {personalLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <Card key={i} className="overflow-hidden shadow-sm border-none">
                   <Skeleton className="h-40 w-full rounded-none" />
                   <CardContent className="p-4">
@@ -540,7 +540,7 @@ const Recipes = () => {
           ) : (
             <>
               {displayPersonalRecipes.length > 0 ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                   {displayPersonalRecipes.map((recipe, index) => (
                     <Card
                       key={recipe.id}
@@ -718,7 +718,7 @@ const Recipes = () => {
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {displayCatalogRecipes.map((recipe, index) => {
               const inCarnet = isRecipeInCarnet(recipe);
               const isCloningThis = cloningId === recipe.id;

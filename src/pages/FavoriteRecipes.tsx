@@ -16,8 +16,8 @@ const FavoriteRecipes = () => {
     const favoriteRecipes = recipes.filter(r => r.is_favorited);
 
     return (
-        <div className="min-h-screen bg-background pb-20">
-            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
+        <div className="min-h-screen bg-background pb-20 md:pb-12">
+            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:px-8 md:rounded-2xl md:my-6 shadow-xs">
                 <div className="flex items-center gap-4">
                     <Button
                         variant="ghost"
@@ -49,7 +49,7 @@ const FavoriteRecipes = () => {
                         </Button>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {favoriteRecipes.map((recipe, index) => (
                             <Card
                                 key={recipe.id}

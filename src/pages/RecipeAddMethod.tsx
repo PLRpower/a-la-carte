@@ -20,7 +20,7 @@ const RecipeAddMethod = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background pb-20">
+        <div className="min-h-screen bg-background pb-20 md:pb-12">
             <input
                 type="file"
                 ref={cameraInputRef}
@@ -37,7 +37,7 @@ const RecipeAddMethod = () => {
                 onChange={handleFileSelect}
             />
 
-            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 sticky top-0 z-10">
+            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:px-8 sticky top-0 md:top-16 z-10 md:rounded-2xl md:my-6 shadow-xs">
                 <div className="flex items-center gap-2 mb-2">
                     <Button
                         variant="ghost"
@@ -51,7 +51,7 @@ const RecipeAddMethod = () => {
                 </div>
             </header>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Card
                     className="cursor-pointer hover:bg-accent/5 transition-colors"
                     onClick={() => setShowPhotoOptions(!showPhotoOptions)}
