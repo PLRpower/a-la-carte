@@ -80,45 +80,58 @@ IMPORTANT:
 - Ensure the JSON is valid and parsable.
 - DO NOT use markdown formatting (no \`\`\`json blocks). Return RAW JSON only.`;
 
-    let response;
-    try {
-      response = await fetchWithRetry(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: systemPrompt },
-                { inline_data: { mime_type: "image/jpeg", data: base64Data } }
-              ]
-            }]
-          }),
+    const CANDIDATE_MODELS = [
+      "gemini-3.6-flash",
+      "gemini-2.5-flash-lite",
+    ];
+
+    let response: Response | null = null;
+    let lastError: any = null;
+
+    for (const model of CANDIDATE_MODELS) {
+      try {
+        const res = await fetchWithRetry(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: systemPrompt },
+                  { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+                ]
+              }]
+            }),
+          },
+          2,
+          800
+        );
+
+        if (res.ok) {
+          response = res;
+          break;
+        } else {
+          const errBody = await res.text().catch(() => "");
+          console.warn(`Model ${model} returned status ${res.status}:`, errBody);
+          lastError = new Error(`Model ${model} error ${res.status}: ${errBody}`);
         }
-      );
-    } catch (err) {
-      console.error("Gemini API request failed after retries:", err);
-      // Determine if it was a quota issue or network issue
+      } catch (err: any) {
+        console.warn(`Model ${model} attempt failed:`, err);
+        lastError = err;
+      }
+    }
+
+    if (!response) {
+      console.error("All Gemini candidate models failed:", lastError);
       let userMessage = "L'IA ne répond pas pour le moment. Veuillez réessayer plus tard.";
-      if (err instanceof Error && err.message.includes("429")) {
+      if (lastError instanceof Error && lastError.message.includes("429")) {
         userMessage = "Le quota de demandes d'IA est dépassé. Veuillez patienter quelques instants.";
       }
       return new Response(
-        JSON.stringify({ error: userMessage, details: err instanceof Error ? err.message : String(err) }),
+        JSON.stringify({ error: userMessage, details: lastError instanceof Error ? lastError.message : String(lastError) }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
-    }
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
-
-      let userErr = `Erreur de l'IA (${response.status})`;
-      if (response.status === 400) userErr = "L'image envoyée est invalide ou n'a pas pu être traitée.";
-      if (response.status === 429) userErr = "Trop de requêtes, veuillez patienter.";
-
-      throw new Error(`${userErr}: ${errorText}`);
     }
 
     const data = await response.json();

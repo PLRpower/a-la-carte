@@ -153,7 +153,10 @@ const Home = () => {
         }
       });
       if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      if (data?.error) {
+        if (data.details) console.warn('AI suggestion details:', data.details);
+        throw new Error(data.error);
+      }
       setSuggestedRecipe(data.recipe);
       toast({ title: "Recette générée !", description: "Voici une suggestion basée sur vos préférences." });
     } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {

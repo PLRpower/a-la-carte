@@ -87,30 +87,54 @@ Return ONLY valid JSON with this exact structure:
 - Be creative but realistic.
 - Do not output markdown code blocks.`;
 
-    let response;
-    try {
-      response = await fetchWithRetry(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: systemPrompt }] }]
-          }),
+    const CANDIDATE_MODELS = [
+      "gemini-3.6-flash",
+      "gemini-2.5-flash-lite",
+    ];
+
+    let response: Response | null = null;
+    const modelErrors: Record<string, string> = {};
+
+    for (const model of CANDIDATE_MODELS) {
+      try {
+        const res = await fetchWithRetry(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: systemPrompt }] }]
+            }),
+          },
+          2,
+          800
+        );
+
+        if (res.ok) {
+          response = res;
+          break;
+        } else {
+          const errBody = await res.text().catch(() => "");
+          console.warn(`Model ${model} returned status ${res.status}:`, errBody);
+          modelErrors[model] = `Status ${res.status}: ${errBody}`;
         }
-      );
-    } catch (err: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
-      console.error("Gemini API request failed:", err);
-      let userMessage = "L'IA ne répond pas pour le moment.";
-      if (err.message?.includes("429")) userMessage = "Le service IA est surchargé (quota dépassé), réessayez dans une minute.";
-      return new Response(
-        JSON.stringify({ error: userMessage, details: String(err) }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      } catch (err: any) {
+        console.warn(`Model ${model} attempt failed:`, err);
+        modelErrors[model] = err instanceof Error ? err.message : String(err);
+      }
     }
 
-    if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+    if (!response) {
+      console.error("All Gemini candidate models failed:", modelErrors);
+      const isQuota = Object.values(modelErrors).some((msg) => msg.includes("429"));
+      const userMessage = isQuota
+        ? "Le service IA est surchargé (quota dépassé), réessayez dans une minute."
+        : "L'IA ne répond pas pour le moment. Veuillez réessayer dans quelques instants.";
+
+      return new Response(
+        JSON.stringify({ error: userMessage, details: JSON.stringify(modelErrors) }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
