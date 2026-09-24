@@ -119,7 +119,7 @@ const Premium = () => {
 
     return (
         <div className="pb-20 min-h-screen bg-neutral-50 dark:bg-neutral-900">
-            <header className="bg-gradient-to-b from-primary to-primary/80 text-primary-foreground pt-8 pb-12 px-6 rounded-b-[2.5rem] relative overflow-hidden shadow-xl">
+            <header className="bg-gradient-to-b from-primary to-primary/80 text-primary-foreground pt-8 pb-12 px-6 rounded-b-[2.5rem] md:rounded-2xl md:my-6 relative overflow-hidden shadow-xl">
                 {/* Decorative background elements */}
                 <div className="absolute top-0 left-0 w-full h-full overflow-hidden opacity-30 pointer-events-none">
                     <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-accent/30 blur-3xl animate-pulse"></div>
@@ -141,7 +141,7 @@ const Premium = () => {
                             Abonnement Premium
                         </h1>
                     </div>
-                    <p className="text-primary-foreground/90 text-sm leading-relaxed max-w-md">
+                    <p className="text-primary-foreground/90 text-sm leading-relaxed max-w-2xl">
                         Passez au niveau supérieur avec l'abonnement Premium. Cuisinez sans limites, et libérez toute la puissance de l'application. Partagez vos recettes et votre liste de courses avec vos proches, scannez des recettes par photo en illimité, et bien plus encore.
                     </p>
                 </div>
@@ -166,7 +166,7 @@ const Premium = () => {
                 </div>
 
                 {/* Pricing Cards */}
-                <div className="grid gap-6 md:grid-cols-[0.45fr_0.55fr] items-start max-w-2xl mx-auto">
+                <div className="grid gap-6 md:grid-cols-[0.45fr_0.55fr] items-start max-w-4xl mx-auto">
 
                     {/* Free Plan */}
                     <Card className="border-muted bg-white/50 dark:bg-background/50 relative overflow-hidden">

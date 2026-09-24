@@ -74,8 +74,8 @@ const Family = () => {
     const currentFamily = userHasFamily ? families[0] : null;
 
     return (
-        <div className="pb-20 min-h-screen">
-            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
+        <div className="pb-20 md:pb-12 min-h-screen">
+            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:px-8 md:rounded-2xl md:my-6 shadow-xs">
                 <div className="flex items-center gap-4">
                     <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-white/20 -ml-2" onClick={() => navigate("/profile")}>
                         <ArrowLeft className="w-5 h-5" />
@@ -84,9 +84,9 @@ const Family = () => {
                 </div>
             </header>
 
-            <main className="p-6 space-y-6">
+            <main className="p-6">
                 {!userHasFamily ? (
-                    <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start max-w-4xl mx-auto">
                         <Card>
                             <CardHeader>
                                 <CardTitle>Créer une famille</CardTitle>
@@ -114,15 +114,6 @@ const Family = () => {
                             </CardContent>
                         </Card>
 
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">Ou</span>
-                            </div>
-                        </div>
-
                         <Card>
                             <CardHeader>
                                 <CardTitle>Rejoindre une famille</CardTitle>
@@ -149,9 +140,9 @@ const Family = () => {
                                 </form>
                             </CardContent>
                         </Card>
-                    </>
+                    </div>
                 ) : (
-                    <>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
                         <Card>
                             <CardHeader className="bg-muted/30 pb-4">
                                 <div className="flex items-center justify-between">
@@ -277,7 +268,7 @@ const Family = () => {
 
 
 
-                        <div className="pt-4 flex justify-center">
+                        <div className="lg:col-span-2 pt-4 flex justify-center">
                             <Button
                                 variant="destructive"
                                 className="w-full sm:w-auto flex items-center gap-2"
@@ -292,7 +283,7 @@ const Family = () => {
                                 Quitter la famille
                             </Button>
                         </div>
-                    </>
+                    </div>
                 )}
             </main>
         </div>

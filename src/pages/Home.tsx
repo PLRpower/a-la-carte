@@ -39,14 +39,14 @@ const HomeSkeleton = () => (
       <div className="h-6 w-1/3 bg-muted rounded" />
       <div className="h-4 w-2/3 bg-muted rounded" />
     </div>
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-muted rounded-xl" />)}
     </div>
     <div className="h-40 bg-muted rounded-xl" />
     <div className="space-y-3">
       <div className="h-6 w-1/4 bg-muted rounded" />
-      <div className="flex gap-4 overflow-hidden">
-        {[1, 2].map(i => <div key={i} className="h-48 w-60 shrink-0 bg-muted rounded-xl" />)}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-48 bg-muted rounded-xl" />)}
       </div>
     </div>
   </div>
@@ -212,12 +212,33 @@ const Home = () => {
   const isLoading = (recipesLoading || stockLoading || profileLoading) && recipes.length === 0;
 
   return (
-    <div className="pb-20 min-h-screen">
-      <header className="bg-primary text-primary-foreground pt-8 pb-8 px-6 mb-6 flex items-center gap-4">
-        <img src="/logo-transparent.png" alt="Logo" className="w-14 h-14 object-contain" />
-        <div>
-          <h1 className="text-3xl font-bold mb-1">À la carte</h1>
-          <p className="text-sm opacity-90">Cuisinez, gérez, savourez</p>
+    <div className="pb-20 md:pb-12 min-h-screen">
+      <header className="bg-primary text-primary-foreground pt-8 pb-8 px-6 md:px-8 mb-6 md:my-6 md:rounded-2xl flex items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-4">
+          <img src="/logo-transparent.png" alt="Logo" className="w-14 h-14 object-contain" />
+          <div>
+            <h1 className="text-3xl font-bold mb-1">À la carte</h1>
+            <p className="text-sm opacity-90">Cuisinez, gérez, savourez</p>
+          </div>
+        </div>
+        <div className="hidden md:flex items-center gap-3">
+          <Button
+            size="sm"
+            className="bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-semibold shadow-xs"
+            onClick={() => navigate('/recipes/new-method')}
+          >
+            <Plus className="w-4 h-4 mr-1.5" />
+            Nouvelle recette
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            className="bg-white/15 hover:bg-white/25 text-white border-0 text-xs"
+            onClick={() => navigate('/stock/add')}
+          >
+            <Carrot className="w-4 h-4 mr-1.5" />
+            Ajouter ingrédient
+          </Button>
         </div>
       </header>
 
@@ -256,7 +277,7 @@ const Home = () => {
                 </div>
 
                 <h2 className="text-xl font-semibold mb-3">Vos premiers pas</h2>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 md:gap-4">
                   <button onClick={() => navigate('/stock/add')} className="flex flex-col items-center gap-3 p-4 rounded-xl bg-accent/10 hover:bg-accent/20 transition-colors border border-accent/20 text-center">
                     <div className="p-3 bg-white rounded-full shadow-sm text-primary shrink-0"><Carrot className="w-6 h-6" /></div>
                     <div>
@@ -364,21 +385,23 @@ const Home = () => {
           {/* AI Cards and rest of content... */}
           <section className="px-6 -mt-4 mb-8">
             <Card className="bg-accent text-accent-foreground shadow-lg border-none">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-6 h-6 mt-0.5 flex-shrink-0 animate-pulse" />
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-1">Inspiration du Chef</h3>
-                    <p className="text-sm opacity-90 mb-3">
-                      {stock.length === 0
-                        ? "Générez une recette incroyable, même sans ingrédients !"
-                        : "En panne d'inspiration ? Laissez le chef IA inventer une recette avec vos restes."}
-                    </p>
-                    <Button size="sm" variant="secondary" className="w-full bg-white/20 hover:bg-white/30 text-white border-0" onClick={handleGenerateClick} disabled={loadingAI}>
-                      <Lightbulb className="w-4 h-4 mr-2" />
-                      Générer
-                    </Button>
+              <CardContent className="p-4 md:p-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <Sparkles className="w-6 h-6 mt-0.5 flex-shrink-0 animate-pulse" />
+                    <div>
+                      <h3 className="font-semibold mb-1 text-base md:text-lg">Inspiration du Chef</h3>
+                      <p className="text-sm opacity-90">
+                        {stock.length === 0
+                          ? "Générez une recette incroyable, même sans ingrédients !"
+                          : "En panne d'inspiration ? Laissez le chef IA inventer une recette avec vos restes."}
+                      </p>
+                    </div>
                   </div>
+                  <Button size="sm" variant="secondary" className="w-full md:w-auto md:min-w-[140px] shrink-0 bg-white/20 hover:bg-white/30 text-white border-0" onClick={handleGenerateClick} disabled={loadingAI}>
+                    <Lightbulb className="w-4 h-4 mr-2" />
+                    Générer
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -396,11 +419,11 @@ const Home = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 md:gap-4">
               <button
                 type="button"
                 onClick={() => navigate('/planning')}
-                className="p-3.5 rounded-2xl bg-card border border-border/80 hover:border-primary/50 hover:shadow-sm transition-all text-left flex flex-col justify-between h-32 group"
+                className="p-3.5 rounded-2xl bg-card border border-border/80 hover:border-primary/50 hover:shadow-sm transition-all text-left flex flex-col justify-between h-32 md:h-36 group"
               >
                 <div className="flex items-center justify-between">
                   <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
@@ -411,10 +434,10 @@ const Home = () => {
                   </Badge>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-foreground mb-0.5 group-hover:text-primary transition-colors">
+                  <h4 className="text-xs md:text-sm font-bold text-foreground mb-0.5 group-hover:text-primary transition-colors">
                     Menu de la semaine
                   </h4>
-                  <p className="text-[10px] text-muted-foreground line-clamp-2">
+                  <p className="text-[10px] md:text-xs text-muted-foreground line-clamp-2">
                     Planning 7 jours & liste de courses automatique
                   </p>
                 </div>
@@ -423,7 +446,7 @@ const Home = () => {
               <button
                 type="button"
                 onClick={() => navigate('/planning')}
-                className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/25 hover:border-amber-500/50 hover:shadow-sm transition-all text-left flex flex-col justify-between h-32 group"
+                className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/25 hover:border-amber-500/50 hover:shadow-sm transition-all text-left flex flex-col justify-between h-32 md:h-36 group"
               >
                 <div className="flex items-center justify-between">
                   <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-colors">
@@ -434,10 +457,10 @@ const Home = () => {
                   </Badge>
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-foreground mb-0.5 group-hover:text-amber-600 transition-colors">
+                  <h4 className="text-xs md:text-sm font-bold text-foreground mb-0.5 group-hover:text-amber-600 transition-colors">
                     Batch Cooking
                   </h4>
-                  <p className="text-[10px] text-muted-foreground line-clamp-2">
+                  <p className="text-[10px] md:text-xs text-muted-foreground line-clamp-2">
                     Feuille de route unifiée : 3-4 repas prêts en 1h30
                   </p>
                 </div>
@@ -453,11 +476,11 @@ const Home = () => {
                   Voir tout <ArrowRight className="w-3 h-3 ml-1" />
                 </Button>
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar snap-x scroll-pl-6">
-                {recipes.filter(r => r.is_favorited).slice(0, 3).map(recipe => (
-                  <Card key={recipe.id} className="flex-shrink-0 w-60 snap-start cursor-pointer hover:shadow-md transition-shadow overflow-hidden" onClick={() => navigate(`/recipe/${recipe.id}`)}>
-                    <div className="relative h-32">
-                      <RecipeImage src={recipe.image_url} alt={recipe.title} className="w-full h-full" />
+              <div className="flex md:grid gap-4 overflow-x-auto md:overflow-visible pb-4 md:pb-0 -mx-6 md:mx-0 px-6 md:px-0 no-scrollbar snap-x scroll-pl-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {recipes.filter(r => r.is_favorited).slice(0, 4).map(recipe => (
+                  <Card key={recipe.id} className="flex-shrink-0 w-60 md:w-auto snap-start cursor-pointer hover:shadow-md transition-shadow overflow-hidden" onClick={() => navigate(`/recipe/${recipe.id}`)}>
+                    <div className="relative h-36">
+                      <RecipeImage src={recipe.image_url} alt={recipe.title} className="w-full h-full object-cover" />
                       <div className="absolute top-2 right-2 bg-white/90 rounded-full p-1.5 shadow-sm"><Heart className="w-3.5 h-3.5 fill-accent text-accent" /></div>
                     </div>
                     <CardContent className="p-3">
@@ -486,7 +509,7 @@ const Home = () => {
                 <Button variant="ghost" size="sm" onClick={handleGenerateClick}><RefreshCw className="w-4 h-4 mr-2" />Autre idée</Button>
               </div>
               <Card className="overflow-hidden border-accent/20 border-2">
-                <CardContent className="p-4">
+                <CardContent className="p-4 md:p-6">
                   <h3 className="font-semibold text-lg mb-2">{suggestedRecipe.title}</h3>
                   <p className="text-sm text-muted-foreground mb-4 italic">"{suggestedRecipe.description}"</p>
                   <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mb-4">
@@ -506,7 +529,7 @@ const Home = () => {
                       </Badge>
                     )}
                   </div>
-                  <Button onClick={saveSuggestedRecipe} className="w-full" disabled={savingRecipe}>{savingRecipe ? "Sauvegarde..." : <><Save className="w-4 h-4 mr-2" />Sauvegarder et cuisiner</>}</Button>
+                  <Button onClick={saveSuggestedRecipe} className="w-full md:w-auto px-8" disabled={savingRecipe}>{savingRecipe ? "Sauvegarde..." : <><Save className="w-4 h-4 mr-2" />Sauvegarder et cuisiner</>}</Button>
                 </CardContent>
               </Card>
             </section>
@@ -515,16 +538,18 @@ const Home = () => {
           {featuredRecipe ? (
             <section className="px-6 mt-8">
               <h2 className="text-xl font-semibold mb-3">Recette du moment</h2>
-              <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden" onClick={() => navigate(`/recipe/${featuredRecipe.id}`)}>
-                <div className="relative">
-                  <RecipeImage src={featuredRecipe.image_url} alt={featuredRecipe.title} className="w-full h-48" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
+              <Card className="cursor-pointer hover:shadow-md transition-shadow overflow-hidden md:flex md:flex-row" onClick={() => navigate(`/recipe/${featuredRecipe.id}`)}>
+                <div className="relative md:w-2/5 md:min-h-[220px]">
+                  <RecipeImage src={featuredRecipe.image_url} alt={featuredRecipe.title} className="w-full h-48 md:h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:hidden" />
+                  <div className="absolute bottom-3 left-3 right-3 md:hidden">
                     <div className="flex flex-wrap gap-1 mb-2">{featuredRecipe.tags?.map(tag => <Badge key={tag} className="bg-accent text-accent-foreground text-[10px] px-1.5 py-0">{tag}</Badge>)}</div>
                     <h3 className="text-lg font-bold text-white">{featuredRecipe.title}</h3>
                   </div>
                 </div>
-                <CardContent className="p-4">
+                <CardContent className="p-4 md:p-6 md:w-3/5 flex flex-col justify-center">
+                  <div className="hidden md:flex flex-wrap gap-1 mb-2">{featuredRecipe.tags?.map(tag => <Badge key={tag} className="bg-accent text-accent-foreground text-[10px] px-1.5 py-0">{tag}</Badge>)}</div>
+                  <h3 className="hidden md:block text-xl font-bold text-foreground mb-2">{featuredRecipe.title}</h3>
                   <div className="flex items-center gap-3 text-sm text-muted-foreground mb-3 flex-wrap">
                     <div className="flex items-center gap-1"><Clock className="w-4 h-4" />{(featuredRecipe.prep_time || 0) + (featuredRecipe.cook_time || 0)} min</div>
                     <div className="flex items-center gap-1"><ChefHat className="w-4 h-4" />{featuredRecipe.difficulty}</div>
@@ -535,7 +560,7 @@ const Home = () => {
                       </div>
                     )}
                   </div>
-                  {featuredRecipe.description && <p className="text-sm text-muted-foreground line-clamp-2">{featuredRecipe.description}</p>}
+                  {featuredRecipe.description && <p className="text-sm text-muted-foreground line-clamp-2 md:line-clamp-3">{featuredRecipe.description}</p>}
                 </CardContent>
               </Card>
             </section>

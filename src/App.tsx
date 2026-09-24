@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect, useState, Suspense, lazy } from "react";
 import { BottomNav } from "./components/BottomNav";
+import { DesktopNav } from "./components/DesktopNav";
 import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./hooks/useAuth";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
@@ -71,10 +72,11 @@ const App = () => {
             <ScrollToTop />
             <AuthProvider>
               <DataPrefetcher />
-              <div className="max-w-2xl mx-auto bg-background min-h-screen relative overflow-x-hidden flex flex-col">
+              <div className="w-full bg-background min-h-screen relative overflow-x-hidden flex flex-col">
                 <BetaBanner />
                 <DemoBanner />
-                <div className="flex-1">
+                <DesktopNav />
+                <div className="flex-1 w-full max-w-7xl mx-auto">
                   <Suspense fallback={
                     <div className="min-h-screen flex items-center justify-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

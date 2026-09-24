@@ -39,9 +39,9 @@ const Stock = () => {
   };
 
   return (
-    <div className="pb-20 min-h-screen">
+    <div className="pb-20 md:pb-12 min-h-screen">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6">
+      <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:px-8 md:rounded-2xl md:my-6 shadow-xs">
         <div className="flex items-center gap-3">
 
           <div className="flex items-center justify-between w-full">
@@ -150,8 +150,8 @@ const Stock = () => {
         )}
 
         {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
               <Card key={i} className="shadow-sm border-none">
                 <CardContent className="p-4 flex gap-4 items-center">
                   <Skeleton className="w-10 h-10 rounded-full" />
@@ -164,7 +164,7 @@ const Stock = () => {
             ))}
           </div>
         ) : items.length > 0 ? (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {items.map((item) => (
               <Card key={item.id} className="shadow-sm">
                 <CardContent className="p-4">

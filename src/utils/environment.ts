@@ -12,13 +12,13 @@ export const isBetaEnvironment = (): boolean => {
 
   const host = window.location.hostname;
 
-  // 2. Dedicated beta subdomain (e.g. beta.mondomaine.com)
-  if (host.startsWith('beta.')) {
+  // 2. Dedicated beta or preview subdomain/prefix (e.g. beta.domain.com, preview-app.vercel.app)
+  if (host.startsWith('beta.') || host.startsWith('preview.') || host.startsWith('preview-')) {
     return true;
   }
 
   // 3. Vercel git branch preview URLs (e.g. project-git-develop-*.vercel.app)
-  if (host.includes('-git-develop') || host.includes('-develop')) {
+  if (host.includes('-git-develop') || host.includes('-develop') || host.includes('preview')) {
     return true;
   }
 
@@ -39,9 +39,15 @@ export const getProductionUrl = (): string => {
   const host = window.location.hostname;
   const protocol = window.location.protocol;
 
-  // If on beta.domain.com -> domain.com
-  if (host.startsWith('beta.')) {
-    const mainHost = host.replace(/^beta\./, '');
+  // If on preview-domain.vercel.app -> domain.vercel.app
+  if (host.startsWith('preview-')) {
+    const mainHost = host.replace(/^preview-/, '');
+    return `${protocol}//${mainHost}`;
+  }
+
+  // If on beta.domain.com or preview.domain.com -> domain.com
+  if (host.startsWith('beta.') || host.startsWith('preview.')) {
+    const mainHost = host.replace(/^(beta|preview)\./, '');
     return `${protocol}//${mainHost}`;
   }
 
@@ -56,7 +62,7 @@ export const getProductionUrl = (): string => {
     return '/';
   }
 
-  return '/';
+  return 'https://a-la-carte-app.vercel.app';
 };
 
 /**
@@ -83,6 +89,6 @@ export const getBetaUrl = (): string => {
     return `${protocol}//beta.${host}`;
   }
 
-  // Vercel auto-branch preview domain fallback
-  return `https://a-la-carte-app-git-develop-plrpower.vercel.app`;
+  // Target preview domain
+  return `https://preview-a-la-carte-app.vercel.app`;
 };

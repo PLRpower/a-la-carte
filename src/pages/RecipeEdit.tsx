@@ -249,8 +249,8 @@ const RecipeEdit = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background pb-20">
-            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 sticky top-0 z-10">
+        <div className="min-h-screen bg-background pb-20 md:pb-12">
+            <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:px-8 sticky top-0 md:top-16 z-10 md:rounded-2xl md:my-6 shadow-xs">
                 <div className="flex items-center gap-2 mb-2">
                     <Button
                         variant="ghost"
@@ -264,7 +264,7 @@ const RecipeEdit = () => {
                 </div>
             </header>
 
-            <div className="px-6 py-8">
+            <div className="px-6 py-8 max-w-4xl mx-auto">
                 {error && (
                     <div className="bg-destructive/10 text-destructive p-4 rounded-lg mb-6 text-sm">
                         {error}

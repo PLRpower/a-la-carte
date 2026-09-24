@@ -207,9 +207,9 @@ const ShoppingList = () => {
   const sortedCategories = sortCategories(Object.keys(groupedUnchecked), aisleOrder);
 
   return (
-    <div className="pb-40 min-h-screen bg-background">
+    <div className="pb-40 md:pb-16 min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground pt-7 pb-5 px-6 sticky top-0 z-10 shadow-sm">
+      <header className="bg-primary text-primary-foreground pt-7 pb-5 px-6 md:px-8 sticky top-0 md:top-16 z-10 md:rounded-2xl md:my-6 shadow-sm">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold">Ma liste de courses</h1>
@@ -375,7 +375,7 @@ const ShoppingList = () => {
         ) : (
           <>
             {/* Unchecked Items */}
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
               {sortedCategories.map((category) => (
                 <ShoppingListCategory
                   key={category}
@@ -389,7 +389,7 @@ const ShoppingList = () => {
             </div>
 
             {/* Add Item Row */}
-            <div className="mt-4">
+            <div className="mt-6 max-w-xl">
               {isAdding ? (
                 <div className="flex items-center gap-3 py-2 px-1 animate-in fade-in zoom-in-95 duration-200">
                   <div className="w-5 h-5 flex-shrink-0" /> {/* Spacer for checkbox alignment */}
