@@ -3,8 +3,9 @@ import { RecipeImage } from "@/components/RecipeImage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, ChefHat, Sparkles, Book, GraduationCap, Globe, Lightbulb, Save, RefreshCw, Coffee, Utensils, IceCream, Apple, Heart, ArrowRight, Salad, Camera, Carrot, Users, Plus, ShoppingCart, CalendarDays, Flame, AlertTriangle, Coins, PiggyBank } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { Clock, ChefHat, Sparkles, Book, GraduationCap, Globe, Lightbulb, Save, RefreshCw, Coffee, Utensils, IceCream, Apple, Heart, ArrowRight, Salad, Camera, Carrot, Users, Plus, ShoppingCart, CalendarDays, Flame, AlertTriangle, Coins, PiggyBank, User } from "lucide-react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useStock } from "@/hooks/useStock";
 import { useFamily } from "@/hooks/useFamily";
@@ -115,6 +116,10 @@ const Home = () => {
   }, [suggestedRecipe]);
 
   const handleGenerateClick = () => {
+    if (!user) {
+      navigate("/auth?mode=signup", { state: { isSignup: true } });
+      return;
+    }
     setShowAIOptions(true);
   };
 
@@ -182,7 +187,9 @@ const Home = () => {
         category: (suggestedRecipe.category || 'diner') as any /* eslint-disable-line @typescript-eslint/no-explicit-any */,
         tags: [suggestedRecipe.category || 'diner'],
         instructions: suggestedRecipe.instructions,
-        source: 'website'
+        source: 'website',
+        is_shared_with_family: false,
+        is_public: false
       }]).select().single();
 
       if (recipeError) throw recipeError;
@@ -224,6 +231,7 @@ const Home = () => {
             <p className="text-sm opacity-90">Cuisinez, gérez, savourez</p>
           </div>
         </div>
+        {/* Desktop actions */}
         <div className="hidden md:flex items-center gap-3">
           <Button
             size="sm"
@@ -242,6 +250,28 @@ const Home = () => {
             <Carrot className="w-4 h-4 mr-1.5" />
             Ajouter ingrédient
           </Button>
+        </div>
+
+        {/* Mobile: Profil header */}
+        <div className="flex md:hidden items-center gap-2">
+          <Link
+            to={user ? "/profile" : "/auth?mode=signup"}
+            state={user ? undefined : { isSignup: true }}
+            className="flex items-center p-0.5 rounded-full hover:bg-white/10 active:scale-95 transition-transform"
+            title={user ? "Mon profil" : "Créer un compte"}
+          >
+            <Avatar className="w-10 h-10 border-2 border-white/30 shadow-xs">
+              {profile?.avatar_url ? (
+                <AvatarImage src={profile.avatar_url} alt="Profil" />
+              ) : (
+                <AvatarFallback className="bg-accent text-accent-foreground text-xs font-bold">
+                  {profile?.first_name?.[0] ||
+                    profile?.last_name?.[0] ||
+                    user?.email?.[0]?.toUpperCase() || <User className="w-5 h-5" />}
+                </AvatarFallback>
+              )}
+            </Avatar>
+          </Link>
         </div>
       </header>
 

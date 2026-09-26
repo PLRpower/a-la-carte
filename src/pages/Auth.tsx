@@ -10,7 +10,13 @@ import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const location = useLocation();
-  const [isLogin, setIsLogin] = useState(!location.state?.isSignup);
+  const searchParams = new URLSearchParams(location.search);
+  const isSignupRequested =
+    Boolean(location.state?.isSignup) ||
+    searchParams.get("mode") === "signup" ||
+    searchParams.get("signup") === "true";
+
+  const [isLogin, setIsLogin] = useState(!isSignupRequested);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,8 +28,21 @@ const Auth = () => {
   const { signIn, signUp, user, resetPassword } = useAuth();
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("mode") === "signup" || params.get("signup") === "true" || location.state?.isSignup) {
+      setIsLogin(false);
+    }
+  }, [location.search, location.state]);
+
+  useEffect(() => {
     if (user) {
-      navigate(`/${location.search}`);
+      const params = new URLSearchParams(location.search);
+      const redirectTo = params.get("redirectTo");
+      if (redirectTo && redirectTo.startsWith("/")) {
+        navigate(redirectTo, { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     }
   }, [user, navigate, location.search]);
 
@@ -70,8 +89,10 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
+          const params = new URLSearchParams(location.search);
+          const redirectTo = params.get("redirectTo");
           toast.success("Bon retour !");
-          navigate(`/${location.search}`);
+          navigate(redirectTo && redirectTo.startsWith("/") ? redirectTo : "/", { replace: true });
         }
       } else {
         const { data, error } = await signUp(email, password, firstName, lastName);

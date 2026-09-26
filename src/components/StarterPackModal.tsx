@@ -84,7 +84,7 @@ export const StarterPackModal = ({
   const handleImport = async () => {
     if (!user) {
       onOpenChange(false);
-      navigate("/auth", { state: { isSignup: true } });
+      navigate("/auth?mode=signup", { state: { isSignup: true } });
       return;
     }
 

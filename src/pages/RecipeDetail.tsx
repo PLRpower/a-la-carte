@@ -19,6 +19,11 @@ import {
   PiggyBank,
   Share2,
   Printer,
+  Users,
+  Globe,
+  Lock,
+  BookmarkX,
+  BookOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -34,6 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { CATALOG_RECIPES } from "@/data/recipesCatalog";
 import { cloneRecipeToUser } from "@/lib/recipe-clone";
+import { isRecipeNotMine } from "@/lib/recipe-helpers";
 import { AuthPromptDialog } from "@/components/AuthPromptDialog";
 import { MeasurementUnit, RecipeWithDetails } from "@/types/database";
 import {
@@ -58,7 +64,7 @@ const RecipeDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { recipes, toggleFavorite } = useRecipes();
+  const { recipes, toggleFavorite, deleteRecipe } = useRecipes();
   const { ingredients: allIngredients } = useIngredients();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -76,8 +82,10 @@ const RecipeDetail = () => {
   const [activeTimerLabel, setActiveTimerLabel] = useState("Minuteur");
   const [showTimerWidget, setShowTimerWidget] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   const { stock, updateStock } = useStock();
+
   const { addItems } = useShoppingList();
 
   // 1. Look up recipe in user's saved recipes
@@ -209,12 +217,48 @@ const RecipeDetail = () => {
   const isOwner = user && userRecipe && userRecipe.user_id === user.id;
   const isCatalog = !userRecipe && !!catalogRecipe;
   const alreadyInCarnet = !!clonedPersonalRecipe;
+  const isNotMine = useMemo(() => {
+    return isRecipeNotMine(recipe, user?.id);
+  }, [recipe, user?.id]);
+
+  const handleRemoveFromCarnet = async () => {
+    const targetRecipe = userRecipe || clonedPersonalRecipe;
+    if (!targetRecipe) return;
+
+    if (
+      window.confirm(
+        "Voulez-vous retirer cette recette de votre carnet ? Elle restera accessible à tout moment dans l'onglet Découvrir."
+      )
+    ) {
+      setRemoving(true);
+      try {
+        await deleteRecipe(targetRecipe.id);
+        await queryClient.invalidateQueries({ queryKey: ["recipes"] });
+        toast({
+          title: "Recette retirée",
+          description: `"${recipe?.title}" a été retirée de votre carnet.`,
+        });
+        if (userRecipe) {
+          navigate("/recipes");
+        }
+      } catch (err) {
+        console.error("Remove error:", err);
+        toast({
+          title: "Erreur",
+          description: "Impossible de retirer la recette de votre carnet.",
+          variant: "destructive",
+        });
+      } finally {
+        setRemoving(false);
+      }
+    }
+  };
 
   const handleClone = async () => {
     if (!catalogRecipe) return;
 
     if (!user) {
-      setShowAuthPrompt(true);
+      navigate("/auth?mode=signup", { state: { isSignup: true } });
       return;
     }
 
@@ -241,7 +285,7 @@ const RecipeDetail = () => {
 
   const handleFavoriteClick = () => {
     if (!user) {
-      setShowAuthPrompt(true);
+      navigate("/auth?mode=signup", { state: { isSignup: true } });
       return;
     }
     if (userRecipe) {
@@ -256,7 +300,7 @@ const RecipeDetail = () => {
 
   const handleOpenShoppingModal = () => {
     if (!user) {
-      setShowAuthPrompt(true);
+      navigate("/auth?mode=signup", { state: { isSignup: true } });
       return;
     }
     setShowShoppingModal(true);
@@ -287,7 +331,7 @@ const RecipeDetail = () => {
 
   const handleOpenCookModal = () => {
     if (!user) {
-      setShowAuthPrompt(true);
+      navigate("/auth?mode=signup", { state: { isSignup: true } });
       return;
     }
     setShowCookModal(true);
@@ -409,6 +453,19 @@ const RecipeDetail = () => {
               />
             </Button>
 
+            {isNotMine && isOwner && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white hover:text-destructive rounded-full shadow-md text-foreground transition-colors"
+                onClick={handleRemoveFromCarnet}
+                disabled={removing}
+                title="Retirer de mon carnet"
+              >
+                <BookmarkX className="w-5 h-5" />
+              </Button>
+            )}
+
             {isOwner && (
               <Button
                 variant="ghost"
@@ -424,6 +481,56 @@ const RecipeDetail = () => {
         {/* Recipe Title & Badges Overlay */}
         <div className="absolute bottom-4 left-6 right-6">
           <div className="flex flex-wrap gap-1.5 mb-2">
+            {!isCatalog && (
+              isOwner ? (
+                recipe.is_shared_with_family && recipe.is_public ? (
+                  <Badge
+                    className="bg-sky-600/90 hover:bg-sky-600 text-white text-xs shadow-xs border-0 flex items-center gap-1 cursor-pointer transition-colors"
+                    onClick={() => setShowShareModal(true)}
+                    title="Visibilité : Famille & Public (cliquez pour modifier)"
+                  >
+                    <Users className="w-3 h-3" />
+                    <Globe className="w-3 h-3" />
+                    <span>Famille & Public</span>
+                  </Badge>
+                ) : recipe.is_shared_with_family ? (
+                  <Badge
+                    className="bg-primary/90 hover:bg-primary text-primary-foreground text-xs shadow-xs border-0 flex items-center gap-1 cursor-pointer transition-colors"
+                    onClick={() => setShowShareModal(true)}
+                    title="Visibilité : Partagé en famille (cliquez pour modifier)"
+                  >
+                    <Users className="w-3 h-3" />
+                    <span>Partagé en famille</span>
+                  </Badge>
+                ) : recipe.is_public ? (
+                  <Badge
+                    className="bg-sky-600/90 hover:bg-sky-600 text-white text-xs shadow-xs border-0 flex items-center gap-1 cursor-pointer transition-colors"
+                    onClick={() => setShowShareModal(true)}
+                    title="Visibilité : Public (cliquez pour modifier)"
+                  >
+                    <Globe className="w-3 h-3" />
+                    <span>Public</span>
+                  </Badge>
+                ) : (
+                  <Badge
+                    className="bg-zinc-800/90 hover:bg-zinc-800 text-zinc-200 text-xs shadow-xs border-0 flex items-center gap-1 cursor-pointer transition-colors"
+                    onClick={() => setShowShareModal(true)}
+                    title="Visibilité : Privé (cliquez pour modifier)"
+                  >
+                    <Lock className="w-3 h-3" />
+                    <span>Privé</span>
+                  </Badge>
+                )
+              ) : (
+                <Badge
+                  className="bg-amber-600/90 text-white text-xs shadow-xs border-0 flex items-center gap-1"
+                >
+                  <Users className="w-3 h-3" />
+                  <span>Recette de famille</span>
+                </Badge>
+              )
+            )}
+
             {recipe.tags &&
               recipe.tags.map((tag) => (
                 <Badge
@@ -489,15 +596,26 @@ const RecipeDetail = () => {
             </div>
 
             {alreadyInCarnet ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled
-                className="h-8 text-xs font-semibold shrink-0"
-              >
-                <Check className="w-3.5 h-3.5 mr-1 text-accent" />
-                Dans mon carnet
-              </Button>
+              <div className="flex items-center gap-2 shrink-0">
+                <Badge
+                  variant="secondary"
+                  className="h-8 text-xs font-semibold px-2.5 flex items-center gap-1 bg-white/60 dark:bg-black/40 text-foreground"
+                >
+                  <Check className="w-3.5 h-3.5 text-accent" />
+                  Dans mon carnet
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={removing}
+                  onClick={handleRemoveFromCarnet}
+                  className="h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                  title="Retirer cette recette de mon carnet"
+                >
+                  <BookmarkX className="w-3.5 h-3.5 mr-1" />
+                  Retirer
+                </Button>
+              </div>
             ) : (
               <Button
                 size="sm"
@@ -516,6 +634,32 @@ const RecipeDetail = () => {
           </div>
         </div>
       )}
+
+      {/* When recipe is in carnet, but came from catalog / not mine */}
+      {!isCatalog && isNotMine && (
+        <div className="px-6 pt-4">
+          <div className="p-3 rounded-2xl bg-muted/60 border border-border/60 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <BookOpen className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="text-xs text-muted-foreground truncate">
+                Recette de la bibliothèque Découvrir présente dans votre carnet
+              </span>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={removing}
+              onClick={handleRemoveFromCarnet}
+              className="h-7 text-xs text-muted-foreground hover:text-destructive hover:border-destructive shrink-0"
+              title="Retirer cette recette de mon carnet"
+            >
+              <BookmarkX className="w-3.5 h-3.5 mr-1" />
+              Retirer du carnet
+            </Button>
+          </div>
+        </div>
+      )}
+
 
       {/* Main Content Grid: 2 columns on desktop/tablet, stacked on mobile */}
       <div className="px-6 grid grid-cols-1 lg:grid-cols-12 gap-8 mt-6">

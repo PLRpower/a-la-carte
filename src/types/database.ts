@@ -43,6 +43,8 @@ export interface Recipe {
   tags: string[] | null;
   source: RecipeSource | null;
   instructions: string | null;
+  is_shared_with_family?: boolean;
+  is_public?: boolean;
   created_at: string;
   updated_at: string;
 }

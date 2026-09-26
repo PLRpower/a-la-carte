@@ -350,7 +350,8 @@ export type Database = {
           id: string
           image_url: string | null
           instructions: string | null
-          is_public: boolean | null
+          is_public: boolean
+          is_shared_with_family: boolean
           prep_time: number | null
           servings: number | null
           source: Database["public"]["Enums"]["recipe_source"] | null
@@ -368,7 +369,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           instructions?: string | null
-          is_public?: boolean | null
+          is_public?: boolean
+          is_shared_with_family?: boolean
           prep_time?: number | null
           servings?: number | null
           source?: Database["public"]["Enums"]["recipe_source"] | null
@@ -386,7 +388,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           instructions?: string | null
-          is_public?: boolean | null
+          is_public?: boolean
+          is_shared_with_family?: boolean
           prep_time?: number | null
           servings?: number | null
           source?: Database["public"]["Enums"]["recipe_source"] | null

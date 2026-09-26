@@ -125,7 +125,9 @@ const RecipeShare = () => {
                     category: formData.category as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ || null,
                     instructions: formData.steps,
                     image_url: imageUrl,
-                    source: 'website'
+                    source: 'website',
+                    is_shared_with_family: formData.is_shared_with_family ?? false,
+                    is_public: formData.is_public ?? false,
                 }])
                 .select()
                 .single();

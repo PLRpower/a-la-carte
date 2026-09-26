@@ -27,7 +27,7 @@ export const AuthPromptDialog = ({
 
   const handleSignup = () => {
     onOpenChange(false);
-    navigate("/auth", { state: { isSignup: true } });
+    navigate("/auth?mode=signup", { state: { isSignup: true } });
   };
 
   const handleSignin = () => {

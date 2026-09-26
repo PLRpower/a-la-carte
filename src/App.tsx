@@ -10,8 +10,6 @@ import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./hooks/useAuth";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { DataPrefetcher } from "./components/DataPrefetcher";
-import { DemoBanner } from "./components/DemoBanner";
-import { BetaBanner } from "./components/BetaBanner";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -45,7 +43,6 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <BetaBanner />
               <Suspense fallback={
                 <div className="min-h-screen flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -73,10 +70,8 @@ const App = () => {
             <AuthProvider>
               <DataPrefetcher />
               <div className="w-full bg-background min-h-screen relative overflow-x-hidden flex flex-col">
-                <BetaBanner />
-                <DemoBanner />
                 <DesktopNav />
-                <div className="flex-1 w-full max-w-7xl mx-auto">
+                <div className="flex-1 w-full max-w-7xl mx-auto pb-safe">
                   <Suspense fallback={
                     <div className="min-h-screen flex items-center justify-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

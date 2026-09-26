@@ -2,7 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    const { user, loading, isDemo } = useAuth();
+    const { user, loading } = useAuth();
     const location = useLocation();
 
     if (loading) {
@@ -19,22 +19,18 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
     // Public / Demo accessible routes: Home, Recipes catalog, Recipe details
     const isPublicPath =
-        location.pathname === "/" ||
-        location.pathname.startsWith("/recipes") ||
-        location.pathname.startsWith("/recipe/");
+        (location.pathname === "/" ||
+            location.pathname === "/recipes" ||
+            location.pathname.startsWith("/recipe/")) &&
+        !location.pathname.startsWith("/recipes/add") &&
+        !location.pathname.startsWith("/recipes/edit") &&
+        !location.pathname.startsWith("/recipes/new-method") &&
+        !location.pathname.startsWith("/recipes/share");
 
-    if (isDemo || isPublicPath) {
-        // Disallow private creation/editing routes in demo mode
-        const isRestrictedPath =
-            location.pathname.startsWith("/recipes/add") ||
-            location.pathname.startsWith("/recipes/edit") ||
-            location.pathname.startsWith("/recipes/new-method") ||
-            location.pathname.startsWith("/recipes/share");
-
-        if (!isRestrictedPath) {
-            return <>{children}</>;
-        }
+    if (isPublicPath) {
+        return <>{children}</>;
     }
 
-    return <Navigate to={`/auth${location.search}`} replace />;
+    const redirectPath = `/auth?mode=signup${location.pathname !== "/" ? `&redirectTo=${encodeURIComponent(location.pathname + location.search)}` : ""}`;
+    return <Navigate to={redirectPath} state={{ isSignup: true }} replace />;
 };

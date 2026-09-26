@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, ChevronDown, ChevronRight, Bell, ShoppingCart, Users, Route, ScanBarcode, Receipt } from "lucide-react";
+import { Plus, ChevronDown, ChevronRight, Bell, ShoppingCart, Users, Route, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,7 +27,6 @@ import { parseIngredientInput } from "@/lib/ingredient-parser";
 import { Ingredient } from "@/types/database";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarcodeScannerDialog } from "@/components/scanner/BarcodeScannerDialog";
 import { ReceiptScannerDialog } from "@/components/scanner/ReceiptScannerDialog";
 
 const ShoppingList = () => {
@@ -41,7 +40,6 @@ const ShoppingList = () => {
   const [showChecked, setShowChecked] = useState(true);
   const [aisleOrder, setAisleOrder] = useState<string[]>(() => getAisleOrder());
   const [inStoreOpen, setInStoreOpen] = useState(false);
-  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
   const addItemInputRef = useRef<HTMLInputElement>(null);
 
@@ -273,17 +271,6 @@ const ShoppingList = () => {
               variant="outline"
               size="sm"
               className="bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border-primary-foreground/25 gap-1.5 h-9 text-sm"
-              onClick={() => setShowBarcodeScanner(true)}
-              title="Scanner un code-barres"
-            >
-              <ScanBarcode className="w-4 h-4" />
-              <span className="hidden sm:inline">Code-barres</span>
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-primary-foreground/10 hover:bg-primary-foreground/20 text-primary-foreground border-primary-foreground/25 gap-1.5 h-9 text-sm"
               onClick={() => setShowReceiptScanner(true)}
               title="Scanner un ticket de caisse / Drive"
             >
@@ -353,12 +340,6 @@ const ShoppingList = () => {
                 icon: Plus,
                 onClick: () => setIsAdding(true),
                 variant: "default",
-              },
-              {
-                label: "Scanner code-barres",
-                icon: ScanBarcode,
-                onClick: () => setShowBarcodeScanner(true),
-                variant: "outline",
               },
               {
                 label: "Scanner un ticket / Drive",
@@ -481,12 +462,6 @@ const ShoppingList = () => {
           onClose={() => setInStoreOpen(false)}
         />
       )}
-
-      <BarcodeScannerDialog
-        open={showBarcodeScanner}
-        onOpenChange={setShowBarcodeScanner}
-        defaultDestination="shopping-list"
-      />
 
       <ReceiptScannerDialog
         open={showReceiptScanner}

@@ -10,8 +10,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Camera, Upload, X, Image as ImageIcon, ChevronsUpDown, Check } from "lucide-react";
+import { Camera, Upload, X, Image as ImageIcon, ChevronsUpDown, Check, Users, Globe, Lock } from "lucide-react";
 import { MultiSelect } from "./ui/multi-select";
+import { Switch } from "./ui/switch";
 
 const CATEGORY_OPTIONS = [
     { value: 'petit_dejeuner', label: 'Petit-déjeuner' },
@@ -38,6 +39,8 @@ export interface RecipeFormData {
     imageFiles?: File[];
     imageUrl?: string | null;
     source?: string;
+    is_shared_with_family?: boolean;
+    is_public?: boolean;
 }
 
 interface RecipeFormProps {
@@ -65,6 +68,8 @@ export const RecipeForm = ({
     const [servings, setServings] = useState(initialData?.servings || "");
     const [tags, setTags] = useState<string[]>(initialData?.tags || []);
     const [source, setSource] = useState(initialData?.source || "");
+    const [isSharedWithFamily, setIsSharedWithFamily] = useState(initialData?.is_shared_with_family ?? false);
+    const [isPublic, setIsPublic] = useState(initialData?.is_public ?? false);
 
     // Manage multiple files
     const [imageFiles, setImageFiles] = useState<File[]>(
@@ -87,6 +92,8 @@ export const RecipeForm = ({
             if (initialData.cookTime) setCookTime(initialData.cookTime);
             if (initialData.servings) setServings(initialData.servings);
             if (initialData.tags) setTags(initialData.tags);
+            if (initialData.is_shared_with_family !== undefined) setIsSharedWithFamily(initialData.is_shared_with_family);
+            if (initialData.is_public !== undefined) setIsPublic(initialData.is_public);
             // Backward compatibility
             if (initialData.category && (!initialData.tags || initialData.tags.length === 0)) {
                 setTags([initialData.category]);
@@ -116,7 +123,9 @@ export const RecipeForm = ({
             source,
             imageFile: imageFiles[0] || null, // Backwards compatibility
             imageFiles: imageFiles,
-            imageUrl: imageUrl
+            imageUrl: imageUrl,
+            is_shared_with_family: isSharedWithFamily,
+            is_public: isPublic
         });
     };
 
@@ -342,6 +351,50 @@ export const RecipeForm = ({
                             <Upload className="w-4 h-4 mr-2" />
                             Choisir photos
                         </Button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Sharing / Visibility Section */}
+            <div className="bg-muted/40 rounded-xl p-4 border border-border/80 space-y-4">
+                <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-primary" />
+                    <h3 className="font-semibold text-sm">Visibilité & Partage</h3>
+                </div>
+
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="share-family" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                                <Users className="w-3.5 h-3.5 text-primary" />
+                                Partager avec ma famille
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                Visible dans le carnet de tous les membres de votre famille.
+                            </p>
+                        </div>
+                        <Switch
+                            id="share-family"
+                            checked={isSharedWithFamily}
+                            onCheckedChange={setIsSharedWithFamily}
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/40">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="share-public" className="text-sm font-medium flex items-center gap-1.5 cursor-pointer">
+                                <Globe className="w-3.5 h-3.5 text-sky-500" />
+                                Publier dans Découvrir (Public)
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                                Accessible à toute la communauté dans le catalogue Découvrir.
+                            </p>
+                        </div>
+                        <Switch
+                            id="share-public"
+                            checked={isPublic}
+                            onCheckedChange={setIsPublic}
+                        />
                     </div>
                 </div>
             </div>

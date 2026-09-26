@@ -1,7 +1,8 @@
-import { Home, BookOpen, ShoppingCart, Carrot, User, CalendarDays } from "lucide-react";
+import { Home, BookOpen, ShoppingCart, Carrot, CalendarDays } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { NavLink } from "./NavLink";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { to: "/", icon: Home, label: "Accueil" },
@@ -9,12 +10,12 @@ const navItems = [
   { to: "/recipes", icon: BookOpen, label: "Recettes" },
   { to: "/shopping-list", icon: ShoppingCart, label: "Courses" },
   { to: "/stock", icon: Carrot, label: "Stock" },
-  { to: "/profile", icon: User, label: "Profil" },
 ];
 
 export const BottomNav = () => {
   const location = useLocation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   if (
     location.pathname === "/auth" ||
@@ -34,9 +35,7 @@ export const BottomNav = () => {
             className="flex flex-col items-center justify-center flex-1 py-2 px-1 text-muted-foreground transition-colors"
             activeClassName="text-primary"
             onPointerDown={() => {
-              // Pre-fetch data for the section the user is about to click
-              // PointerDown triggers as soon as the finger touches the screen, 
-              // giving a small head start before the navigation click completes.
+              if (!user) return;
               if (item.to === "/planning") queryClient.prefetchQuery({ queryKey: ['meal-plans'] });
               if (item.to === "/recipes") queryClient.prefetchQuery({ queryKey: ['recipes'] });
               if (item.to === "/stock") queryClient.prefetchQuery({ queryKey: ['stock'] });

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, AlertCircle, ShoppingCart, Trash2, Pencil, Carrot, Sparkles, Globe, ScanBarcode, Receipt, AlertTriangle, Clock } from "lucide-react";
+import { Plus, AlertCircle, ShoppingCart, Trash2, Pencil, Carrot, Sparkles, Globe, Receipt, AlertTriangle, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,6 @@ import { useStock } from "@/hooks/useStock";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarcodeScannerDialog } from "@/components/scanner/BarcodeScannerDialog";
 import { ReceiptScannerDialog } from "@/components/scanner/ReceiptScannerDialog";
 import { getExpiringStockItems, getExpirationStatus } from "@/lib/expiration-tracker";
 
@@ -19,7 +18,6 @@ const Stock = () => {
   const lowStockCount = items.filter((item) => item.low_stock).length;
   const urgentExpiringItems = useMemo(() => getExpiringStockItems(items, 48), [items]);
 
-  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
 
   const handleDelete = async (id: string) => {
@@ -47,15 +45,6 @@ const Stock = () => {
           <div className="flex items-center justify-between w-full">
             <h1 className="text-2xl font-bold">Mes ingrédients</h1>
             <div className="flex items-center gap-1.5">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-primary-foreground hover:bg-primary-foreground/15 h-9 w-9"
-                onClick={() => setShowBarcodeScanner(true)}
-                title="Scanner un code-barres"
-              >
-                <ScanBarcode className="w-5 h-5" />
-              </Button>
               <Button
                 size="icon"
                 variant="ghost"
@@ -263,12 +252,6 @@ const Stock = () => {
                 variant: "default",
               },
               {
-                label: "Scanner code-barres",
-                icon: ScanBarcode,
-                onClick: () => setShowBarcodeScanner(true),
-                variant: "outline",
-              },
-              {
                 label: "Scanner un ticket / Drive",
                 icon: Receipt,
                 onClick: () => setShowReceiptScanner(true),
@@ -283,11 +266,6 @@ const Stock = () => {
         )}
       </section>
 
-      <BarcodeScannerDialog
-        open={showBarcodeScanner}
-        onOpenChange={setShowBarcodeScanner}
-        defaultDestination="stock"
-      />
 
       <ReceiptScannerDialog
         open={showReceiptScanner}

@@ -1,7 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
-  Maximize2,
-  Minimize2,
   X,
   ShoppingCart,
   CheckCircle2,
@@ -37,33 +35,8 @@ export const InStoreMode = ({
   onFinishShopping,
   onClose,
 }: InStoreModeProps) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
   const [aisleOrder, setAisleOrder] = useState<string[]>(() => getAisleOrder());
-
-  // Listen to fullscreen changes
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
-
-  // Fullscreen toggle
-  const toggleFullscreen = async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen?.();
-      } else {
-        await document.exitFullscreen?.();
-      }
-    } catch {
-      // Fullscreen not permitted or supported
-    }
-  };
 
   const totalItems = items.length;
   const checkedItems = useMemo(() => items.filter((i) => i.checked), [items]);
@@ -130,16 +103,6 @@ export const InStoreMode = ({
             title={hideChecked ? "Afficher tous les articles" : "Masquer les articles cochés"}
           >
             {hideChecked ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleFullscreen}
-            className="h-10 w-10 rounded-full"
-            title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
-          >
-            {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
           </Button>
         </div>
       </header>

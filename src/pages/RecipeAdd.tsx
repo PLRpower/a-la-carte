@@ -162,6 +162,8 @@ const RecipeAdd = () => {
                     instructions: formData.steps,
                     image_url: mainImageUrl, // Main image for thumbnails
                     source: formData.source as any /* eslint-disable-line @typescript-eslint/no-explicit-any */ || null,
+                    is_shared_with_family: formData.is_shared_with_family ?? false,
+                    is_public: formData.is_public ?? false,
                 }])
                 .select()
                 .single();

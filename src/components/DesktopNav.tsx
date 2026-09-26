@@ -30,6 +30,7 @@ export const DesktopNav = () => {
   }
 
   const prefetchFor = (to: string) => {
+    if (!user) return;
     if (to === "/planning") queryClient.prefetchQuery({ queryKey: ["meal-plans"] });
     if (to === "/recipes") queryClient.prefetchQuery({ queryKey: ["recipes"] });
     if (to === "/stock") queryClient.prefetchQuery({ queryKey: ["stock"] });
@@ -87,44 +88,54 @@ export const DesktopNav = () => {
 
         {/* Right actions */}
         <div className="flex items-center gap-2.5">
-          {user && (
+          {user ? (
+            <>
+              <Button
+                size="sm"
+                className="bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-semibold h-9 px-3.5 rounded-full shadow-xs gap-1.5"
+                onClick={() => navigate("/recipes/new-method")}
+              >
+                <Plus className="w-4 h-4" />
+                <span>Recette</span>
+              </Button>
+
+              <Link
+                to="/family"
+                className={`p-2 rounded-full hover:bg-muted/80 transition-colors text-muted-foreground hover:text-foreground ${
+                  location.pathname === "/family" ? "text-primary bg-muted" : ""
+                }`}
+                title="Ma famille"
+              >
+                <Users className="w-5 h-5" />
+              </Link>
+
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 p-1 rounded-full hover:bg-muted/80 transition-colors"
+                title="Mon profil"
+              >
+                <Avatar className="w-8 h-8 border border-border">
+                  {profile?.avatar_url ? (
+                    <AvatarImage src={profile.avatar_url} />
+                  ) : (
+                    <AvatarFallback className="bg-accent text-accent-foreground text-xs font-bold">
+                      {profile?.first_name?.[0] ||
+                        profile?.last_name?.[0] ||
+                        user?.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
+              </Link>
+            </>
+          ) : (
             <Button
               size="sm"
-              className="bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-semibold h-9 px-3.5 rounded-full shadow-xs gap-1.5"
-              onClick={() => navigate("/recipes/new-method")}
+              className="bg-accent text-accent-foreground hover:bg-accent/90 text-xs font-semibold h-9 px-4 rounded-full shadow-xs"
+              onClick={() => navigate("/auth?mode=signup", { state: { isSignup: true } })}
             >
-              <Plus className="w-4 h-4" />
-              <span>Recette</span>
+              Créer un compte
             </Button>
           )}
-
-          <Link
-            to="/family"
-            className={`p-2 rounded-full hover:bg-muted/80 transition-colors text-muted-foreground hover:text-foreground ${
-              location.pathname === "/family" ? "text-primary bg-muted" : ""
-            }`}
-            title="Ma famille"
-          >
-            <Users className="w-5 h-5" />
-          </Link>
-
-          <Link
-            to="/profile"
-            className="flex items-center gap-2 p-1 rounded-full hover:bg-muted/80 transition-colors"
-            title="Mon profil"
-          >
-            <Avatar className="w-8 h-8 border border-border">
-              {profile?.avatar_url ? (
-                <AvatarImage src={profile.avatar_url} />
-              ) : (
-                <AvatarFallback className="bg-accent text-accent-foreground text-xs font-bold">
-                  {profile?.first_name?.[0] ||
-                    profile?.last_name?.[0] ||
-                    user?.email?.[0]?.toUpperCase() || <User className="w-4 h-4" />}
-                </AvatarFallback>
-              )}
-            </Avatar>
-          </Link>
         </div>
       </div>
     </nav>

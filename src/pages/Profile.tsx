@@ -1,4 +1,4 @@
-import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles, FlaskConical, ArrowRight, ExternalLink } from "lucide-react";
+import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles, FlaskConical, ArrowRight, ExternalLink, ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,18 @@ const Profile = () => {
       {/* Header */}
       <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:px-8 md:rounded-2xl md:my-6 shadow-xs">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Profil</h1>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-primary-foreground hover:bg-white/20 -ml-2 md:hidden"
+              onClick={() => navigate(-1)}
+              title="Retour"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+            <h1 className="text-2xl font-bold">Profil</h1>
+          </div>
           <Button
             size="icon"
             className="bg-accent text-accent-foreground hover:bg-accent/90"
