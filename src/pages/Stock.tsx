@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, AlertCircle, ShoppingCart, Trash2, Pencil, Carrot, Sparkles, Globe, ScanBarcode, Receipt, AlertTriangle, Clock } from "lucide-react";
+import { Plus, AlertCircle, Trash2, Pencil, Carrot, Sparkles, Receipt, AlertTriangle, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +8,9 @@ import { useStock } from "@/hooks/useStock";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BarcodeScannerDialog } from "@/components/scanner/BarcodeScannerDialog";
 import { ReceiptScannerDialog } from "@/components/scanner/ReceiptScannerDialog";
 import { getExpiringStockItems, getExpirationStatus } from "@/lib/expiration-tracker";
+import { StockNavTabs } from "@/components/StockNavTabs";
 
 const Stock = () => {
   const navigate = useNavigate();
@@ -19,7 +19,6 @@ const Stock = () => {
   const lowStockCount = items.filter((item) => item.low_stock).length;
   const urgentExpiringItems = useMemo(() => getExpiringStockItems(items, 48), [items]);
 
-  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
 
   const handleDelete = async (id: string) => {
@@ -41,41 +40,31 @@ const Stock = () => {
   return (
     <div className="pb-20 md:pb-12 min-h-screen">
       {/* Header */}
-      <header className="bg-primary text-primary-foreground pt-8 pb-6 px-6 md:px-8 md:rounded-2xl md:my-6 shadow-xs">
-        <div className="flex items-center gap-3">
-
-          <div className="flex items-center justify-between w-full">
-            <h1 className="text-2xl font-bold">Mes ingrédients</h1>
-            <div className="flex items-center gap-1.5">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-primary-foreground hover:bg-primary-foreground/15 h-9 w-9"
-                onClick={() => setShowBarcodeScanner(true)}
-                title="Scanner un code-barres"
-              >
-                <ScanBarcode className="w-5 h-5" />
-              </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="text-primary-foreground hover:bg-primary-foreground/15 h-9 w-9"
-                onClick={() => setShowReceiptScanner(true)}
-                title="Scanner un ticket de caisse / Facture Drive"
-              >
-                <Receipt className="w-5 h-5" />
-              </Button>
-              <Button
-                size="icon"
-                className="bg-accent text-accent-foreground hover:bg-accent/90 h-9 w-9"
-                onClick={() => navigate("/stock/add")}
-                title="Ajouter manuellement"
-              >
-                <Plus className="w-5 h-5" />
-              </Button>
-            </div>
+      <header className="bg-primary text-primary-foreground pt-8 pb-5 px-6 md:px-8 md:rounded-2xl md:my-6 shadow-xs">
+        <div className="flex items-center justify-between w-full mb-4">
+          <h1 className="text-2xl font-bold">Mes ingrédients</h1>
+          <div className="flex items-center gap-1.5">
+            <Button
+              size="icon"
+              variant="ghost"
+              className="text-primary-foreground hover:bg-primary-foreground/15 h-9 w-9"
+              onClick={() => setShowReceiptScanner(true)}
+              title="Scanner un ticket de caisse / Facture Drive"
+            >
+              <Receipt className="w-5 h-5" />
+            </Button>
+            <Button
+              size="icon"
+              className="bg-accent text-accent-foreground hover:bg-accent/90 h-9 w-9"
+              onClick={() => navigate("/stock/add")}
+              title="Ajouter manuellement"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
           </div>
         </div>
+
+        <StockNavTabs stockCount={items.length} />
       </header>
 
       {/* Anti-Gaspi Alert (< 48h) */}
@@ -107,7 +96,7 @@ const Stock = () => {
                     onClick={() => navigate("/", { state: { autoChefGaspi: true } })}
                   >
                     <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-600" />
-                    Cuisiner avec le Chef IA
+                    Cuisiner avec l'Assistant
                   </Button>
                 </div>
               </div>
@@ -263,12 +252,6 @@ const Stock = () => {
                 variant: "default",
               },
               {
-                label: "Scanner code-barres",
-                icon: ScanBarcode,
-                onClick: () => setShowBarcodeScanner(true),
-                variant: "outline",
-              },
-              {
                 label: "Scanner un ticket / Drive",
                 icon: Receipt,
                 onClick: () => setShowReceiptScanner(true),
@@ -277,17 +260,12 @@ const Stock = () => {
             ]}
             tip={{
               icon: Sparkles,
-              text: "L'IA utilise votre stock pour vous suggérer des recettes que vous pouvez cuisiner immédiatement sans faire de courses !"
+              text: "Votre assistant À la carte utilise votre stock pour vous suggérer des recettes que vous pouvez cuisiner immédiatement sans faire de courses !"
             }}
           />
         )}
       </section>
 
-      <BarcodeScannerDialog
-        open={showBarcodeScanner}
-        onOpenChange={setShowBarcodeScanner}
-        defaultDestination="stock"
-      />
 
       <ReceiptScannerDialog
         open={showReceiptScanner}

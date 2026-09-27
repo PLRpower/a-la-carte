@@ -1,11 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
-  Maximize2,
-  Minimize2,
   X,
   ShoppingCart,
   CheckCircle2,
-  Sparkles,
   Route,
   Eye,
   EyeOff,
@@ -37,33 +34,8 @@ export const InStoreMode = ({
   onFinishShopping,
   onClose,
 }: InStoreModeProps) => {
-  const [isFullscreen, setIsFullscreen] = useState(false);
   const [hideChecked, setHideChecked] = useState(false);
   const [aisleOrder, setAisleOrder] = useState<string[]>(() => getAisleOrder());
-
-  // Listen to fullscreen changes
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => {
-      document.removeEventListener("fullscreenchange", handleFullscreenChange);
-    };
-  }, []);
-
-  // Fullscreen toggle
-  const toggleFullscreen = async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen?.();
-      } else {
-        await document.exitFullscreen?.();
-      }
-    } catch {
-      // Fullscreen not permitted or supported
-    }
-  };
 
   const totalItems = items.length;
   const checkedItems = useMemo(() => items.filter((i) => i.checked), [items]);
@@ -130,16 +102,6 @@ export const InStoreMode = ({
             title={hideChecked ? "Afficher tous les articles" : "Masquer les articles cochés"}
           >
             {hideChecked ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleFullscreen}
-            className="h-10 w-10 rounded-full"
-            title={isFullscreen ? "Quitter le plein écran" : "Plein écran"}
-          >
-            {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
           </Button>
         </div>
       </header>
@@ -248,7 +210,7 @@ export const InStoreMode = ({
               await onFinishShopping();
               onClose();
             }}
-            className="flex-1 h-14 text-base font-bold rounded-2xl shadow-md gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="flex-1 h-14 text-base font-bold rounded-2xl shadow-md gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
           >
             <CheckCircle2 className="w-5 h-5" />
             Terminer & Ajouter au stock ({checkedItems.length})

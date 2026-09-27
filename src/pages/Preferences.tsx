@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowLeft, Moon, Sun } from "lucide-react";
+import { ArrowLeft, Moon, Sun, MessageSquareHeart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 const Preferences = () => {
   const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(false);
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState("fr");
   const [weightUnit, setWeightUnit] = useState("grams");
   const [temperatureUnit, setTemperatureUnit] = useState("celsius");
   const [notifications, setNotifications] = useState(true);
@@ -60,7 +60,7 @@ const Preferences = () => {
             {/* Language */}
             <div className="p-4">
               <Label className="text-base font-medium mb-2 block">Langue</Label>
-              <Select value="fr" onValueChange={setLanguage}>
+              <Select value={language} onValueChange={setLanguage}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -125,6 +125,18 @@ const Preferences = () => {
             </div>
           </CardContent>
         </Card>
+
+        <div className="mt-6 text-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-xs text-muted-foreground hover:text-foreground gap-2"
+            onClick={() => navigate("/feedback")}
+          >
+            <MessageSquareHeart className="w-4 h-4" />
+            <span>Un problème ou une suggestion ? Donner mon avis</span>
+          </Button>
+        </div>
       </section>
     </div>
   );

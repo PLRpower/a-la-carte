@@ -18,6 +18,10 @@ import {
   Compass,
   Coins,
   PiggyBank,
+  Users,
+  Lock,
+  User,
+  BookmarkX,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -62,7 +66,11 @@ const Recipes = () => {
   const queryClient = useQueryClient();
 
   // Active Tab: 'carnet' (My Notebook) or 'discover' (Public Library)
-  const initialTab = searchParams.get("tab") === "discover" ? "discover" : "carnet";
+  const initialTab = !user
+    ? "discover"
+    : searchParams.get("tab") === "discover"
+    ? "discover"
+    : "carnet";
   const [activeTab, setActiveTab] = useState<"carnet" | "discover">(initialTab);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -72,6 +80,7 @@ const Recipes = () => {
   const [difficulty, setDifficulty] = useState<RecipeDifficulty | "all">("all");
   const [onlyCookable, setOnlyCookable] = useState(false);
   const [onlyBudget, setOnlyBudget] = useState(false);
+  const [sharingFilter, setSharingFilter] = useState<"all" | "mine" | "family">("all");
 
   // Modals
   const [showStarterPackModal, setShowStarterPackModal] = useState(false);
@@ -95,6 +104,10 @@ const Recipes = () => {
   }, [searchParams]);
 
   const switchTab = (tab: "carnet" | "discover") => {
+    if (tab === "carnet" && !user) {
+      navigate("/auth?mode=signup", { state: { isSignup: true } });
+      return;
+    }
     setActiveTab(tab);
     setSearchParams((prev) => {
       prev.set("tab", tab);
@@ -115,6 +128,7 @@ const Recipes = () => {
     allRecipes,
     loading: personalLoading,
     toggleFavorite,
+    deleteRecipe,
   } = useRecipes({
     searchQuery: activeTab === "carnet" ? searchQuery : undefined,
     category: category === "all" ? undefined : category,
@@ -227,9 +241,15 @@ const Recipes = () => {
     return map;
   }, []);
 
-  // Filter recipes by "Cuisinable maintenant" and "Petit budget" if active
+  // Filter recipes by "Cuisinable maintenant", "Petit budget" and sharing scope if active
   const displayPersonalRecipes = useMemo(() => {
     return personalRecipes.filter((r) => {
+      if (sharingFilter === "mine" && r.user_id !== user?.id) {
+        return false;
+      }
+      if (sharingFilter === "family" && (!r.is_shared_with_family || r.user_id === user?.id)) {
+        return false;
+      }
       if (onlyCookable) {
         const analysis = personalStockAnalyses.get(r.id);
         if (!analysis?.isCookable) return false;
@@ -240,7 +260,7 @@ const Recipes = () => {
       }
       return true;
     });
-  }, [personalRecipes, onlyCookable, onlyBudget, personalStockAnalyses, personalCostAnalyses]);
+  }, [personalRecipes, sharingFilter, user?.id, onlyCookable, onlyBudget, personalStockAnalyses, personalCostAnalyses]);
 
   const displayCatalogRecipes = useMemo(() => {
     return filteredCatalogRecipes.filter((r) => {
@@ -317,11 +337,7 @@ const Recipes = () => {
     e.stopPropagation();
 
     if (!user) {
-      setAuthPromptText({
-        title: "Ajoutez cette recette à votre carnet",
-        description: "Créez votre compte gratuit en 1 clic pour sauvegarder cette recette, planifier vos repas et gérer vos ingrédients.",
-      });
-      setShowAuthPrompt(true);
+      navigate("/auth?mode=signup", { state: { isSignup: true } });
       return;
     }
 
@@ -354,6 +370,46 @@ const Recipes = () => {
     return carnetTitlesLower.has(cleanTitle);
   };
 
+  const handleRemoveRecipe = async (e: React.MouseEvent, catalogRecipe: CatalogRecipe) => {
+    e.stopPropagation();
+    const cleanCatTitle = catalogRecipe.title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+    const personal = allRecipes.find(
+      (r) =>
+        r.title
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim() === cleanCatTitle
+    );
+    if (!personal) return;
+
+    if (
+      window.confirm(
+        `Retirer "${catalogRecipe.title}" de votre carnet ? Vous pourrez la retrouver à tout moment dans Découvrir.`
+      )
+    ) {
+      try {
+        await deleteRecipe(personal.id);
+        toast({
+          title: "Recette retirée",
+          description: `"${catalogRecipe.title}" a été retirée de votre carnet.`,
+        });
+      } catch (err) {
+        console.error("Error removing recipe:", err);
+        toast({
+          title: "Erreur",
+          description: "Impossible de retirer la recette de votre carnet.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+
   return (
     <div className="pb-20 min-h-screen relative bg-background">
       {/* Modals */}
@@ -374,15 +430,17 @@ const Recipes = () => {
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-2xl font-bold">Recettes</h1>
           <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              className="bg-white/15 hover:bg-white/25 text-white border-0 text-xs font-medium h-9"
-              onClick={() => setShowStarterPackModal(true)}
-            >
-              <Sparkles className="w-3.5 h-3.5 mr-1 text-accent" />
-              Starter Pack
-            </Button>
+            {!user && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="bg-white/15 hover:bg-white/25 text-white border-0 text-xs font-medium h-9"
+                onClick={() => setShowStarterPackModal(true)}
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1 text-accent" />
+                Starter Pack
+              </Button>
+            )}
 
             {user && (
               <Button
@@ -451,35 +509,40 @@ const Recipes = () => {
           </Button>
         </div>
 
-        {/* Quick Filters Pill Bar (Frigo Match + Budget + Themes) */}
+        {/* Quick Filters Pill Bar (Themes & Partage) */}
         <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-1 -mx-6 md:mx-0 px-6 md:px-0 no-scrollbar">
-          <button
-            type="button"
-            onClick={() => setOnlyCookable(!onlyCookable)}
-            className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 ${
-              onlyCookable
-                ? "bg-emerald-600 text-white font-semibold shadow-xs"
-                : "bg-white/15 text-white hover:bg-white/25"
-            }`}
-          >
-            <span>🥗</span>
-            <span>Cuisinable maintenant</span>
-            {onlyCookable && <Check className="w-3 h-3" />}
-          </button>
 
-          <button
-            type="button"
-            onClick={() => setOnlyBudget(!onlyBudget)}
-            className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 ${
-              onlyBudget
-                ? "bg-amber-600 text-white font-semibold shadow-xs"
-                : "bg-white/15 text-white hover:bg-white/25"
-            }`}
-          >
-            <span>💰</span>
-            <span>Petit budget (&lt; 2,50 €)</span>
-            {onlyBudget && <Check className="w-3 h-3" />}
-          </button>
+          {activeTab === "carnet" && (
+            <>
+              <button
+                type="button"
+                onClick={() => setSharingFilter(sharingFilter === "mine" ? "all" : "mine")}
+                className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 ${
+                  sharingFilter === "mine"
+                    ? "bg-accent text-accent-foreground font-semibold shadow-xs"
+                    : "bg-white/15 text-white hover:bg-white/25"
+                }`}
+              >
+                <User className="w-3 h-3" />
+                <span>Mes recettes</span>
+                {sharingFilter === "mine" && <Check className="w-3 h-3" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSharingFilter(sharingFilter === "family" ? "all" : "family")}
+                className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 ${
+                  sharingFilter === "family"
+                    ? "bg-amber-600 text-white font-semibold shadow-xs"
+                    : "bg-white/15 text-white hover:bg-white/25"
+                }`}
+              >
+                <Users className="w-3 h-3" />
+                <span>Famille</span>
+                {sharingFilter === "family" && <Check className="w-3 h-3" />}
+              </button>
+            </>
+          )}
 
           {activeTab === "discover" &&
             THEME_FILTERS.map((theme) => {
@@ -566,7 +629,7 @@ const Recipes = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!user) {
-                              setShowAuthPrompt(true);
+                              navigate("/auth?mode=signup", { state: { isSignup: true } });
                               return;
                             }
                             toggleFavorite(recipe.id);
@@ -588,8 +651,53 @@ const Recipes = () => {
                             {recipe.title}
                           </h3>
                           <div className="flex flex-wrap gap-1">
+                            {recipe.user_id !== user?.id ? (
+                              <Badge
+                                variant="secondary"
+                                className="flex-shrink-0 text-[10px] px-1.5 py-0 bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30 flex items-center gap-1"
+                              >
+                                <Users className="w-2.5 h-2.5" />
+                                Famille
+                              </Badge>
+                            ) : recipe.is_shared_with_family && recipe.is_public ? (
+                              <Badge
+                                variant="secondary"
+                                className="flex-shrink-0 text-[10px] px-1.5 py-0 bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 flex items-center gap-1"
+                                title="Partagé avec la famille et public"
+                              >
+                                <Users className="w-2.5 h-2.5" />
+                                <Globe className="w-2.5 h-2.5" />
+                              </Badge>
+                            ) : recipe.is_shared_with_family ? (
+                              <Badge
+                                variant="secondary"
+                                className="flex-shrink-0 text-[10px] px-1.5 py-0 bg-primary/15 text-primary border-primary/30 flex items-center gap-1"
+                                title="Partagé avec la famille"
+                              >
+                                <Users className="w-2.5 h-2.5" />
+                                Famille
+                              </Badge>
+                            ) : recipe.is_public ? (
+                              <Badge
+                                variant="secondary"
+                                className="flex-shrink-0 text-[10px] px-1.5 py-0 bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30 flex items-center gap-1"
+                                title="Public dans Découvrir"
+                              >
+                                <Globe className="w-2.5 h-2.5" />
+                                Public
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="flex-shrink-0 text-[10px] px-1.5 py-0 text-muted-foreground flex items-center gap-1"
+                                title="Privé (visible par vous seul)"
+                              >
+                                <Lock className="w-2.5 h-2.5" />
+                                Privé
+                              </Badge>
+                            )}
                             {recipe.tags &&
-                              recipe.tags.slice(0, 2).map((tag) => (
+                              recipe.tags.slice(0, 1).map((tag) => (
                                 <Badge
                                   key={tag}
                                   variant="secondary"
@@ -747,10 +855,17 @@ const Recipes = () => {
                     {/* Clone / In-Carnet Button */}
                     <div className="absolute top-3 right-3 flex items-center gap-2">
                       {inCarnet ? (
-                        <div className="bg-primary/90 text-primary-foreground backdrop-blur-md rounded-full px-3 py-1 text-xs font-semibold shadow-sm flex items-center gap-1">
-                          <Check className="w-3 h-3 text-accent" />
-                          <span>Dans mon carnet</span>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => handleRemoveRecipe(e, recipe)}
+                          className="bg-primary/90 hover:bg-destructive text-primary-foreground backdrop-blur-md rounded-full px-3 py-1 text-xs font-semibold shadow-sm flex items-center gap-1 transition-colors group cursor-pointer"
+                          title="Cliquer pour retirer de mon carnet"
+                        >
+                          <Check className="w-3 h-3 text-accent group-hover:hidden" />
+                          <BookmarkX className="w-3 h-3 text-white hidden group-hover:inline" />
+                          <span className="group-hover:hidden">Dans mon carnet</span>
+                          <span className="hidden group-hover:inline">Retirer</span>
+                        </button>
                       ) : (
                         <Button
                           size="sm"

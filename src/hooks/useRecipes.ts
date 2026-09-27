@@ -45,6 +45,9 @@ export const useRecipes = (filters?: RecipeFilters) => {
         query = query.eq('difficulty', difficulty);
       }
 
+      // Restrict notebook to user's own recipes + recipes explicitly shared with the family
+      query = query.or(`user_id.eq.${user.id},is_shared_with_family.eq.true`);
+
       const { data, error } = await query;
       if (error) throw error;
 
@@ -228,6 +231,12 @@ export const useRecipes = (filters?: RecipeFilters) => {
     updateRecipe,
     deleteRecipe,
     toggleFavorite,
+    toggleFamilyShare: async (recipeId: string, currentSharedStatus: boolean) => {
+      return updateRecipe(recipeId, { is_shared_with_family: !currentSharedStatus });
+    },
+    togglePublicShare: async (recipeId: string, currentPublicStatus: boolean) => {
+      return updateRecipe(recipeId, { is_public: !currentPublicStatus });
+    },
     refetch: () => queryClient.invalidateQueries({ queryKey: ['recipes'] })
   };
 };

@@ -6,12 +6,12 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect, useState, Suspense, lazy } from "react";
 import { BottomNav } from "./components/BottomNav";
 import { DesktopNav } from "./components/DesktopNav";
+import { Footer } from "./components/Footer";
+import { CookieBanner } from "./components/CookieBanner";
 import ScrollToTop from "./components/ScrollToTop";
 import { AuthProvider } from "./hooks/useAuth";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { DataPrefetcher } from "./components/DataPrefetcher";
-import { DemoBanner } from "./components/DemoBanner";
-import { BetaBanner } from "./components/BetaBanner";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -32,7 +32,16 @@ const App = () => {
 
   useEffect(() => {
     const onboardingCompleted = localStorage.getItem("onboardingCompleted");
-    if (!onboardingCompleted) {
+    const pathname = window.location.pathname;
+    const isPublicOrLegalPath = [
+      "/mentions-legales", "/legal", "/privacy", "/politique-de-confidentialite",
+      "/terms", "/cgu", "/cgv", "/conditions-generales",
+      "/cookies", "/politique-de-cookies",
+      "/refund", "/remboursement", "/retractation",
+      "/auth", "/shared/", "/share/", "/feedback"
+    ].some(path => pathname.startsWith(path));
+
+    if (!onboardingCompleted && !isPublicOrLegalPath) {
       setShowOnboarding(true);
     }
   }, []);
@@ -45,7 +54,6 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-              <BetaBanner />
               <Suspense fallback={
                 <div className="min-h-screen flex items-center justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -73,10 +81,15 @@ const App = () => {
             <AuthProvider>
               <DataPrefetcher />
               <div className="w-full bg-background min-h-screen relative overflow-x-hidden flex flex-col">
-                <BetaBanner />
-                <DemoBanner />
+                {/* Skip to content link for accessibility and screen readers / AI browser agents */}
+                <a
+                  href="#main-content"
+                  className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  Aller au contenu principal
+                </a>
                 <DesktopNav />
-                <div className="flex-1 w-full max-w-7xl mx-auto">
+                <div id="main-content" className="flex-1 w-full max-w-7xl mx-auto pb-safe">
                   <Suspense fallback={
                     <div className="min-h-screen flex items-center justify-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -85,7 +98,9 @@ const App = () => {
                     <AnimatedRoutes />
                   </Suspense>
                 </div>
+                <Footer />
                 <BottomNav />
+                <CookieBanner />
               </div>
             </AuthProvider>
           </BrowserRouter>

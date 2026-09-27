@@ -16,7 +16,7 @@ export const useIngredients = () => {
       if (error) throw error;
       return data as Ingredient[];
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: (query) => (query.state.data && query.state.data.length > 0 ? 1000 * 60 * 60 * 24 : 0),
     gcTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 
@@ -25,7 +25,9 @@ export const useIngredients = () => {
       const { data, error } = await supabase
         .rpc('search_ingredients_with_synonyms', { _query: query });
 
-      if (error) throw error;
+      if (error) {
+        return { data: null, error: error as unknown as Error };
+      }
       return { data, error: null };
     } catch (err) {
       return { data: null, error: err as Error };

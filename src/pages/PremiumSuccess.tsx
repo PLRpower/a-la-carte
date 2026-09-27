@@ -32,7 +32,7 @@ export default function PremiumSuccess() {
                 <ul className="space-y-3">
                     <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                        <span className="text-sm text-neutral-600 dark:text-neutral-300">Génération infinie de recettes par IA</span>
+                        <span className="text-sm text-neutral-600 dark:text-neutral-300">Suggestions de recettes illimitées par votre Assistant</span>
                     </li>
                     <li className="flex items-start gap-3">
                         <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />

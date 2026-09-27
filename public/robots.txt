@@ -1,14 +1,65 @@
+# Robots.txt for À la carte (https://alacarte.app)
+# Designed for Web crawlers and AI Agents (LLMs)
+
+# Standard Search Crawlers
 User-agent: Googlebot
 Allow: /
+Disallow: /profile/
+Disallow: /stock/
+Disallow: /shopping-list
+Disallow: /family
 
 User-agent: Bingbot
 Allow: /
+Disallow: /profile/
+Disallow: /stock/
+Disallow: /shopping-list
+Disallow: /family
 
-User-agent: Twitterbot
+# AI Agents & LLM Scrapers
+User-agent: GPTBot
+Allow: /
+Disallow: /profile/
+Disallow: /stock/
+Disallow: /shopping-list
+
+User-agent: ChatGPT-User
 Allow: /
 
-User-agent: facebookexternalhit
+User-agent: ClaudeBot
+Allow: /
+Disallow: /profile/
+Disallow: /stock/
+Disallow: /shopping-list
+
+User-agent: anthropic-ai
 Allow: /
 
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# General fallback
 User-agent: *
 Allow: /
+Allow: /recipes
+Allow: /shared/
+Allow: /share/
+Allow: /mentions-legales
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /refund
+Disallow: /profile/
+Disallow: /stock/edit/
+Disallow: /stock/add
+
+# Machine-Readable AI Information (llms.txt standard)
+# https://llmstxt.org/
+llms-txt: https://alacarte.app/llms.txt
+llms-full-txt: https://alacarte.app/llms-full.txt

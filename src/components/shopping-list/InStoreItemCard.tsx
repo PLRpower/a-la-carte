@@ -10,6 +10,7 @@ interface InStoreItemCardProps {
 export const InStoreItemCard = ({ item, onToggle }: InStoreItemCardProps) => {
   const [offsetX, setOffsetX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const startXRef = useRef<number | null>(null);
   const isDraggingRef = useRef(false);
 
@@ -137,10 +138,11 @@ export const InStoreItemCard = ({ item, onToggle }: InStoreItemCardProps) => {
           </div>
 
           {/* Ingredient image if available */}
-          {item.ingredient?.image_url ? (
+          {item.ingredient?.image_url && !imageError ? (
             <img
               src={item.ingredient.image_url}
               alt={item.name}
+              onError={() => setImageError(true)}
               className="w-11 h-11 rounded-xl bg-muted object-cover flex-shrink-0"
             />
           ) : (

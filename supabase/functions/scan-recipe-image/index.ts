@@ -7,23 +7,29 @@ const corsHeaders = {
 
 // Retry helper function
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 1000) {
+  let lastError: unknown;
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, options);
 
-      // If server error or rate limit, throw to retry
+      // If server error or rate limit, retry
       if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
-        throw new Error(`Attempt ${i + 1} failed with status ${response.status}`);
+        const errorMsg = `Attempt ${i + 1} failed with status ${response.status}`;
+        console.warn(`Retry ${i + 1}/${retries} failed:`, errorMsg);
+        lastError = new Error(errorMsg);
+      } else {
+        return response;
       }
-      return response;
     } catch (err) {
       console.warn(`Retry ${i + 1}/${retries} failed:`, err);
-      if (i === retries - 1) throw err;
+      lastError = err;
+    }
+    if (i < retries - 1) {
       // Exponential backoff
       await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i)));
     }
   }
-  throw new Error("All retries failed");
+  throw lastError instanceof Error ? lastError : new Error("All retries failed");
 }
 
 serve(async (req) => {
@@ -80,58 +86,74 @@ IMPORTANT:
 - Ensure the JSON is valid and parsable.
 - DO NOT use markdown formatting (no \`\`\`json blocks). Return RAW JSON only.`;
 
-    let response;
-    try {
-      response = await fetchWithRetry(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: systemPrompt },
-                { inline_data: { mime_type: "image/jpeg", data: base64Data } }
-              ]
-            }]
-          }),
+    const CANDIDATE_MODELS = [
+      "gemini-3.6-flash",
+      "gemini-2.5-flash-lite",
+    ];
+
+    let response: Response | null = null;
+    let lastError: unknown = null;
+
+    for (const model of CANDIDATE_MODELS) {
+      try {
+        const res = await fetchWithRetry(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{
+                parts: [
+                  { text: systemPrompt },
+                  { inline_data: { mime_type: "image/jpeg", data: base64Data } }
+                ]
+              }]
+            }),
+          },
+          2,
+          800
+        );
+
+        if (res.ok) {
+          response = res;
+          break;
+        } else {
+          const errBody = await res.text().catch(() => "");
+          console.warn(`Model ${model} returned status ${res.status}:`, errBody);
+          lastError = new Error(`Model ${model} error ${res.status}: ${errBody}`);
         }
-      );
-    } catch (err) {
-      console.error("Gemini API request failed after retries:", err);
-      // Determine if it was a quota issue or network issue
-      let userMessage = "L'IA ne répond pas pour le moment. Veuillez réessayer plus tard.";
-      if (err instanceof Error && err.message.includes("429")) {
-        userMessage = "Le quota de demandes d'IA est dépassé. Veuillez patienter quelques instants.";
+      } catch (err: unknown) {
+        console.warn(`Model ${model} attempt failed:`, err);
+        lastError = err;
       }
-      return new Response(
-        JSON.stringify({ error: userMessage, details: err instanceof Error ? err.message : String(err) }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
-
-      let userErr = `Erreur de l'IA (${response.status})`;
-      if (response.status === 400) userErr = "L'image envoyée est invalide ou n'a pas pu être traitée.";
-      if (response.status === 429) userErr = "Trop de requêtes, veuillez patienter.";
-
-      throw new Error(`${userErr}: ${errorText}`);
+    if (!response) {
+      console.error("All Gemini candidate models failed:", lastError);
+      let userMessage = "L'assistant ne répond pas pour le moment. Veuillez réessayer plus tard.";
+      if (lastError instanceof Error && lastError.message.includes("429")) {
+        userMessage = "Le service est temporairement surchargé. Veuillez patienter quelques instants.";
+      }
+      return new Response(
+        JSON.stringify({ error: userMessage, details: lastError instanceof Error ? lastError.message : String(lastError) }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
 
     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
       console.error("Unexpected Gemini response format:", data);
-      throw new Error("L'IA n'a pas renvoyé de contenu exploitable. L'image est peut-être floue ou ne contient pas de recette lisible.");
+      return new Response(
+        JSON.stringify({ error: "L'assistant n'a pas renvoyé de contenu exploitable. L'image est peut-être floue ou ne contient pas de recette lisible." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const contentText = data.candidates[0].content.parts[0].text;
 
     // Clean up the response text to ensure it's valid JSON
-    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+    const jsonMatch = contentText.match(/\{[\s\S]*}/);
     const jsonString = jsonMatch ? jsonMatch[0] : contentText;
 
     let recipe;
@@ -140,7 +162,10 @@ IMPORTANT:
     } catch (e) {
       console.error("JSON parse error:", e);
       console.error("Raw content:", contentText);
-      throw new Error("L'IA a mal structuré sa réponse. Veuillez réessayer avec une photo plus claire.");
+      return new Response(
+        JSON.stringify({ error: "L'assistant a mal structuré sa réponse. Veuillez réessayer avec une photo plus claire." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Validate recipe structure slightly

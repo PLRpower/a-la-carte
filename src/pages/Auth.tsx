@@ -2,28 +2,49 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
 const Auth = () => {
   const location = useLocation();
-  const [isLogin, setIsLogin] = useState(!location.state?.isSignup);
+  const searchParams = new URLSearchParams(location.search);
+  const isSignupRequested =
+    Boolean(location.state?.isSignup) ||
+    searchParams.get("mode") === "signup" ||
+    searchParams.get("signup") === "true";
+
+  const [isLogin, setIsLogin] = useState(!isSignupRequested);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { signIn, signUp, user, resetPassword } = useAuth();
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("mode") === "signup" || params.get("signup") === "true" || location.state?.isSignup) {
+      setIsLogin(false);
+    }
+  }, [location.search, location.state]);
+
+  useEffect(() => {
     if (user) {
-      navigate(`/${location.search}`);
+      const params = new URLSearchParams(location.search);
+      const redirectTo = params.get("redirectTo");
+      if (redirectTo && redirectTo.startsWith("/")) {
+        navigate(redirectTo, { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     }
   }, [user, navigate, location.search]);
 
@@ -60,6 +81,12 @@ const Auth = () => {
       return;
     }
 
+    if (!isLogin && !acceptTerms) {
+      toast.error("Veuillez accepter les Conditions Générales et la Politique de Confidentialité");
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isLogin) {
         const { error } = await signIn(email, password);
@@ -70,8 +97,10 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
+          const params = new URLSearchParams(location.search);
+          const redirectTo = params.get("redirectTo");
           toast.success("Bon retour !");
-          navigate(`/${location.search}`);
+          navigate(redirectTo && redirectTo.startsWith("/") ? redirectTo : "/", { replace: true });
         }
       } else {
         const { data, error } = await signUp(email, password, firstName, lastName);
@@ -222,6 +251,30 @@ const Auth = () => {
                   />
                 </div>
               )}
+              {!isLogin && (
+                <div className="flex items-start space-x-2.5 pt-1">
+                  <Checkbox
+                    id="acceptTerms"
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(Boolean(checked))}
+                    className="mt-0.5"
+                  />
+                  <label
+                    htmlFor="acceptTerms"
+                    className="text-xs text-muted-foreground leading-snug cursor-pointer select-none"
+                  >
+                    J'accepte les{" "}
+                    <Link to="/terms" target="_blank" className="text-primary underline font-medium">
+                      Conditions Générales (CGU/CGV)
+                    </Link>{" "}
+                    et confirme avoir lu la{" "}
+                    <Link to="/privacy" target="_blank" className="text-primary underline font-medium">
+                      Politique de Confidentialité
+                    </Link>
+                    .
+                  </label>
+                </div>
+              )}
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading ? (
                   <>
@@ -247,6 +300,28 @@ const Auth = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Legal links for compliance */}
+      <nav
+        aria-label="Liens d'information légale"
+        className="mt-6 text-center text-xs text-muted-foreground flex flex-wrap justify-center items-center gap-x-3 gap-y-1"
+      >
+        <Link to="/mentions-legales" className="hover:text-foreground hover:underline">
+          Mentions Légales
+        </Link>
+        <span>·</span>
+        <Link to="/privacy" className="hover:text-foreground hover:underline">
+          Confidentialité (RGPD)
+        </Link>
+        <span>·</span>
+        <Link to="/terms" className="hover:text-foreground hover:underline">
+          CGU / CGV
+        </Link>
+        <span>·</span>
+        <Link to="/cookies" className="hover:text-foreground hover:underline">
+          Cookies
+        </Link>
+      </nav>
     </div>
   );
 };

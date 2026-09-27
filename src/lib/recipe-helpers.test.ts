@@ -76,3 +76,29 @@ describe('saveRecipeIngredients', () => {
         await expect(saveRecipeIngredients('recipe-id', ingredientsText, undefined as any)).resolves.not.toThrow();
     });
 });
+
+describe('isCatalogRecipeTitle & isRecipeNotMine', () => {
+    it('should identify catalog recipe titles correctly regardless of case or accents', async () => {
+        const { isCatalogRecipeTitle } = await import('./recipe-helpers');
+        expect(isCatalogRecipeTitle('Pâtes Carbonara Traditionnelles')).toBe(true);
+        expect(isCatalogRecipeTitle('pates carbonara traditionnelles')).toBe(true);
+        expect(isCatalogRecipeTitle('Recette totalement inconnue créée par moi')).toBe(false);
+        expect(isCatalogRecipeTitle(null)).toBe(false);
+    });
+
+    it('should return true for isRecipeNotMine when recipe is from catalog or belongs to another user', async () => {
+        const { isRecipeNotMine } = await import('./recipe-helpers');
+        // Catalog recipe with same user_id as current user
+        expect(isRecipeNotMine({ title: 'Pâtes Carbonara Traditionnelles', user_id: 'user-1' }, 'user-1')).toBe(true);
+
+        // Custom recipe created by another user (e.g. family)
+        expect(isRecipeNotMine({ title: 'Tarte secrète de mamie', user_id: 'user-2' }, 'user-1')).toBe(true);
+
+        // Custom recipe created by current user
+        expect(isRecipeNotMine({ title: 'Tarte secrète de mamie', user_id: 'user-1' }, 'user-1')).toBe(false);
+
+        // Null / undefined recipe
+        expect(isRecipeNotMine(null, 'user-1')).toBe(false);
+    });
+});
+

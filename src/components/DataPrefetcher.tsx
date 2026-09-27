@@ -73,6 +73,19 @@ export const DataPrefetcher = () => {
             }
         });
 
+        // Prefetch Ingredients catalog
+        queryClient.prefetchQuery({
+            queryKey: ['ingredients'],
+            queryFn: async () => {
+                const { data, error } = await supabase
+                    .from('ingredients')
+                    .select('*')
+                    .order('name');
+                if (error) throw error;
+                return data;
+            },
+            staleTime: 1000 * 60 * 60 * 24,
+        });
     }, [user, queryClient]);
 
     return null; // Composant invisible

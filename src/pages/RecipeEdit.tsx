@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -8,9 +8,10 @@ import { useIngredients } from "@/hooks/useIngredients";
 import { uploadFile } from "@/lib/supabase-storage";
 import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
 import { Recipe, RecipeCategory, RecipeDifficulty, RecipeSource, MeasurementUnit } from "@/types/database";
-import {useRecipes} from "@/hooks/useRecipes.ts";
-import {ArrowLeft, Loader2, Trash2} from "lucide-react";
-import {Button} from "@/components/ui/button.tsx";
+import { useRecipes } from "@/hooks/useRecipes.ts";
+import { ArrowLeft, Loader2, Trash2, BookmarkX } from "lucide-react";
+import { Button } from "@/components/ui/button.tsx";
+import { isRecipeNotMine } from "@/lib/recipe-helpers";
 
 interface RecipeIngredientWithRelation {
     quantity: number | null;
@@ -31,9 +32,14 @@ const RecipeEdit = () => {
 
     const [loading, setLoading] = useState(true);
     const [initialData, setInitialData] = useState<Partial<RecipeFormData>>({});
+    const [recipeMeta, setRecipeMeta] = useState<{ title: string; user_id: string } | null>(null);
     const [saving, setSaving] = useState(false);
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isNotMine = useMemo(() => {
+        return isRecipeNotMine(recipeMeta, user?.id);
+    }, [recipeMeta, user?.id]);
 
     useEffect(() => {
         const fetchRecipe = async () => {
@@ -77,6 +83,11 @@ const RecipeEdit = () => {
                         .join("\n");
                 }
 
+                setRecipeMeta({
+                    title: recipe.title,
+                    user_id: recipe.user_id,
+                });
+
                 setInitialData({
                     title: recipe.title,
                     description: recipe.description || "",
@@ -89,7 +100,9 @@ const RecipeEdit = () => {
                     steps: recipe.instructions || "",
                     ingredients: ingredientsText,
                     imageUrl: recipe.image_url,
-                    source: recipe.source || null,
+                    source: recipe.source || undefined,
+                    is_shared_with_family: recipe.is_shared_with_family ?? false,
+                    is_public: recipe.is_public ?? false,
                 });
             } catch (err: unknown) {
                 console.error('Error fetching recipe:', err);
@@ -145,6 +158,8 @@ const RecipeEdit = () => {
                     instructions: formData.steps,
                     image_url: imageUrl,
                     source: (formData.source || null) as RecipeSource | null,
+                    is_shared_with_family: formData.is_shared_with_family ?? false,
+                    is_public: formData.is_public ?? false,
                 })
                 .eq('id', id);
 
@@ -217,12 +232,16 @@ const RecipeEdit = () => {
     const handleDelete = async () => {
         if (!id) return;
 
-        if (window.confirm("Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.")) {
+        const confirmMessage = isNotMine
+            ? "Voulez-vous retirer cette recette de votre carnet ? Elle restera accessible à tout moment dans l'onglet Découvrir."
+            : "Êtes-vous sûr de vouloir supprimer cette recette ? Cette action est irréversible.";
+
+        if (window.confirm(confirmMessage)) {
             setDeleting(true);
             const { error: deleteError } = await deleteRecipe(id);
 
             if (deleteError) {
-                const errorMessage = deleteError instanceof Error ? deleteError.message : "Impossible de supprimer la recette";
+                const errorMessage = deleteError instanceof Error ? deleteError.message : (isNotMine ? "Impossible de retirer la recette" : "Impossible de supprimer la recette");
                 toast({
                     title: "Erreur",
                     description: errorMessage,
@@ -233,8 +252,8 @@ const RecipeEdit = () => {
             }
 
             toast({
-                title: "Recette supprimée",
-                description: "La recette a été supprimée avec succès",
+                title: isNotMine ? "Recette retirée" : "Recette supprimée",
+                description: isNotMine ? "La recette a été retirée de votre carnet" : "La recette a été supprimée avec succès",
             });
             navigate('/recipes');
         }
@@ -279,23 +298,47 @@ const RecipeEdit = () => {
                 />
 
                 <div className="mt-12 pt-6 border-t border-border">
-                    <h2 className="text-lg font-semibold text-destructive mb-2">Zone de danger</h2>
-                    <p className="text-sm text-muted-foreground mb-4">
-                        La suppression de la recette est définitive et supprimera également les images associées.
-                    </p>
-                    <Button
-                        variant="outline"
-                        className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                        onClick={handleDelete}
-                        disabled={saving || deleting}
-                    >
-                        {deleting ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        ) : (
-                            <Trash2 className="w-4 h-4 mr-2" />
-                        )}
-                        Supprimer la recette
-                    </Button>
+                    {isNotMine ? (
+                        <>
+                            <h2 className="text-lg font-semibold text-foreground mb-2">Gestion du carnet</h2>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                Cette recette provient de la bibliothèque Découvrir. La retirer l'enlèvera de votre carnet, mais elle restera toujours disponible dans l'onglet Découvrir.
+                            </p>
+                            <Button
+                                variant="outline"
+                                className="w-full border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
+                                onClick={handleDelete}
+                                disabled={saving || deleting}
+                            >
+                                {deleting ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <BookmarkX className="w-4 h-4 mr-2" />
+                                )}
+                                Retirer de mon carnet
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <h2 className="text-lg font-semibold text-destructive mb-2">Zone de danger</h2>
+                            <p className="text-sm text-muted-foreground mb-4">
+                                La suppression de la recette est définitive et supprimera également les images associées.
+                            </p>
+                            <Button
+                                variant="outline"
+                                className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                                onClick={handleDelete}
+                                disabled={saving || deleting}
+                            >
+                                {deleting ? (
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                )}
+                                Supprimer la recette
+                            </Button>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

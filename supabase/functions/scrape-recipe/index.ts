@@ -14,11 +14,17 @@ serve(async (req) => {
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
 
     if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "GEMINI_API_KEY is not configured" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     if (!url && !text) {
-      throw new Error("Une URL ou une description/transcription est requise");
+      return new Response(
+        JSON.stringify({ error: "Une URL ou une description/transcription est requise" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     let extractedText = text ? `[Description/Transcription fournie]:\n${text}\n\n` : "";
@@ -34,6 +40,7 @@ serve(async (req) => {
             `https://www.tiktok.com/oembed?url=${encodeURIComponent(url)}`
           );
           if (oembedRes.ok) {
+            // noinspection JSVoidFunctionReturnValueUsed
             const oembedData = await oembedRes.json();
             extractedText += `[TikTok Titre/Légende]: ${oembedData.title || ""}\n[Auteur]: ${
               oembedData.author_name || ""
@@ -51,6 +58,7 @@ serve(async (req) => {
             `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`
           );
           if (ytRes.ok) {
+            // noinspection JSVoidFunctionReturnValueUsed
             const ytData = await ytRes.json();
             extractedText += `[YouTube Titre]: ${ytData.title || ""}\n[Chaîne]: ${
               ytData.author_name || ""
@@ -97,8 +105,12 @@ serve(async (req) => {
         console.warn("Webpage fetch failed:", fetchErr);
         // If we already got oembed text or manual text, we can still proceed!
         if (!extractedText.trim()) {
-          throw new Error(
-            "Impossible d'accéder au contenu du lien. Si la page est privée ou protégée (Instagram, etc.), veuillez copier-coller sa description directement."
+          return new Response(
+            JSON.stringify({
+              error:
+                "Impossible d'accéder au contenu du lien. Si la page est privée ou protégée (Instagram, etc.), veuillez copier-coller sa description directement.",
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
       }
@@ -108,8 +120,12 @@ serve(async (req) => {
     const truncatedText = extractedText.substring(0, 12000).trim();
 
     if (!truncatedText) {
-      throw new Error(
-        "Aucun texte n'a pu être extrait. Veuillez copier-coller la description ou les ingrédients de la vidéo."
+      return new Response(
+        JSON.stringify({
+          error:
+            "Aucun texte n'a pu être extrait. Veuillez copier-coller la description ou les ingrédients de la vidéo.",
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -163,16 +179,22 @@ RÈGLES IMPORTANTES :
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text();
       console.error("Gemini API error:", geminiResponse.status, errorText);
-      throw new Error(`Erreur IA (${geminiResponse.status}): ${errorText}`);
+      return new Response(
+        JSON.stringify({ error: `Erreur assistant (${geminiResponse.status}): ${errorText}` }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await geminiResponse.json();
     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error("Format de réponse inattendu de l'IA");
+      return new Response(
+        JSON.stringify({ error: "Format de réponse inattendu de l'assistant" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const contentText = data.candidates[0].content.parts[0].text;
-    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+    const jsonMatch = contentText.match(/\{[\s\S]*}/);
     const jsonString = jsonMatch ? jsonMatch[0] : contentText;
 
     let recipe;
@@ -180,7 +202,10 @@ RÈGLES IMPORTANTES :
       recipe = JSON.parse(jsonString);
     } catch (e) {
       console.error("JSON parse error:", e, contentText);
-      throw new Error("L'IA n'a pas pu structurer la recette correctement.");
+      return new Response(
+        JSON.stringify({ error: "L'assistant n'a pas pu structurer la recette correctement." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(JSON.stringify({ recipe }), {

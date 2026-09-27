@@ -23,20 +23,26 @@ const UNIT_MAPPINGS: Record<string, MeasurementUnit> = {
     'tbsp': 'cuillere_soupe',
     'cs': 'cuillere_soupe',
     'c.s': 'cuillere_soupe',
-    'cuillère à soupe': 'cuillere_soupe',
-    'cuillères à soupe': 'cuillere_soupe',
+    'cuillere a soupe': 'cuillere_soupe',
+    'cuilleres a soupe': 'cuillere_soupe',
     'tsp': 'cuillere_the',
     'cc': 'cuillere_the',
     'c.c': 'cuillere_the',
-    'cuillère à café': 'cuillere_the',
-    'cuillères à café': 'cuillere_the',
+    'cuillere a cafe': 'cuillere_the',
+    'cuilleres a cafe': 'cuillere_the',
     'oz': 'g',
     'lb': 'g',
     'piece': 'piece',
-    'pièce': 'piece',
-    'pièces': 'piece',
     'pc': 'piece',
     'pcs': 'piece',
+    ...Object.fromEntries([
+        ['cuillère à soupe', 'cuillere_soupe'],
+        ['cuillères à soupe', 'cuillere_soupe'],
+        ['cuillère à café', 'cuillere_the'],
+        ['cuillères à café', 'cuillere_the'],
+        ['pièce', 'piece'],
+        ['pièces', 'piece'],
+    ]),
 };
 
 const parseQuantityAndUnit = (fractionPart: string | undefined, decimalPart: string | undefined, unitPart: string | undefined) => {
@@ -175,28 +181,62 @@ export const parseIngredientInput = (input: string): ParsedIngredient => {
 };
 
 import { Ingredient } from "@/types/database";
+import { normalizeText, toSingular } from "@/lib/stock-matching";
 
 export const findBestIngredientMatch = (inputName: string, allIngredients: Ingredient[]): Ingredient | null => {
-    if (!allIngredients) return null;
+    if (!allIngredients || !inputName) return null;
 
-    const lowerInput = inputName.toLowerCase();
+    const normInput = normalizeText(inputName);
+    if (!normInput) return null;
+    const singularInput = toSingular(normInput);
+
     let bestMatch: Ingredient | null = null;
     let maxLen = -1;
 
     for (const ing of allIngredients) {
-        // Check name
-        if (lowerInput.includes(ing.name.toLowerCase())) {
-            if (ing.name.length > maxLen) {
-                maxLen = ing.name.length;
+        const normName = normalizeText(ing.name);
+        const singularName = toSingular(normName);
+
+        // 1. Exact match (highest priority)
+        if (normInput === normName || singularInput === singularName) {
+            return ing;
+        }
+
+        // 2. Exact match in synonyms
+        if (ing.synonyms) {
+            for (const syn of ing.synonyms) {
+                const normSyn = normalizeText(syn);
+                const singularSyn = toSingular(normSyn);
+                if (normInput === normSyn || singularInput === singularSyn) {
+                    return ing;
+                }
+            }
+        }
+
+        // 3. Substring match (e.g., "poivron rouge" contains "poivron")
+        if (normInput.includes(normName) || singularInput.includes(singularName)) {
+            if (normName.length > maxLen) {
+                maxLen = normName.length;
                 bestMatch = ing;
             }
         }
-        // Check synonyms
+
+        // 4. Reverse substring match if input is significant (length > 3)
+        if (normInput.length > 3 && (normName.includes(normInput) || singularName.includes(singularInput))) {
+            if (normName.length > maxLen) {
+                maxLen = normName.length;
+                bestMatch = ing;
+            }
+        }
+
+        // 5. Substring match on synonyms
         if (ing.synonyms) {
             for (const syn of ing.synonyms) {
-                if (lowerInput.includes(syn.toLowerCase())) {
-                    if (syn.length > maxLen) {
-                        maxLen = syn.length;
+                const normSyn = normalizeText(syn);
+                const singularSyn = toSingular(normSyn);
+                if (normInput.includes(normSyn) || singularInput.includes(singularSyn)) {
+                    if (normSyn.length > maxLen) {
+                        maxLen = normSyn.length;
                         bestMatch = ing;
                     }
                 }

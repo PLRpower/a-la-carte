@@ -70,6 +70,48 @@ export type Database = {
           },
         ]
       }
+      feedbacks: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          page_url: string | null
+          rating: number | null
+          status: string
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          page_url?: string | null
+          rating?: number | null
+          status?: string
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          page_url?: string | null
+          rating?: number | null
+          status?: string
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
@@ -350,7 +392,8 @@ export type Database = {
           id: string
           image_url: string | null
           instructions: string | null
-          is_public: boolean | null
+          is_public: boolean
+          is_shared_with_family: boolean
           prep_time: number | null
           servings: number | null
           source: Database["public"]["Enums"]["recipe_source"] | null
@@ -368,7 +411,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           instructions?: string | null
-          is_public?: boolean | null
+          is_public?: boolean
+          is_shared_with_family?: boolean
           prep_time?: number | null
           servings?: number | null
           source?: Database["public"]["Enums"]["recipe_source"] | null
@@ -386,7 +430,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           instructions?: string | null
-          is_public?: boolean | null
+          is_public?: boolean
+          is_shared_with_family?: boolean
           prep_time?: number | null
           servings?: number | null
           source?: Database["public"]["Enums"]["recipe_source"] | null

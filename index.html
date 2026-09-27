@@ -3,8 +3,14 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#473528" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#fff8f6" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#473528" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#fff8f6" />
+  <meta name="color-scheme" content="light" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <title>À la carte - Cuisinez, gérez, savourez</title>
   <meta name="description" content="À la carte - Cuisinez, gérez, savourez" />
   <meta name="author" content="À la carte" />
@@ -15,8 +21,45 @@
     rel="stylesheet">
 
   <meta property="og:title" content="À la carte - Cuisinez, gérez, savourez" />
-  <meta property="og:description" content="À la carte - Cuisinez, gérez, savourez" />
+  <meta property="og:description" content="Application intelligente de gestion de recettes, inventaire d'ingrédients et listes de courses partagées." />
   <meta property="og:type" content="website" />
+  <meta property="og:locale" content="fr_FR" />
+  <meta name="robots" content="index, follow" />
+  <link rel="help" href="/llms.txt" type="text/plain" title="LLM and AI Agent Context" />
+
+  <!-- Schema.org Structured Data for Search Engines & AI Crawlers -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "À la carte",
+    "url": "https://alacarte.app",
+    "description": "Assistant culinaire intelligent : carnet de recettes, gestion du stock d'ingrédients, courses prédictives et planning des repas partagé.",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "All modern web browsers, iOS, Android",
+    "inLanguage": "fr-FR",
+    "offers": [
+      {
+        "@type": "Offer",
+        "name": "Formule Gratuite",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      {
+        "@type": "Offer",
+        "name": "À la carte Premium (Mensuel)",
+        "price": "4.80",
+        "priceCurrency": "EUR"
+      },
+      {
+        "@type": "Offer",
+        "name": "À la carte Premium (Annuel)",
+        "price": "42.00",
+        "priceCurrency": "EUR"
+      }
+    ]
+  }
+  </script>
 </head>
 
 <body>

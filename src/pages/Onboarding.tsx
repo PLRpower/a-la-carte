@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   Check,
   Clock,
-  Flame,
   CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -120,8 +119,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
           <div className="flex items-center gap-2">
             <img
               src="/logo-transparent.png"
-              alt="Logo"
+              alt="Logo À la carte"
               className="w-8 h-8 object-contain"
+              width={32}
+              height={32}
             />
             <span className="font-bold text-sm text-foreground">À la carte</span>
           </div>

@@ -94,8 +94,13 @@ export const ReceiptScannerDialog = ({
             body: { imageBase64: base64 },
           });
 
-          if (error) throw error;
-          if (data?.error) throw new Error(data.error);
+          if (error || data?.error) {
+            console.error("Receipt AI parsing failed:", error || data?.error);
+            toast.error(
+              error?.message || data?.error || "Échec de la lecture du ticket par l'assistant. Vérifiez votre connexion."
+            );
+            return;
+          }
 
           const parsedItems: ReceiptItem[] = (data?.items || []).map(
             (it: {
@@ -128,7 +133,7 @@ export const ReceiptScannerDialog = ({
           toast.error(
             scanErr instanceof Error
               ? scanErr.message
-              : "Échec de la lecture du ticket par l'IA. Vérifiez votre connexion."
+              : "Échec de la lecture du ticket par l'assistant. Vérifiez votre connexion."
           );
         } finally {
           setLoading(false);
@@ -273,7 +278,7 @@ export const ReceiptScannerDialog = ({
               <div className="space-y-1.5 max-w-sm mx-auto">
                 <h3 className="font-bold text-lg">Mettre à jour le stock en un clin d'œil</h3>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Prenez en photo votre ticket de supermarché ou facture Drive. L'IA déchiffre les
+                  Prenez en photo votre ticket de supermarché ou facture Drive. Votre assistant déchiffre les
                   abréviations, quantités et catégories automatiquement.
                 </p>
               </div>
@@ -313,7 +318,7 @@ export const ReceiptScannerDialog = ({
                 <Loader2 className="w-8 h-8 text-primary animate-spin" />
               </div>
               <div className="space-y-1">
-                <h4 className="font-bold text-base">Lecture du ticket par l'IA...</h4>
+                <h4 className="font-bold text-base">Lecture du ticket par votre assistant...</h4>
                 <p className="text-xs text-muted-foreground max-w-xs">
                   Traduction des abréviations, extraction des quantités et classification des ingrédients
                 </p>

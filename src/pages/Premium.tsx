@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Check, Sparkles, Zap, Users, Camera, Globe, ChefHat, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 const Premium = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { profile, loading, refetch } = useProfile();
+    const { profile, loading } = useProfile();
     const [isAnnual, setIsAnnual] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -65,7 +65,8 @@ const Premium = () => {
                             errMsg = bodyJson.error || bodyJson.message || errMsg;
                         } catch (e) {/* intentionally empty */}
                     }
-                    throw new Error(errMsg);
+                    toast.error(errMsg);
+                    return;
                 }
                 if (data?.url) {
                     window.location.href = data.url;
@@ -103,7 +104,8 @@ const Premium = () => {
                             console.error("Failed to parse error context", e);
                         }
                     }
-                    throw new Error(errMsg);
+                    toast.error(errMsg);
+                    return;
                 }
                 if (data?.url) {
                     window.location.href = data.url;
@@ -230,16 +232,16 @@ const Premium = () => {
                             <div className="mt-6 flex flex-col">
                                 <div className="flex items-baseline text-3xl font-bold text-black dark:text-white tracking-tight">
                                     {isAnnual ? equivalentMonthlyPrice : monthlyPrice} €
-                                    <span className="ml-1 text-base font-medium text-muted-foreground whitespace-nowrap">/ mois</span>
+                                    <span className="ml-1 text-base font-medium text-muted-foreground whitespace-nowrap">TTC / mois</span>
                                 </div>
                                 {isAnnual && (
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Facturé {annualPrice} € par an.
+                                        Facturé {annualPrice} € TTC par an (reconduction automatique, résiliable à tout moment).
                                     </p>
                                 )}
                                 {!isAnnual && (
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Facturé {monthlyPrice} € tous les mois.
+                                        Facturé {monthlyPrice} € TTC tous les mois (sans engagement).
                                     </p>
                                 )}
                             </div>
@@ -260,7 +262,7 @@ const Premium = () => {
                                     <div className="p-1 rounded-full bg-accent/10 border border-accent/20">
                                         <ChefHat className="w-4 h-4 text-accent shrink-0" />
                                     </div>
-                                    <span><strong className="font-bold">Inspiration du Chef IA</strong> illimitée</span>
+                                    <span><strong className="font-bold">Inspiration de l'Assistant</strong> illimitée</span>
                                 </li>
                                 <li className="flex gap-3 text-sm items-center">
                                     <div className="p-1 rounded-full bg-accent/10 border border-accent/20">
@@ -304,16 +306,23 @@ const Premium = () => {
 
                 </div>
 
-                {/* Trust features */}
-                <div className="text-center pb-8 border-t pt-8">
-                    <p className="text-sm text-muted-foreground mb-4">
-                        Paiement sécurisé par <strong>Stripe</strong>. Annulable à tout moment.
+                {/* Trust features & Legal notes */}
+                <div className="text-center pb-8 border-t pt-8 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                        Paiement sécurisé par <strong>Stripe</strong>. Annulable en un clic à tout moment depuis votre profil.
                     </p>
                     <div className="flex justify-center flex-wrap gap-4 text-xs font-medium text-muted-foreground/80">
-                        <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Sans engagement</span>
-                        <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Mises à jour incluses</span>
-                        <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Support client</span>
+                        <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> Droit de rétractation 14j</span>
+                        <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> Sans engagement</span>
+                        <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> Facturation en Euros TTC</span>
+                        <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> Support client dédié</span>
                     </div>
+                    <p className="text-[11px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                        En confirmant votre abonnement, vous acceptez nos{" "}
+                        <Link to="/terms" className="underline hover:text-foreground">Conditions Générales de Vente (CGV)</Link>{" "}
+                        et confirmez avoir pris connaissance de notre{" "}
+                        <Link to="/refund" className="underline hover:text-foreground">Politique de rétractation & remboursement</Link>.
+                    </p>
                 </div>
 
             </main>

@@ -29,6 +29,7 @@ export async function cloneRecipeToUser(
       tags: recipe.tags,
       source: "website",
       instructions: recipe.instructions,
+      is_shared_with_family: false,
       is_public: false
     }])
     .select()

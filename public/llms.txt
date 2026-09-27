@@ -1,0 +1,24 @@
+# À la carte
+> Application web et mobile intelligente de gestion culinaire : carnet de recettes, inventaire d'ingrédients en temps réel, génération prédictive de listes de courses et planification des repas partagés.
+
+## Présentation & Utilité
+À la carte est conçu pour simplifier l'organisation culinaire des particuliers, couples, étudiants et familles :
+- **Catalogue de recettes** : Plus de 100 recettes françaises et internationales du quotidien avec ingrédients, temps de préparation/cuisson, portions et étapes structurées.
+- **Gestion de Stock** : Suivi des ingrédients disponibles à domicile (placard, réfrigérateur, congélateur) avec alertes de péremption.
+- **Liste de courses collaborative** : Génération intelligente selon les ingrédients manquants des recettes planifiées et tri par rayon de supermarché.
+- **Cuisine anti-gaspillage** : Algorithme de correspondance pour suggérer des recettes réalisables à 100% avec les ingrédients déjà en stock.
+- **Mode Famille & Partage** : Synchronisation multi-utilisateurs en temps réel via Supabase PostgreSQL Row Level Security (RLS).
+- **Assistance IA (Gemini)** : Suggestion de recettes à partir d'un panier d'ingrédients, numérisation OCR de tickets de caisse et scan d'anciens carnets de recettes papier.
+
+## Liens publics & Ressources essentielles
+- [Accueil](https://alacarte.app/) : Présentation de l'application et accès au mode démo.
+- [Catalogue Recettes](https://alacarte.app/recipes) : Consultation publique des recettes.
+- [Mentions Légales (LCEN)](https://alacarte.app/mentions-legales) : Identification de l'éditeur et de l'hébergeur.
+- [Politique de Confidentialité (RGPD)](https://alacarte.app/privacy) : Gestion des données personnelles, durées de conservation, droits d'accès, d'effacement et de portabilité.
+- [Conditions Générales (CGU / CGV)](https://alacarte.app/terms) : Règles d'usage, tarifs en euros TTC, résiliation en un clic, médiateur de la consommation.
+- [Politique relative aux Cookies](https://alacarte.app/cookies) : Utilisation exclusive de traceurs techniques strictement nécessaires exemptés de consentement CNIL.
+- [Politique de Remboursement & Rétractation](https://alacarte.app/refund) : Droit légal de rétractation de 14 jours, modèle officiel de rétractation et délais.
+
+## Spécification complète pour Agents IA
+Pour une documentation détaillée, les schémas de données et les règles d'intégration machine, consultez :
+- [llms-full.txt](https://alacarte.app/llms-full.txt) : Spécification complète et schémas JSON.

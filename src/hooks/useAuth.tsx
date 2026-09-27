@@ -82,6 +82,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        queryClient.invalidateQueries({ queryKey: ['ingredients'] });
         if (event === 'PASSWORD_RECOVERY') {
           navigate('/update-password');
         }
@@ -93,6 +94,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      queryClient.invalidateQueries({ queryKey: ['ingredients'] });
     });
 
     return () => subscription.unsubscribe();
@@ -115,7 +117,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Sign up error:', error);
+        return { data: null, error: error as unknown as Error };
+      }
       return { data, error: null };
     } catch (error) {
       console.error('Sign up error:', error);
@@ -130,7 +135,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         password
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Sign in error:', error);
+        return { error: error as unknown as Error };
+      }
       return { error: null };
     } catch (error) {
       console.error('Sign in error:', error);
@@ -148,7 +156,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/update-password`,
       });
-      if (error) throw error;
+      if (error) {
+        console.error('Reset password error:', error);
+        return { error: error as unknown as Error };
+      }
       return { error: null };
     } catch (error) {
       console.error('Reset password error:', error);
@@ -159,7 +170,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const updatePassword = async (password: string) => {
     try {
       const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
+      if (error) {
+        console.error('Update password error:', error);
+        return { error: error as unknown as Error };
+      }
       return { error: null };
     } catch (error) {
       console.error('Update password error:', error);
@@ -174,6 +188,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
