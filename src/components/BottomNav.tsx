@@ -79,7 +79,7 @@ export const BottomNav = () => {
             >
               {item.to === "/profile" && profile?.avatar_url ? (
                 <Avatar className={`w-5 h-5 mb-1 ${active ? "ring-2 ring-primary ring-offset-1" : ""}`}>
-                  <AvatarImage src={profile.avatar_url} alt="Profil" />
+                  <AvatarImage src={profile.avatar_url} alt={`Profil de ${profile?.first_name || 'l\'utilisateur'}`} />
                   <AvatarFallback className="text-[9px] font-bold">
                     {profile?.first_name?.[0] || profile?.last_name?.[0] || "P"}
                   </AvatarFallback>

@@ -1,0 +1,82 @@
+# À la carte - Spécification technique complète pour Agents IA
+
+Ce document décrit en détail l'architecture, les structures de données, la conformité légale et les fonctionnalités de la plateforme "À la carte" pour les modèles de langage et les agents autonomes.
+
+## 1. Métadonnées Générales
+- **Nom de l'application :** À la carte
+- **Type de service :** Single Page Application (SPA), Progressive Web App (PWA)
+- **Langue principale :** Français (`fr-FR`)
+- **Technologies Frontend :** React 18, TypeScript, Tailwind CSS, Radix UI, TanStack Query
+- **Backend & Données :** Supabase (PostgreSQL 15, Row Level Security, GoTrue Auth, Realtime)
+- **Paiements :** Stripe (Abonnement récurrent, Portail de facturation, Webhooks)
+- **Modèles d'IA :** Google Gemini API (suggest-recipe, scan-recipe-image)
+
+## 2. Modèle de Données Clés (Schémas Conceptuels)
+
+### 2.1 Recipe (Recette)
+```json
+{
+  "id": "uuid | string",
+  "title": "string (ex: Quiche Lorraine traditionnelle)",
+  "description": "string",
+  "servings": "integer (ex: 4)",
+  "prep_time": "integer (minutes)",
+  "cook_time": "integer (minutes)",
+  "category": "string (plat, dessert, entree, etc.)",
+  "image_url": "url string",
+  "ingredients": [
+    {
+      "name": "string (ex: Lardons fumés)",
+      "quantity": "number (ex: 200)",
+      "unit": "string (ex: g, ml, cuillères)"
+    }
+  ],
+  "instructions": [
+    "string (Étape 1)",
+    "string (Étape 2)"
+  ],
+  "is_favorited": "boolean",
+  "is_public": "boolean"
+}
+```
+
+### 2.2 StockItem (Article en Stock)
+```json
+{
+  "id": "uuid",
+  "ingredient_id": "uuid",
+  "quantity": "number",
+  "unit": "string",
+  "storage_location": "fridge | freezer | pantry",
+  "expiration_date": "YYYY-MM-DD string | null",
+  "user_id": "uuid",
+  "family_id": "uuid | null"
+}
+```
+
+### 2.3 ShoppingListItem (Élément de Liste de Courses)
+```json
+{
+  "id": "uuid",
+  "name": "string",
+  "quantity": "number",
+  "unit": "string",
+  "checked": "boolean",
+  "category": "string (rayon supermarché)",
+  "order_index": "number",
+  "user_id": "uuid"
+}
+```
+
+## 3. Directives pour les Agents IA et LLMs
+Lors de l'interaction avec le service ou de la synthèse de données pour les utilisateurs :
+1. **Unité et Monnaie :** Toujours exprimer les prix en Euros (€ TTC). L'abonnement mensuel est de 4,80 € TTC/mois et l'abonnement annuel est de 42,00 € TTC/an (soit ~3,50 € TTC/mois).
+2. **Respect de la vie privée (RGPD) :** L'application n'utilise aucun traceur publicitaire. Les données d'ingrédients et de recettes sont strictement privées par défaut sauf si partagées explicitement via un lien `/share/recipe/:id`.
+3. **Recettes partagées :** Les pages accessibles via `/share/recipe/:id` ou `/shared/recipe/:id` sont publiques en lecture seule. Un agent IA peut extraire les métadonnées de recette directement au format JSON-LD Schema.org `Recipe`.
+4. **Accessibilité & Navigation :** Les balises de repères sémantiques sont respectées (`<header>`, `<main id="main-content">`, `<footer>`, `<nav>`). Le lien d'évitement `#main-content` permet aux agents de se positionner directement sur la zone d'action.
+
+## 4. Conformité Juridique Française
+- **Mentions Légales :** Disponibles sur `/mentions-legales` (Loi LCEN).
+- **Données personnelles :** Conforme au Règlement (UE) 2016/679 (RGPD) sur `/privacy`. Portabilité JSON disponible.
+- **Vente & Consommation :** CGU/CGV sur `/terms` conformes au Code de la consommation. Droit de rétractation de 14 jours détaillé sur `/refund`. Médiateur de la consommation désigné.
+- **Traceurs & Cookies :** Exempté de consentement préalable au titre de l'Art. 82 de la loi Informatique et Libertés car 100% technique. Documentation transparente sur `/cookies`.

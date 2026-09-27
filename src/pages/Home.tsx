@@ -228,7 +228,7 @@ const Home = () => {
     <div className="pb-20 md:pb-12 min-h-screen">
       <header className="bg-primary text-primary-foreground pt-8 pb-8 px-6 md:px-8 mb-6 md:my-6 md:rounded-2xl flex items-center justify-between gap-4 shadow-xs">
         <div className="flex items-center gap-4">
-          <img src="/logo-transparent.png" alt="Logo" className="w-14 h-14 object-contain" />
+          <img src="/logo-transparent.png" alt="Logo À la carte - Cuisinez, gérez, savourez" className="w-14 h-14 object-contain" width={56} height={56} />
           <div>
             <h1 className="text-3xl font-bold mb-1">À la carte</h1>
             <p className="text-sm opacity-90">Cuisinez, gérez, savourez</p>
@@ -265,7 +265,7 @@ const Home = () => {
           >
             <Avatar className="w-10 h-10 border-2 border-white/30 shadow-xs">
               {profile?.avatar_url ? (
-                <AvatarImage src={profile.avatar_url} alt="Profil" />
+                <AvatarImage src={profile.avatar_url} alt={`Photo de profil de ${profile?.first_name || 'l\'utilisateur'}`} />
               ) : (
                 <AvatarFallback className="bg-accent text-accent-foreground text-xs font-bold">
                   {profile?.first_name?.[0] ||

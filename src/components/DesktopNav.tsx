@@ -49,8 +49,10 @@ export const DesktopNav = () => {
         <Link to="/" className="flex items-center gap-3 shrink-0 group">
           <img
             src="/logo-transparent.png"
-            alt="À la carte"
+            alt="Logo À la carte - Assistant culinaire"
             className="w-9 h-9 object-contain group-hover:scale-105 transition-transform"
+            width={36}
+            height={36}
           />
           <div className="flex flex-col">
             <span className="font-serif font-bold text-lg text-foreground tracking-tight leading-none">

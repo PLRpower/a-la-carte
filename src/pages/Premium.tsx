@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -232,16 +232,16 @@ const Premium = () => {
                             <div className="mt-6 flex flex-col">
                                 <div className="flex items-baseline text-3xl font-bold text-black dark:text-white tracking-tight">
                                     {isAnnual ? equivalentMonthlyPrice : monthlyPrice} €
-                                    <span className="ml-1 text-base font-medium text-muted-foreground whitespace-nowrap">/ mois</span>
+                                    <span className="ml-1 text-base font-medium text-muted-foreground whitespace-nowrap">TTC / mois</span>
                                 </div>
                                 {isAnnual && (
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Facturé {annualPrice} € par an.
+                                        Facturé {annualPrice} € TTC par an (reconduction automatique, résiliable à tout moment).
                                     </p>
                                 )}
                                 {!isAnnual && (
                                     <p className="text-sm text-muted-foreground mt-1">
-                                        Facturé {monthlyPrice} € tous les mois.
+                                        Facturé {monthlyPrice} € TTC tous les mois (sans engagement).
                                     </p>
                                 )}
                             </div>
@@ -306,16 +306,23 @@ const Premium = () => {
 
                 </div>
 
-                {/* Trust features */}
-                <div className="text-center pb-8 border-t pt-8">
-                    <p className="text-sm text-muted-foreground mb-4">
-                        Paiement sécurisé par <strong>Stripe</strong>. Annulable à tout moment.
+                {/* Trust features & Legal notes */}
+                <div className="text-center pb-8 border-t pt-8 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                        Paiement sécurisé par <strong>Stripe</strong>. Annulable en un clic à tout moment depuis votre profil.
                     </p>
                     <div className="flex justify-center flex-wrap gap-4 text-xs font-medium text-muted-foreground/80">
-                        <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Sans engagement</span>
-                        <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Mises à jour incluses</span>
-                        <span className="flex items-center gap-1"><Check className="w-3 h-3" /> Support client</span>
+                        <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> Droit de rétractation 14j</span>
+                        <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> Sans engagement</span>
+                        <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> Facturation en Euros TTC</span>
+                        <span className="flex items-center gap-1"><Check className="w-3 h-3 text-emerald-600" /> Support client dédié</span>
                     </div>
+                    <p className="text-[11px] text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                        En confirmant votre abonnement, vous acceptez nos{" "}
+                        <Link to="/terms" className="underline hover:text-foreground">Conditions Générales de Vente (CGV)</Link>{" "}
+                        et confirmez avoir pris connaissance de notre{" "}
+                        <Link to="/refund" className="underline hover:text-foreground">Politique de rétractation & remboursement</Link>.
+                    </p>
                 </div>
 
             </main>

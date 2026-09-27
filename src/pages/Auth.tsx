@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
@@ -23,6 +24,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { signIn, signUp, user, resetPassword } = useAuth();
@@ -75,6 +77,12 @@ const Auth = () => {
 
     if (!isLogin && password.length < 6) {
       toast.error("Le mot de passe doit contenir au moins 6 caractères");
+      setLoading(false);
+      return;
+    }
+
+    if (!isLogin && !acceptTerms) {
+      toast.error("Veuillez accepter les Conditions Générales et la Politique de Confidentialité");
       setLoading(false);
       return;
     }
@@ -243,6 +251,30 @@ const Auth = () => {
                   />
                 </div>
               )}
+              {!isLogin && (
+                <div className="flex items-start space-x-2.5 pt-1">
+                  <Checkbox
+                    id="acceptTerms"
+                    checked={acceptTerms}
+                    onCheckedChange={(checked) => setAcceptTerms(Boolean(checked))}
+                    className="mt-0.5"
+                  />
+                  <label
+                    htmlFor="acceptTerms"
+                    className="text-xs text-muted-foreground leading-snug cursor-pointer select-none"
+                  >
+                    J'accepte les{" "}
+                    <Link to="/terms" target="_blank" className="text-primary underline font-medium">
+                      Conditions Générales (CGU/CGV)
+                    </Link>{" "}
+                    et confirme avoir lu la{" "}
+                    <Link to="/privacy" target="_blank" className="text-primary underline font-medium">
+                      Politique de Confidentialité
+                    </Link>
+                    .
+                  </label>
+                </div>
+              )}
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading ? (
                   <>
@@ -268,6 +300,28 @@ const Auth = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Legal links for compliance */}
+      <nav
+        aria-label="Liens d'information légale"
+        className="mt-6 text-center text-xs text-muted-foreground flex flex-wrap justify-center items-center gap-x-3 gap-y-1"
+      >
+        <Link to="/mentions-legales" className="hover:text-foreground hover:underline">
+          Mentions Légales
+        </Link>
+        <span>·</span>
+        <Link to="/privacy" className="hover:text-foreground hover:underline">
+          Confidentialité (RGPD)
+        </Link>
+        <span>·</span>
+        <Link to="/terms" className="hover:text-foreground hover:underline">
+          CGU / CGV
+        </Link>
+        <span>·</span>
+        <Link to="/cookies" className="hover:text-foreground hover:underline">
+          Cookies
+        </Link>
+      </nav>
     </div>
   );
 };

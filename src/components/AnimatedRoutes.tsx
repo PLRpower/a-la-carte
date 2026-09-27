@@ -27,6 +27,11 @@ const UpdatePassword = lazy(() => import("../pages/UpdatePassword"));
 const MealPlanner = lazy(() => import("../pages/MealPlanner"));
 const SharedRecipe = lazy(() => import("../pages/SharedRecipe"));
 const Feedback = lazy(() => import("../pages/Feedback"));
+const LegalNotice = lazy(() => import("../pages/legal/LegalNotice"));
+const PrivacyPolicy = lazy(() => import("../pages/legal/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("../pages/legal/TermsOfService"));
+const CookiePolicy = lazy(() => import("../pages/legal/CookiePolicy"));
+const RefundPolicy = lazy(() => import("../pages/legal/RefundPolicy"));
 
 export const AnimatedRoutes = () => {
     const location = useLocation();
@@ -61,6 +66,20 @@ export const AnimatedRoutes = () => {
                     <Route path="/shared/recipe/:id" element={<SharedRecipe />} />
                     <Route path="/share/recipe/:id" element={<SharedRecipe />} />
                     <Route path="/feedback" element={<Feedback />} />
+                    {/* Legal & Compliance Routes (Public) */}
+                    <Route path="/mentions-legales" element={<LegalNotice />} />
+                    <Route path="/legal" element={<LegalNotice />} />
+                    <Route path="/privacy" element={<PrivacyPolicy />} />
+                    <Route path="/politique-de-confidentialite" element={<PrivacyPolicy />} />
+                    <Route path="/terms" element={<TermsOfService />} />
+                    <Route path="/cgu" element={<TermsOfService />} />
+                    <Route path="/cgv" element={<TermsOfService />} />
+                    <Route path="/conditions-generales" element={<TermsOfService />} />
+                    <Route path="/cookies" element={<CookiePolicy />} />
+                    <Route path="/politique-de-cookies" element={<CookiePolicy />} />
+                    <Route path="/refund" element={<RefundPolicy />} />
+                    <Route path="/remboursement" element={<RefundPolicy />} />
+                    <Route path="/retractation" element={<RefundPolicy />} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </Suspense>

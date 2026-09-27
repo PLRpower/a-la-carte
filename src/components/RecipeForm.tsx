@@ -10,7 +10,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Camera, Upload, X, Image as ImageIcon, ChevronsUpDown, Check, Users, Globe, Lock } from "lucide-react";
+import { Camera, Upload, X, Users, Globe } from "lucide-react";
 import { MultiSelect } from "./ui/multi-select";
 import { Switch } from "./ui/switch";
 
@@ -286,7 +286,7 @@ export const RecipeForm = ({
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         {imageUrl && (
                             <div className="relative aspect-square rounded-lg overflow-hidden border bg-muted">
-                                <img src={imageUrl} alt="Existing" className="w-full h-full object-cover" />
+                                <img src={imageUrl} alt="Photo existante de la recette" className="w-full h-full object-cover" />
                                 <button
                                     onClick={removeExistingImage}
                                     className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
@@ -299,7 +299,7 @@ export const RecipeForm = ({
                             <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border bg-muted group">
                                 <img
                                     src={URL.createObjectURL(file)}
-                                    alt={`Preview ${idx}`}
+                                    alt={`Aperçu photo ${idx + 1} de la recette : ${file.name}`}
                                     className="w-full h-full object-cover"
                                 />
                                 <button

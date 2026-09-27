@@ -1,10 +1,12 @@
-import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles, FlaskConical, ArrowRight, ExternalLink, ArrowLeft, MessageSquareHeart } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState } from "react";
+import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles, FlaskConical, ArrowRight, ExternalLink, ArrowLeft, MessageSquareHeart, ShieldCheck, Download, Trash2, Building2, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useRecipes } from "@/hooks/useRecipes";
@@ -20,6 +22,58 @@ const Profile = () => {
   const isBeta = isBetaEnvironment();
 
   const favoriteCount = recipes.filter(r => r.is_favorited).length;
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportUserData = async () => {
+    setIsExporting(true);
+    try {
+      const exportData = {
+        export_date: new Date().toISOString(),
+        rgpd_notice: "Export conforme au droit à la portabilité des données (Art. 20 RGPD) - Application À la carte",
+        user: {
+          id: user?.id,
+          email: user?.email,
+          created_at: user?.created_at,
+          profile: profile || null,
+        },
+        recipes: recipes.map(r => ({
+          id: r.id,
+          title: r.title,
+          description: r.description,
+          cooking_time: r.cooking_time,
+          preparation_time: r.preparation_time,
+          servings: r.servings,
+          ingredients: r.ingredients,
+          instructions: r.instructions,
+          is_favorited: r.is_favorited,
+        })),
+        stock: stock.map(s => ({
+          id: s.id,
+          ingredient_name: s.ingredient?.name,
+          quantity: s.quantity,
+          unit: s.unit,
+          expiration_date: s.expiration_date,
+        })),
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `alacarte-donnees-personnelles-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success("Vos données ont été exportées avec succès (format JSON conforme RGPD).");
+    } catch (err) {
+      console.error(err);
+      toast.error("Une erreur est survenue lors de l'export des données.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const menuItems = [
     { icon: Heart, label: "Recettes favorites", path: "/profile/favorites", count: favoriteCount },
@@ -246,6 +300,103 @@ const Profile = () => {
               </CardContent>
             </Card>
           )}
+        </section>
+
+        {/* RGPD & Portabilité des données */}
+        <section className="px-6 space-y-3">
+          <Card>
+            <CardHeader className="pb-3 pt-4 px-4 sm:px-6">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-primary" />
+                Protection des données (RGPD)
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Exercez vos droits d'accès, de portabilité et de suppression de vos données.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 sm:px-6 pb-4 pt-0 space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleExportUserData}
+                  disabled={isExporting}
+                  className="text-xs flex-1 gap-1.5 h-9"
+                >
+                  {isExporting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5" />
+                  )}
+                  <span>Exporter mes données (JSON)</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    const subject = encodeURIComponent("Demande de suppression de compte (Droit à l'effacement RGPD)");
+                    const body = encodeURIComponent(`Bonjour,\n\nJe souhaite supprimer définitivement mon compte À la carte ainsi que l'ensemble de mes données personnelles associées à l'adresse : ${user?.email || ""}.\n\nMerci.`);
+                    window.location.href = `mailto:contact@alacarte.app?subject=${subject}&body=${body}`;
+                  }}
+                  className="text-xs text-destructive hover:bg-destructive/10 gap-1.5 h-9"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Demander la suppression du compte</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Legal & Compliance Section */}
+        <section className="px-6">
+          <Card>
+            <CardHeader className="pb-2 pt-4 px-4 sm:px-6">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-muted-foreground" />
+                Informations légales & Conformité FR
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <nav aria-label="Liens d'information légale du profil" className="divide-y divide-border/60 text-xs">
+                <Link
+                  to="/mentions-legales"
+                  className="p-3.5 px-4 sm:px-6 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                >
+                  <span className="font-medium text-foreground">Mentions Légales (LCEN)</span>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </Link>
+                <Link
+                  to="/privacy"
+                  className="p-3.5 px-4 sm:px-6 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                >
+                  <span className="font-medium text-foreground">Politique de Confidentialité (RGPD)</span>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </Link>
+                <Link
+                  to="/terms"
+                  className="p-3.5 px-4 sm:px-6 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                >
+                  <span className="font-medium text-foreground">Conditions Générales (CGU / CGV)</span>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </Link>
+                <Link
+                  to="/cookies"
+                  className="p-3.5 px-4 sm:px-6 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                >
+                  <span className="font-medium text-foreground">Gestion des Cookies & Traceurs (CNIL)</span>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </Link>
+                <Link
+                  to="/refund"
+                  className="p-3.5 px-4 sm:px-6 flex items-center justify-between hover:bg-muted/50 transition-colors"
+                >
+                  <span className="font-medium text-foreground">Politique de Rétractation & Remboursement (14j)</span>
+                  <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                </Link>
+              </nav>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Sign Out */}
