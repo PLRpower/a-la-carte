@@ -6,7 +6,6 @@ import { RecipeForm, RecipeFormData } from "@/components/RecipeForm";
 import { useAuth } from "@/hooks/useAuth";
 import { useIngredients } from "@/hooks/useIngredients";
 import { uploadFile } from "@/lib/supabase-storage";
-import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
 import { saveRecipeIngredients } from "@/lib/recipe-helpers";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,9 +44,17 @@ const RecipeShare = () => {
                         body: { url: sharedUrl }
                     });
 
-                    if (error) throw error;
-                    if (data?.error) throw new Error(data.error);
-                    if (!data?.recipe) throw new Error("Aucune donnée de recette reçue");
+                    if (error || data?.error || !data?.recipe) {
+                        const errMsg = error?.message || data?.error || "Aucune donnée de recette reçue";
+                        console.error('Scrape error:', errMsg);
+                        setError("Impossible d'extraire la recette de cette page. Veuillez compléter manuellement.");
+                        setLoading(false);
+                        setScrapedData({
+                            title: sharedTitle || "",
+                            description: sharedText || ""
+                        });
+                        return;
+                    }
 
                     const recipe = data.recipe;
 
@@ -108,7 +115,15 @@ const RecipeShare = () => {
             let imageUrl = null;
             if (formData.imageFile) {
                 const { url, error: uploadError } = await uploadFile('recipe-images', formData.imageFile, user.id);
-                if (uploadError) throw uploadError;
+                if (uploadError) {
+                    console.error('Save error:', uploadError);
+                    toast({
+                        title: "Erreur",
+                        description: uploadError.message || "Échec de l'upload d'image",
+                        variant: "destructive",
+                    });
+                    return;
+                }
                 imageUrl = url;
             }
 
@@ -132,7 +147,15 @@ const RecipeShare = () => {
                 .select()
                 .single();
 
-            if (recipeError) throw recipeError;
+            if (recipeError) {
+                console.error('Save error:', recipeError);
+                toast({
+                    title: "Erreur",
+                    description: recipeError.message || "Échec de la sauvegarde de la recette",
+                    variant: "destructive",
+                });
+                return;
+            }
 
             await saveRecipeIngredients(recipe.id, formData.ingredients, allIngredients);
 
@@ -165,7 +188,7 @@ const RecipeShare = () => {
                     </div>
                     <h2 className="text-2xl font-bold mb-2">Extraction de la recette...</h2>
                     <p className="text-muted-foreground max-w-md">
-                        Notre chef IA analyse la page web pour extraire les ingrédients et les étapes de préparation. Cela peut prendre quelques secondes.
+                        Votre assistant À la carte analyse la page web pour extraire les ingrédients et les étapes de préparation. Cela peut prendre quelques secondes.
                     </p>
                 </div>
             </div>

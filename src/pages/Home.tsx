@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
 import { RecipeImage } from "@/components/RecipeImage";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Clock, ChefHat, Sparkles, Book, GraduationCap, Globe, Lightbulb, Save, RefreshCw, Coffee, Utensils, IceCream, Apple, Heart, ArrowRight, Salad, Camera, Carrot, Users, Plus, ShoppingCart, CalendarDays, Flame, AlertTriangle, Coins, PiggyBank, User } from "lucide-react";
+import { Clock, ChefHat, Sparkles, Book, Lightbulb, Save, RefreshCw, Utensils, IceCream, Apple, Heart, ArrowRight, Salad, Carrot, Users, Plus, ShoppingCart, CalendarDays, Flame, AlertTriangle, Coins, User } from "lucide-react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRecipes } from "@/hooks/useRecipes";
@@ -26,7 +26,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
-import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
+import { findBestIngredientMatch } from "@/lib/ingredient-parser";
 import { useIngredients } from "@/hooks/useIngredients";
 import { CATALOG_RECIPES } from "@/data/recipesCatalog";
 import { StarterPackModal } from "@/components/StarterPackModal";
@@ -97,9 +97,6 @@ const Home = () => {
   const [focus, setFocus] = useState("use_stock");
 
   const featuredRecipe = allRecipes?.[0] || (CATALOG_RECIPES.length > 0 ? (CATALOG_RECIPES[0] as unknown as RecipeWithDetails) : null);
-  const quickRecipes = allRecipes?.filter(r =>
-    (r.prep_time || 0) + (r.cook_time || 0) <= 60 && r.difficulty === 'facile'
-  ).slice(0, 4);
 
   const featuredCost = useMemo(() => {
     if (!featuredRecipe) return null;
@@ -157,10 +154,12 @@ const Home = () => {
           avoidRecipes: currentHistory
         }
       });
-      if (error) throw error;
-      if (data?.error) {
-        if (data.details) console.warn('AI suggestion details:', data.details);
-        throw new Error(data.error);
+      if (error || data?.error) {
+        if (data?.details) console.warn('AI suggestion details:', data.details);
+        const errorMsg = error?.message || data?.error || "Impossible de générer une recette.";
+        console.error('AI suggestion error:', errorMsg);
+        toast({ title: "Erreur", description: errorMsg, variant: "destructive" });
+        return;
       }
       setSuggestedRecipe(data.recipe);
       toast({ title: "Recette générée !", description: "Voici une suggestion basée sur vos préférences." });
@@ -192,7 +191,11 @@ const Home = () => {
         is_public: false
       }]).select().single();
 
-      if (recipeError) throw recipeError;
+      if (recipeError) {
+        console.error("Save error:", recipeError);
+        toast({ title: "Erreur", description: recipeError.message || "Échec de l'enregistrement", variant: "destructive" });
+        return;
+      }
 
       if (suggestedRecipe.ingredients && Array.isArray(suggestedRecipe.ingredients)) {
         for (const ing of suggestedRecipe.ingredients) {
@@ -397,7 +400,7 @@ const Home = () => {
                           }}
                         >
                           <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-600" />
-                          Sauver avec le Chef IA
+                          Sauver avec l'Assistant
                         </Button>
                         <Button
                           size="sm"
@@ -427,7 +430,7 @@ const Home = () => {
                       <p className="text-sm opacity-90">
                         {stock.length === 0
                           ? "Générez une recette incroyable, même sans ingrédients !"
-                          : "En panne d'inspiration ? Laissez le chef IA inventer une recette avec vos restes."}
+                          : "En panne d'inspiration ? Laissez votre assistant À la carte inventer une recette avec vos restes."}
                       </p>
                     </div>
                   </div>
@@ -613,7 +616,7 @@ const Home = () => {
       {/* AI Configure Dialog UI... */}
       <Dialog open={showAIOptions} onOpenChange={setShowAIOptions}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader><DialogTitle>Configurer l'IA</DialogTitle><DialogDescription>Personnalisez la suggestion de recette.</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>Configurer l'Assistant</DialogTitle><DialogDescription>Personnalisez la suggestion de recette.</DialogDescription></DialogHeader>
           <div className="grid gap-4 py-4">
             {urgentStock.length > 0 && (
               <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3">

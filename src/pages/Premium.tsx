@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ArrowLeft, Check, Sparkles, Zap, Users, Camera, Globe, ChefHat, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 const Premium = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { profile, loading, refetch } = useProfile();
+    const { profile, loading } = useProfile();
     const [isAnnual, setIsAnnual] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -65,7 +65,8 @@ const Premium = () => {
                             errMsg = bodyJson.error || bodyJson.message || errMsg;
                         } catch (e) {/* intentionally empty */}
                     }
-                    throw new Error(errMsg);
+                    toast.error(errMsg);
+                    return;
                 }
                 if (data?.url) {
                     window.location.href = data.url;
@@ -103,7 +104,8 @@ const Premium = () => {
                             console.error("Failed to parse error context", e);
                         }
                     }
-                    throw new Error(errMsg);
+                    toast.error(errMsg);
+                    return;
                 }
                 if (data?.url) {
                     window.location.href = data.url;
@@ -260,7 +262,7 @@ const Premium = () => {
                                     <div className="p-1 rounded-full bg-accent/10 border border-accent/20">
                                         <ChefHat className="w-4 h-4 text-accent shrink-0" />
                                     </div>
-                                    <span><strong className="font-bold">Inspiration du Chef IA</strong> illimitée</span>
+                                    <span><strong className="font-bold">Inspiration de l'Assistant</strong> illimitée</span>
                                 </li>
                                 <li className="flex gap-3 text-sm items-center">
                                     <div className="p-1 rounded-full bg-accent/10 border border-accent/20">

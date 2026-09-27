@@ -192,7 +192,7 @@ const MealPlanner: React.FC = () => {
                 <div className="flex items-center justify-between w-full">
                   <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    Chef IA 7 jours
+                    Assistant 7 jours
                   </span>
                   <Badge variant="outline" className="text-[9px] px-1 py-0 border-amber-500/40 text-amber-600">
                     Auto

@@ -26,6 +26,7 @@ const Family = lazy(() => import("../pages/Family"));
 const UpdatePassword = lazy(() => import("../pages/UpdatePassword"));
 const MealPlanner = lazy(() => import("../pages/MealPlanner"));
 const SharedRecipe = lazy(() => import("../pages/SharedRecipe"));
+const Feedback = lazy(() => import("../pages/Feedback"));
 
 export const AnimatedRoutes = () => {
     const location = useLocation();
@@ -59,6 +60,7 @@ export const AnimatedRoutes = () => {
                     <Route path="/meal-planner" element={<ProtectedRoute><MealPlanner /></ProtectedRoute>} />
                     <Route path="/shared/recipe/:id" element={<SharedRecipe />} />
                     <Route path="/share/recipe/:id" element={<SharedRecipe />} />
+                    <Route path="/feedback" element={<Feedback />} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </Suspense>

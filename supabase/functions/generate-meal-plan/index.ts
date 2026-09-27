@@ -6,32 +6,34 @@ const corsHeaders = {
 };
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 1000) {
+  let lastError: unknown;
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, options);
       if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
-        throw new Error(`Attempt ${i + 1} failed with status ${response.status}`);
+        const errorMsg = `Attempt ${i + 1} failed with status ${response.status}`;
+        console.warn(`Retry ${i + 1}/${retries} failed:`, errorMsg);
+        lastError = new Error(errorMsg);
+      } else {
+        return response;
       }
-      return response;
     } catch (err) {
       console.warn(`Retry ${i + 1}/${retries} failed:`, err);
-      if (i === retries - 1) throw err;
+      lastError = err;
+    }
+    if (i < retries - 1) {
       await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i)));
     }
   }
-  throw new Error("All retries failed");
+  throw lastError instanceof Error ? lastError : new Error("All retries failed");
 }
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { 
-      stock, 
-      preferences, 
-      startDate,
-      availableCatalogTitles 
-    } = await req.json();
+    // noinspection JSVoidFunctionReturnValueUsed
+    const { stock, preferences } = await req.json();
 
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     if (!GEMINI_API_KEY) {
@@ -48,7 +50,7 @@ serve(async (req) => {
     const prioritizeStock = preferences?.prioritizeStock ?? true;
 
     const stockSummary = stock && stock.length > 0
-      ? stock.map((s: any) => `${s.name} (${s.quantity} ${s.unit})`).join(", ")
+      ? stock.map((s: { name: string; quantity: number | string; unit?: string }) => `${s.name} (${s.quantity} ${s.unit})`).join(", ")
       : "Aucun ingrédient spécifique.";
 
     const systemPrompt = `Tu es un chef cuisinier expert en organisation familiale, planification de repas et anti-gaspillage.
@@ -116,16 +118,22 @@ Format de sortie STRICT : JSON pur (sans markdown) avec cette structure :
     );
 
     if (!response.ok) {
-      throw new Error(`Gemini API error: ${response.status}`);
+      return new Response(
+        JSON.stringify({ error: `Gemini API error: ${response.status}` }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
     const contentText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!contentText) {
-      throw new Error("Réponse vide de l'IA");
+      return new Response(
+        JSON.stringify({ error: "Réponse vide de l'assistant" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+    const jsonMatch = contentText.match(/\{[\s\S]*}/);
     const jsonString = jsonMatch ? jsonMatch[0] : contentText;
     const parsed = JSON.parse(jsonString);
 

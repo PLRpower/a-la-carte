@@ -1,4 +1,4 @@
-import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles, FlaskConical, ArrowRight, ExternalLink, ArrowLeft } from "lucide-react";
+import { User, Heart, Settings, Edit, LogOut, Users, Star, Sparkles, FlaskConical, ArrowRight, ExternalLink, ArrowLeft, MessageSquareHeart } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ const Profile = () => {
     { icon: Heart, label: "Recettes favorites", path: "/profile/favorites", count: favoriteCount },
     { icon: Users, label: "Ma famille", path: "/family" },
     { icon: Settings, label: "Préférences de l'application", path: "/profile/preferences" },
+    { icon: MessageSquareHeart, label: "Avis & suggestions", path: "/feedback" },
   ];
 
   return (
@@ -127,9 +128,9 @@ const Profile = () => {
         <section className="px-6">
           <div
             onClick={() => navigate('/premium')}
-            className={`rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all active:scale-[0.98] relative overflow-hidden group border border-white/10 ${profile?.subscription_status === 'active'
-                ? 'bg-gradient-to-br from-primary to-primary/80'
-                : 'bg-gradient-to-br from-accent to-orange-400/90'
+            className={`rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all active:scale-[0.98] relative overflow-hidden group border border-white/10 bg-gradient-to-br ${profile?.subscription_status === 'active'
+                ? 'from-primary to-primary/80'
+                : 'from-accent to-orange-400/90'
               }`}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl group-hover:bg-white/30 transition-colors"></div>
@@ -145,7 +146,7 @@ const Profile = () => {
               <p className="text-sm text-white font-medium leading-relaxed max-w-[240px]">
                 {profile?.subscription_status === 'active'
                   ? 'Merci de votre soutien ! Gérez votre abonnement en un clic.'
-                  : 'Libérez toute la puissance de l\'IA et partagez avec votre famille.'}
+                  : 'Libérez toute la puissance de votre Assistant et partagez avec votre famille.'}
               </p>
             </div>
           </div>
@@ -199,15 +200,25 @@ const Profile = () => {
                     </p>
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="border-amber-500/30 hover:bg-amber-500/10 shrink-0 text-xs"
-                  onClick={() => window.location.href = getProductionUrl()}
-                >
-                  Retour prod
-                  <ExternalLink className="w-3 h-3 ml-1" />
-                </Button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-amber-500/30 hover:bg-amber-500/10 text-xs"
+                    onClick={() => navigate("/feedback?category=bug")}
+                  >
+                    Signaler
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-amber-500/30 hover:bg-amber-500/10 text-xs"
+                    onClick={() => window.location.href = getProductionUrl()}
+                  >
+                    Retour prod
+                    <ExternalLink className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ) : (

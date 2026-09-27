@@ -19,8 +19,6 @@ import { ShoppingListCategory } from "@/components/shopping-list/ShoppingListCat
 import { ShoppingListItem } from "@/components/shopping-list/ShoppingListItem";
 import { InStoreMode } from "@/components/shopping-list/InStoreMode";
 import { AisleOrderModal } from "@/components/shopping-list/AisleOrderModal";
-import { PredictiveSuggestionsBar } from "@/components/shopping-list/PredictiveSuggestionsBar";
-import { usePredictiveShopping } from "@/hooks/usePredictiveShopping";
 import { supabase } from "@/integrations/supabase/client";
 import { useIngredients } from "@/hooks/useIngredients";
 import { parseIngredientInput } from "@/lib/ingredient-parser";
@@ -28,6 +26,7 @@ import { Ingredient } from "@/types/database";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReceiptScannerDialog } from "@/components/scanner/ReceiptScannerDialog";
+import { StockNavTabs } from "@/components/StockNavTabs";
 
 const ShoppingList = () => {
 
@@ -42,15 +41,6 @@ const ShoppingList = () => {
   const [inStoreOpen, setInStoreOpen] = useState(false);
   const [showReceiptScanner, setShowReceiptScanner] = useState(false);
   const addItemInputRef = useRef<HTMLInputElement>(null);
-
-  const {
-    suggestions: predictiveSuggestions,
-    addSuggestion,
-    addAllSuggestions,
-    dismissSuggestion,
-    addingName,
-  } = usePredictiveShopping();
-
   const checkedItems = items.filter((item) => item.checked);
   const uncheckedItems = items.filter((item) => !item.checked);
 
@@ -247,7 +237,7 @@ const ShoppingList = () => {
           <div className="flex items-center gap-2">
             <Button
               onClick={() => setInStoreOpen(true)}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 h-9 px-3.5 shadow-sm text-sm"
+              className="bg-accent hover:bg-accent/90 text-accent-foreground font-semibold gap-1.5 h-9 px-3.5 shadow-sm text-sm transition-colors"
             >
               <ShoppingCart className="w-4 h-4" />
               <span>Mode Magasin</span>
@@ -283,7 +273,8 @@ const ShoppingList = () => {
                 <DialogTrigger asChild>
                   <Button
                     size="icon"
-                    className="bg-accent text-accent-foreground hover:bg-accent/90 h-9 w-9"
+                    variant="ghost"
+                    className="h-9 w-9 text-primary-foreground hover:bg-primary-foreground/15"
                   >
                     <Bell className="w-5 h-5" />
                   </Button>
@@ -308,18 +299,14 @@ const ShoppingList = () => {
             </div>
           </div>
         </div>
+
+        <div className="mt-4">
+          <StockNavTabs shoppingCount={uncheckedItems.length} />
+        </div>
       </header>
 
       {/* Shopping List Content */}
       <div className="px-6 mt-6 pb-6">
-        {/* Predictive Suggestions */}
-        <PredictiveSuggestionsBar
-          suggestions={predictiveSuggestions}
-          onAdd={addSuggestion}
-          onAddAll={addAllSuggestions}
-          onDismiss={dismissSuggestion}
-          addingName={addingName}
-        />
         {loading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4, 5].map((i) => (

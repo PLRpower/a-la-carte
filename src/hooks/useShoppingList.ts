@@ -26,7 +26,30 @@ export const useShoppingList = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as ShoppingListItemWithIngredient[];
+      const shoppingItems = data as ShoppingListItemWithIngredient[];
+
+      // Auto-heal items without ingredient: if ingredients are cached, match them
+      const cachedIngredients = queryClient.getQueryData<Ingredient[]>(['ingredients']);
+      if (cachedIngredients && cachedIngredients.length > 0) {
+        return shoppingItems.map((item) => {
+          if (!item.ingredient && item.name) {
+            const match = findBestIngredientMatch(item.name, cachedIngredients);
+            if (match) {
+              if (!item.ingredient_id) {
+                supabase
+                  .from('shopping_list')
+                  .update({ ingredient_id: match.id })
+                  .eq('id', item.id)
+                  .then();
+              }
+              return { ...item, ingredient_id: match.id, ingredient: match };
+            }
+          }
+          return item;
+        });
+      }
+
+      return shoppingItems;
     },
     enabled: !!user,
   });
@@ -97,6 +120,9 @@ export const useShoppingList = () => {
       const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(queryKey);
 
       const { name, quantity, unit } = parseIngredientInput(input);
+      const cachedIngredients = queryClient.getQueryData<Ingredient[]>(['ingredients']) || [];
+      const bestMatch = findBestIngredientMatch(name, cachedIngredients);
+
       const tempId = crypto.randomUUID();
       const newItem: ShoppingListItemWithIngredient = {
         id: tempId,
@@ -104,11 +130,11 @@ export const useShoppingList = () => {
         name,
         quantity: quantity || null,
         unit: unit || null,
-        ingredient_id: null,
+        ingredient_id: bestMatch?.id || null,
         checked: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        ingredient: null
+        ingredient: bestMatch || null
       };
 
       queryClient.setQueryData<ShoppingListItemWithIngredient[]>(queryKey, (old) => [newItem, ...(old || [])]);
@@ -250,8 +276,22 @@ export const useShoppingList = () => {
       await queryClient.cancelQueries({ queryKey });
       const previousItems = queryClient.getQueryData<ShoppingListItemWithIngredient[]>(queryKey);
 
+      let matchedIngredient: Ingredient | null | undefined = undefined;
+      if (updates.name) {
+        const cachedIngredients = queryClient.getQueryData<Ingredient[]>(['ingredients']) || [];
+        matchedIngredient = findBestIngredientMatch(updates.name, cachedIngredients) || null;
+      }
+
       queryClient.setQueryData<ShoppingListItemWithIngredient[]>(queryKey, (old) =>
-        old?.map((item) => (item.id === id ? { ...item, ...updates } : item))
+        old?.map((item) => {
+          if (item.id !== id) return item;
+          const updated = { ...item, ...updates };
+          if (matchedIngredient !== undefined) {
+            updated.ingredient = matchedIngredient;
+            updated.ingredient_id = matchedIngredient?.id || null;
+          }
+          return updated;
+        })
       );
 
       return { previousItems };

@@ -3,7 +3,6 @@ import {
   X,
   ShoppingCart,
   CheckCircle2,
-  Sparkles,
   Route,
   Eye,
   EyeOff,
@@ -211,7 +210,7 @@ export const InStoreMode = ({
               await onFinishShopping();
               onClose();
             }}
-            className="flex-1 h-14 text-base font-bold rounded-2xl shadow-md gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+            className="flex-1 h-14 text-base font-bold rounded-2xl shadow-md gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
           >
             <CheckCircle2 className="w-5 h-5" />
             Terminer & Ajouter au stock ({checkedItems.length})

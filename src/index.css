@@ -78,6 +78,10 @@ All colors MUST be HSL.
   h6 {
     @apply font-serif;
   }
+
+  img {
+    image-orientation: from-image;
+  }
 }
 
 @layer utilities {

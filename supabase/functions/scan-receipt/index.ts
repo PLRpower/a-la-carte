@@ -6,20 +6,26 @@ const corsHeaders = {
 };
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 1000) {
+  let lastError: unknown;
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, options);
       if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
-        throw new Error(`Attempt ${i + 1} failed with status ${response.status}`);
+        const errorMsg = `Attempt ${i + 1} failed with status ${response.status}`;
+        console.warn(`Retry ${i + 1}/${retries} failed:`, errorMsg);
+        lastError = new Error(errorMsg);
+      } else {
+        return response;
       }
-      return response;
     } catch (err) {
       console.warn(`Retry ${i + 1}/${retries} failed:`, err);
-      if (i === retries - 1) throw err;
+      lastError = err;
+    }
+    if (i < retries - 1) {
       await new Promise((resolve) => setTimeout(resolve, backoff * Math.pow(2, i)));
     }
   }
-  throw new Error("All retries failed");
+  throw lastError instanceof Error ? lastError : new Error("All retries failed");
 }
 
 serve(async (req) => {
@@ -109,16 +115,22 @@ RÈGLES IMPORTANTES :
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Gemini API error:", response.status, errorText);
-      throw new Error(`Erreur IA (${response.status}): ${errorText}`);
+      return new Response(
+        JSON.stringify({ error: `Erreur assistant (${response.status}): ${errorText}` }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error("L'IA n'a pas pu analyser le ticket. L'image est peut-être floue.");
+      return new Response(
+        JSON.stringify({ error: "L'assistant n'a pas pu analyser le ticket. L'image est peut-être floue." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const contentText = data.candidates[0].content.parts[0].text;
-    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+    const jsonMatch = contentText.match(/\{[\s\S]*}/);
     const jsonString = jsonMatch ? jsonMatch[0] : contentText;
 
     let receiptData;
@@ -126,7 +138,10 @@ RÈGLES IMPORTANTES :
       receiptData = JSON.parse(jsonString);
     } catch (e) {
       console.error("JSON parse error:", e, contentText);
-      throw new Error("Erreur de formatage de la réponse de l'IA.");
+      return new Response(
+        JSON.stringify({ error: "Erreur de formatage de la réponse de l'assistant." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(JSON.stringify(receiptData), {

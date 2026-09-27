@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,7 +6,6 @@ import { RecipeForm, RecipeFormData } from "@/components/RecipeForm";
 import { useAuth } from "@/hooks/useAuth";
 import { useIngredients } from "@/hooks/useIngredients";
 import { uploadFile } from "@/lib/supabase-storage";
-import { parseIngredientInput, findBestIngredientMatch } from "@/lib/ingredient-parser";
 import { saveRecipeIngredients } from "@/lib/recipe-helpers";
 import { compressImage } from "@/utils/imageOptimizer";
 import { Loader2, ArrowLeft, X } from "lucide-react";
@@ -25,12 +24,11 @@ const RecipeAdd = () => {
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [pendingRecipes, setPendingRecipes] = useState<any[]>([]);
-    const [originalImageFile, setOriginalImageFile] = useState<File | null>(null);
 
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const convertAiRecipeToFormData = (recipe: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, imageFile: File | null): Partial<RecipeFormData> => {
+    const convertAiRecipeToFormData = useCallback((recipe: any /* eslint-disable-line @typescript-eslint/no-explicit-any */, imageFile: File | null): Partial<RecipeFormData> => {
         let ingredientsText = "";
         if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
             ingredientsText = recipe.ingredients
@@ -52,13 +50,12 @@ const RecipeAdd = () => {
             imageFiles: imageFile ? [imageFile] : [],
             source: (location.state?.source as string) || 'cooking_class'
         };
-    };
+    }, [location.state?.source]);
 
     useEffect(() => {
         const rawFile = location.state?.file as File;
         if (rawFile) {
             setScanning(true);
-            setOriginalImageFile(rawFile);
 
             const scanImage = async () => {
                 try {
@@ -73,13 +70,25 @@ const RecipeAdd = () => {
                                 body: { imageBase64: base64 }
                             });
 
-                            if (error) throw error;
-                            if (data?.error) throw new Error(data.error);
+                            if (error || data?.error) {
+                                const errMsg = error?.message || data?.error;
+                                console.error('Scan processing error:', errMsg);
+                                setError("L'assistant n'a pas pu extraire toutes les données. Veuillez compléter manuellement.");
+                                setScanning(false);
+                                setScannedData({ imageFiles: [file] });
+                                return;
+                            }
 
                             // Handle new array format or fallback to single
                             const recipes = data?.recipes || (data?.recipe ? [data.recipe] : []);
 
-                            if (recipes.length === 0) throw new Error("Aucune donnée de recette reçue");
+                            if (recipes.length === 0) {
+                                console.error('Scan processing error: no recipes returned');
+                                setError("L'assistant n'a pas pu extraire toutes les données. Veuillez compléter manuellement.");
+                                setScanning(false);
+                                setScannedData({ imageFiles: [file] });
+                                return;
+                            }
 
                             const firstRecipe = recipes[0];
                             const remainingRecipes = recipes.slice(1);
@@ -97,7 +106,7 @@ const RecipeAdd = () => {
 
                         } catch (scanError: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
                             console.error('Scan processing error:', scanError);
-                            setError("L'IA n'a pas pu extraire toutes les données. Veuillez compléter manuellement.");
+                            setError("L'assistant n'a pas pu extraire toutes les données. Veuillez compléter manuellement.");
                             setScanning(false);
                             setScannedData({ imageFiles: [file] });
                         }
@@ -114,7 +123,7 @@ const RecipeAdd = () => {
         } else if (location.state?.prefilledRecipe) {
             setScannedData(convertAiRecipeToFormData(location.state.prefilledRecipe, null));
         }
-    }, [location.state]);
+    }, [location.state, convertAiRecipeToFormData, toast]);
 
     const handleSave = async (formData: RecipeFormData) => {
         if (!user) return;
@@ -138,7 +147,15 @@ const RecipeAdd = () => {
                 for (const file of formData.imageFiles) {
                     // If it's a new file (not just a placeholder), upload it
                     const { url, error: uploadError } = await uploadFile('recipe-images', file, user.id);
-                    if (uploadError) throw uploadError;
+                    if (uploadError) {
+                        console.error('Save error:', uploadError);
+                        toast({
+                            title: "Erreur",
+                            description: uploadError.message || "Échec du téléchargement de l'image",
+                            variant: "destructive",
+                        });
+                        return;
+                    }
                     uploadedImageUrls.push(url);
                 }
                 // Use first uploaded image as main image if none exists
@@ -168,7 +185,15 @@ const RecipeAdd = () => {
                 .select()
                 .single();
 
-            if (recipeError) throw recipeError;
+            if (recipeError) {
+                console.error('Save error:', recipeError);
+                toast({
+                    title: "Erreur",
+                    description: recipeError.message || "Échec de l'enregistrement de la recette",
+                    variant: "destructive",
+                });
+                return;
+            }
 
             // Insert photos into recipe_photos table
             if (uploadedImageUrls.length > 0) {
@@ -237,7 +262,7 @@ const RecipeAdd = () => {
                     </div>
                     <h2 className="text-2xl font-bold mb-2">Analyse de votre recette...</h2>
                     <p className="text-muted-foreground max-w-md">
-                        Notre chef IA lit votre photo pour extraire les ingrédients et les étapes de préparation. Cela peut prendre quelques secondes.
+                        Votre assistant À la carte lit votre photo pour extraire les ingrédients et les étapes de préparation. Cela peut prendre quelques secondes.
                     </p>
                 </div>
             </div>

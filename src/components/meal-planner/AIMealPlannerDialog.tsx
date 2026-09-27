@@ -24,15 +24,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
   Sparkles, 
-  Clock, 
   Leaf, 
   Zap, 
-  Check, 
   RefreshCw, 
-  ArrowRight, 
-  Carrot, 
-  CalendarDays, 
-  Loader2 
+  Carrot 
 } from "lucide-react";
 
 interface AIMealPlannerDialogProps {
@@ -104,10 +99,10 @@ export const AIMealPlannerDialog: React.FC<AIMealPlannerDialogProps> = ({
       }
 
       toast({
-        title: "Planning généré par le Chef IA ! ✨",
+        title: "Planning généré par votre Assistant À la carte ! ✨",
         description: "Vérifiez vos repas et appliquez-les à votre calendrier.",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("AI generation fallback to local generator:", err);
       const localWeek = generateSmartWeekPlan(startDate, allRecipes, CATALOG_RECIPES, stock, prefs);
       setGeneratedPlan(localWeek);
@@ -148,7 +143,7 @@ export const AIMealPlannerDialog: React.FC<AIMealPlannerDialogProps> = ({
         <DialogHeader className="pb-2">
           <DialogTitle className="text-base sm:text-lg flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-amber-500 animate-pulse" />
-            <span>Planificateur de la semaine assisté par l'IA</span>
+            <span>Planificateur de la semaine avec l'Assistant À la carte</span>
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
             Générez un menu équilibré sur 7 jours adapté à votre budget, vos goûts et votre frigo.
@@ -161,7 +156,7 @@ export const AIMealPlannerDialog: React.FC<AIMealPlannerDialogProps> = ({
               <Sparkles className="w-8 h-8" />
             </div>
             <div className="text-center">
-              <h4 className="text-sm font-semibold text-foreground">Le Chef IA compose votre menu...</h4>
+              <h4 className="text-sm font-semibold text-foreground">Votre Assistant compose votre menu...</h4>
               <p className="text-xs text-muted-foreground mt-1 max-w-xs mx-auto">
                 Analyse des ingrédients du stock, équilibrage des portions et respect des quotas végé & express.
               </p>
@@ -230,7 +225,7 @@ export const AIMealPlannerDialog: React.FC<AIMealPlannerDialogProps> = ({
               <Label className="text-xs font-semibold">Repas à inclure dans la semaine</Label>
               <RadioGroup
                 value={planMode}
-                onValueChange={(v: any) => setPlanMode(v)}
+                onValueChange={(v) => setPlanMode(v as "all" | "dinners_only" | "weekdays_only")}
                 className="grid grid-cols-1 sm:grid-cols-3 gap-2"
               >
                 <div className={`p-2.5 rounded-xl border flex items-center space-x-2 cursor-pointer transition-colors ${planMode === "all" ? "border-primary bg-primary/5" : "border-border/70"}`}>
@@ -259,7 +254,7 @@ export const AIMealPlannerDialog: React.FC<AIMealPlannerDialogProps> = ({
               <Label className="text-xs font-semibold">Budget souhaité</Label>
               <RadioGroup
                 value={budget}
-                onValueChange={(v: any) => setBudget(v)}
+                onValueChange={(v) => setBudget(v as "economique" | "equilibre" | "gourmand")}
                 className="grid grid-cols-3 gap-2"
               >
                 <div className={`p-2.5 rounded-xl border flex items-center space-x-2 cursor-pointer transition-colors ${budget === "economique" ? "border-primary bg-primary/5" : "border-border/70"}`}>

@@ -24,8 +24,16 @@ import {
   Lock,
   BookmarkX,
   BookOpen,
+  MoreHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +65,8 @@ import { CookingTimerWidget } from "@/components/recipe/CookingTimerWidget";
 import { RecipeJournalSection } from "@/components/recipe/RecipeJournalSection";
 import { PrintableRecipeSheet } from "@/components/recipe/PrintableRecipeSheet";
 import { ShareRecipeModal } from "@/components/recipe/ShareRecipeModal";
+import { PreparationPhotoCard } from "@/components/recipes/PreparationPhotoCard";
+import { RecipePhotoLightbox } from "@/components/recipes/RecipePhotoLightbox";
 import { findIngredientSubstitution } from "@/lib/ingredient-substitutions";
 import { segmentTextWithDurations } from "@/lib/cooking-timer";
 
@@ -71,6 +81,7 @@ const RecipeDetail = () => {
 
   const [servings, setServings] = useState(4);
   const [photos, setPhotos] = useState<string[]>([]);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
   const [cloning, setCloning] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const [showShoppingModal, setShowShoppingModal] = useState(false);
@@ -205,6 +216,10 @@ const RecipeDetail = () => {
     });
   }, [recipe, servings, servingsScale]);
 
+  const isNotMine = useMemo(() => {
+    return isRecipeNotMine(recipe, user?.id);
+  }, [recipe, user?.id]);
+
   if (!recipe) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
@@ -217,9 +232,6 @@ const RecipeDetail = () => {
   const isOwner = user && userRecipe && userRecipe.user_id === user.id;
   const isCatalog = !userRecipe && !!catalogRecipe;
   const alreadyInCarnet = !!clonedPersonalRecipe;
-  const isNotMine = useMemo(() => {
-    return isRecipeNotMine(recipe, user?.id);
-  }, [recipe, user?.id]);
 
   const handleRemoveFromCarnet = async () => {
     const targetRecipe = userRecipe || clonedPersonalRecipe;
@@ -406,43 +418,15 @@ const RecipeDetail = () => {
             <ArrowLeft className="w-5 h-5" />
           </Button>
 
-          {/* Top Right Actions */}
-          <div className="absolute top-4 right-4 flex items-center gap-1.5 sm:gap-2">
+          {/* Top Right Actions: Favorite & Overflow Menu */}
+          <div className="absolute top-4 right-4 flex items-center gap-2">
             <Button
               variant="ghost"
               size="icon"
-              className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white rounded-full shadow-md text-foreground"
-              onClick={() => setShowCookingMode(true)}
-              title="Mode Cuisine (Mains-libres)"
-            >
-              <ChefHat className="w-5 h-5 text-accent" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white rounded-full shadow-md text-foreground"
-              onClick={() => setShowShareModal(true)}
-              title="Partager la recette (Lien & QR Code)"
-            >
-              <Share2 className="w-5 h-5" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white rounded-full shadow-md text-foreground"
-              onClick={() => window.print()}
-              title="Imprimer la recette / Export PDF"
-            >
-              <Printer className="w-5 h-5" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white rounded-full shadow-md"
+              className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white rounded-full shadow-md transition-transform active:scale-95"
               onClick={handleFavoriteClick}
+              title={recipe.is_favorited ? "Retirer des favoris" : "Ajouter aux favoris"}
+              aria-label={recipe.is_favorited ? "Retirer des favoris" : "Ajouter aux favoris"}
             >
               <Heart
                 className={`w-5 h-5 ${
@@ -453,29 +437,68 @@ const RecipeDetail = () => {
               />
             </Button>
 
-            {isNotMine && isOwner && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white hover:text-destructive rounded-full shadow-md text-foreground transition-colors"
-                onClick={handleRemoveFromCarnet}
-                disabled={removing}
-                title="Retirer de mon carnet"
-              >
-                <BookmarkX className="w-5 h-5" />
-              </Button>
-            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white rounded-full shadow-md text-foreground transition-transform active:scale-95"
+                  title="Plus d'actions"
+                  aria-label="Plus d'actions"
+                >
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem
+                  onClick={() => setShowCookingMode(true)}
+                  className="cursor-pointer gap-2 font-medium"
+                >
+                  <ChefHat className="w-4 h-4 text-accent" />
+                  <span>Mode Cuisine</span>
+                </DropdownMenuItem>
 
-            {isOwner && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-10 h-10 sm:w-11 sm:h-11 bg-white/90 backdrop-blur-md hover:bg-white rounded-full shadow-md"
-                onClick={() => navigate(`/recipes/edit/${id}`)}
-              >
-                <Edit className="w-5 h-5 text-foreground" />
-              </Button>
-            )}
+                {isOwner && (
+                  <DropdownMenuItem
+                    onClick={() => navigate(`/recipes/edit/${id}`)}
+                    className="cursor-pointer gap-2"
+                  >
+                    <Edit className="w-4 h-4" />
+                    <span>Modifier la recette</span>
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuItem
+                  onClick={() => setShowShareModal(true)}
+                  className="cursor-pointer gap-2"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>Partager la recette</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => window.print()}
+                  className="cursor-pointer gap-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  <span>Imprimer / PDF</span>
+                </DropdownMenuItem>
+
+                {isNotMine && isOwner && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={handleRemoveFromCarnet}
+                      disabled={removing}
+                      className="cursor-pointer gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+                    >
+                      <BookmarkX className="w-4 h-4" />
+                      <span>Retirer de mon carnet</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
         {/* Recipe Title & Badges Overlay */}
@@ -934,16 +957,21 @@ const RecipeDetail = () => {
           {/* Photos Section */}
           {photos.length > 0 && (
             <section>
-              <h2 className="text-lg font-bold mb-3">Photos de préparation</h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-bold">Photos de préparation</h2>
+                <span className="text-xs text-muted-foreground font-medium">
+                  {photos.length} photo{photos.length > 1 ? "s" : ""} • Cliquer pour agrandir
+                </span>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {photos.map((url, idx) => (
-                  <div key={idx} className="rounded-xl overflow-hidden border bg-muted">
-                    <img
-                      src={url}
-                      alt={`Photo originale ${idx + 1}`}
-                      className="w-full h-auto object-contain max-h-[400px]"
-                    />
-                  </div>
+                  <PreparationPhotoCard
+                    key={idx}
+                    url={url}
+                    index={idx}
+                    total={photos.length}
+                    onClick={() => setSelectedPhotoIndex(idx)}
+                  />
                 ))}
               </div>
             </section>
@@ -1018,6 +1046,15 @@ const RecipeDetail = () => {
         onOpenChange={setShowShareModal}
         recipe={recipe}
         onPrint={() => window.print()}
+      />
+
+      {/* Lightbox for preparation photos */}
+      <RecipePhotoLightbox
+        photos={photos}
+        initialIndex={selectedPhotoIndex ?? 0}
+        open={selectedPhotoIndex !== null}
+        onClose={() => setSelectedPhotoIndex(null)}
+        title={recipe?.title}
       />
     </div>
   </>

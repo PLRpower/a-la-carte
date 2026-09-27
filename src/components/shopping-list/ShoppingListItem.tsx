@@ -24,10 +24,12 @@ const ShoppingListItemComponent = ({ item, onToggle, onDelete, onUpdate }: Shopp
 
     const [value, setValue] = useState(getDisplayValue());
     const [isFocused, setIsFocused] = useState(false);
+    const [imageError, setImageError] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     // Update local value if item changes externally
     useEffect(() => {
+        setImageError(false);
         const getDisplayValue = () => {
             let display = item.name;
             if (item.quantity) {
@@ -40,7 +42,7 @@ const ShoppingListItemComponent = ({ item, onToggle, onDelete, onUpdate }: Shopp
         if (!isFocused) {
             setValue(getDisplayValue());
         }
-    }, [item.name, item.quantity, item.unit, isFocused]);
+    }, [item.name, item.quantity, item.unit, item.ingredient?.image_url, isFocused]);
 
     const handleBlur = () => {
         setIsFocused(false);
@@ -73,10 +75,11 @@ const ShoppingListItemComponent = ({ item, onToggle, onDelete, onUpdate }: Shopp
                 />
             </div>
 
-            {item.ingredient?.image_url ? (
+            {item.ingredient?.image_url && !imageError ? (
                 <img
                     src={item.ingredient.image_url}
                     alt={item.name}
+                    onError={() => setImageError(true)}
                     className="w-8 h-8 rounded bg-muted object-cover flex-shrink-0"
                 />
             ) : (

@@ -7,23 +7,29 @@ const corsHeaders = {
 
 // Retry helper function
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 1000) {
+  let lastError: unknown;
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, options);
 
-      // If server error or rate limit, throw to retry
+      // If server error or rate limit, retry
       if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
-        throw new Error(`Attempt ${i + 1} failed with status ${response.status}`);
+        const errorMsg = `Attempt ${i + 1} failed with status ${response.status}`;
+        console.warn(`Retry ${i + 1}/${retries} failed:`, errorMsg);
+        lastError = new Error(errorMsg);
+      } else {
+        return response;
       }
-      return response;
     } catch (err) {
       console.warn(`Retry ${i + 1}/${retries} failed:`, err);
-      if (i === retries - 1) throw err;
+      lastError = err;
+    }
+    if (i < retries - 1) {
       // Exponential backoff
       await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i)));
     }
   }
-  throw new Error("All retries failed");
+  throw lastError instanceof Error ? lastError : new Error("All retries failed");
 }
 
 serve(async (req) => {
@@ -86,7 +92,7 @@ IMPORTANT:
     ];
 
     let response: Response | null = null;
-    let lastError: any = null;
+    let lastError: unknown = null;
 
     for (const model of CANDIDATE_MODELS) {
       try {
@@ -116,7 +122,7 @@ IMPORTANT:
           console.warn(`Model ${model} returned status ${res.status}:`, errBody);
           lastError = new Error(`Model ${model} error ${res.status}: ${errBody}`);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.warn(`Model ${model} attempt failed:`, err);
         lastError = err;
       }
@@ -124,9 +130,9 @@ IMPORTANT:
 
     if (!response) {
       console.error("All Gemini candidate models failed:", lastError);
-      let userMessage = "L'IA ne répond pas pour le moment. Veuillez réessayer plus tard.";
+      let userMessage = "L'assistant ne répond pas pour le moment. Veuillez réessayer plus tard.";
       if (lastError instanceof Error && lastError.message.includes("429")) {
-        userMessage = "Le quota de demandes d'IA est dépassé. Veuillez patienter quelques instants.";
+        userMessage = "Le service est temporairement surchargé. Veuillez patienter quelques instants.";
       }
       return new Response(
         JSON.stringify({ error: userMessage, details: lastError instanceof Error ? lastError.message : String(lastError) }),
@@ -138,13 +144,16 @@ IMPORTANT:
 
     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
       console.error("Unexpected Gemini response format:", data);
-      throw new Error("L'IA n'a pas renvoyé de contenu exploitable. L'image est peut-être floue ou ne contient pas de recette lisible.");
+      return new Response(
+        JSON.stringify({ error: "L'assistant n'a pas renvoyé de contenu exploitable. L'image est peut-être floue ou ne contient pas de recette lisible." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const contentText = data.candidates[0].content.parts[0].text;
 
     // Clean up the response text to ensure it's valid JSON
-    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+    const jsonMatch = contentText.match(/\{[\s\S]*}/);
     const jsonString = jsonMatch ? jsonMatch[0] : contentText;
 
     let recipe;
@@ -153,7 +162,10 @@ IMPORTANT:
     } catch (e) {
       console.error("JSON parse error:", e);
       console.error("Raw content:", contentText);
-      throw new Error("L'IA a mal structuré sa réponse. Veuillez réessayer avec une photo plus claire.");
+      return new Response(
+        JSON.stringify({ error: "L'assistant a mal structuré sa réponse. Veuillez réessayer avec une photo plus claire." }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Validate recipe structure slightly

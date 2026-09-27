@@ -12,14 +12,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Share2,
   Video,
   Sparkles,
   Loader2,
   Link as LinkIcon,
   FileText,
   X,
-  Youtube,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,9 +60,15 @@ export const SocialImportDialog = ({ open, onOpenChange }: SocialImportDialogPro
         body: payload,
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      if (!data?.recipe) throw new Error("Aucune donnée de recette retournée par l'IA");
+      if (error || data?.error || !data?.recipe) {
+        const errMsg =
+          error?.message ||
+          data?.error ||
+          "Aucune donnée de recette extraite par l'assistant";
+        console.error("Social import error:", errMsg);
+        toast.error(errMsg);
+        return;
+      }
 
       toast.success("Recette extraite avec succès !");
       onOpenChange(false);
@@ -126,7 +130,9 @@ export const SocialImportDialog = ({ open, onOpenChange }: SocialImportDialogPro
               Instagram Reels
             </span>
             <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-600 text-white flex items-center gap-1">
-              <Youtube className="w-3 h-3" />
+              <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+              </svg>
               Shorts
             </span>
           </div>
@@ -162,7 +168,7 @@ export const SocialImportDialog = ({ open, onOpenChange }: SocialImportDialogPro
                 />
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
-                L'IA analyse automatiquement les métadonnées et la description de la vidéo pour en
+                Votre assistant À la carte analyse automatiquement les métadonnées et la description de la vidéo pour en
                 extraire les ingrédients et les étapes de préparation.
               </p>
             </TabsContent>
@@ -184,7 +190,7 @@ export const SocialImportDialog = ({ open, onOpenChange }: SocialImportDialogPro
               </div>
               <p className="text-[11px] text-muted-foreground leading-relaxed">
                 Idéal si Instagram ou TikTok protège la vidéo : copiez le texte sous le post et
-                l'IA structure tout instantanément.
+                l'assistant structure tout instantanément.
               </p>
             </TabsContent>
           </Tabs>
@@ -197,7 +203,7 @@ export const SocialImportDialog = ({ open, onOpenChange }: SocialImportDialogPro
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Analyse de la recette par l'IA...
+                Analyse de la recette par l'assistant...
               </>
             ) : (
               <>

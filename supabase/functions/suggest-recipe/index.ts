@@ -7,20 +7,26 @@ const corsHeaders = {
 
 // Retry helper function (same as in scan-recipe-image)
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 1000) {
+  let lastError: unknown;
   for (let i = 0; i < retries; i++) {
     try {
       const response = await fetch(url, options);
       if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
-        throw new Error(`Attempt ${i + 1} failed with status ${response.status}`);
+        const errorMsg = `Attempt ${i + 1} failed with status ${response.status}`;
+        console.warn(`Retry ${i + 1}/${retries} failed:`, errorMsg);
+        lastError = new Error(errorMsg);
+      } else {
+        return response;
       }
-      return response;
     } catch (err) {
       console.warn(`Retry ${i + 1}/${retries} failed:`, err);
-      if (i === retries - 1) throw err;
+      lastError = err;
+    }
+    if (i < retries - 1) {
       await new Promise(resolve => setTimeout(resolve, backoff * Math.pow(2, i)));
     }
   }
-  throw new Error("All retries failed");
+  throw lastError instanceof Error ? lastError : new Error("All retries failed");
 }
 
 serve(async (req) => {
@@ -47,15 +53,16 @@ serve(async (req) => {
       ? `\n- **Avoid these previously suggested recipes (the user wants something different):** ${avoidRecipes.join(", ")}`
       : "";
 
+    type StockIng = { name: string; quantity: number | string; unit?: string };
     const expiringText = expiringIngredients && expiringIngredients.length > 0
-      ? `\n- 🚨 **PRIORITÉ ABSOLUE ANTI-GASPILLAGE (DLC < 48H) :** Les ingrédients suivants périment dans moins de 48 heures et DOIVENT IMPÉRATIVEMENT être cuisinés en priorité dans cette recette : ${expiringIngredients.map((i: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => `${i.name} (${i.quantity} ${i.unit})`).join(", ")}. Conçois la recette autour de ces ingrédients pour éviter tout gaspillage !`
+      ? `\n- 🚨 **PRIORITÉ ABSOLUE ANTI-GASPILLAGE (DLC < 48H) :** Les ingrédients suivants périment dans moins de 48 heures et DOIVENT IMPÉRATIVEMENT être cuisinés en priorité dans cette recette : ${expiringIngredients.map((i: StockIng) => `${i.name} (${i.quantity} ${i.unit})`).join(", ")}. Conçois la recette autour de ces ingrédients pour éviter tout gaspillage !`
       : "";
 
     const systemPrompt = `You are a creative professional chef assistant. 
 Generate a recipe suggestion for a user based on their available stock, anti-waste urgency, and preferences.
 
 **User Constraints:**
-- **Available Ingredients:** ${ingredients && ingredients.length > 0 ? ingredients.map((i: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) => `${i.name} (${i.quantity} ${i.unit})`).join(", ") : 'Aucun ingrédient en stock. Suggère une délicieuse recette classique utilisant des ingrédients de base courants.'}.
+- **Available Ingredients:** ${ingredients && ingredients.length > 0 ? ingredients.map((i: StockIng) => `${i.name} (${i.quantity} ${i.unit})`).join(", ") : 'Aucun ingrédient en stock. Suggère une délicieuse recette classique utilisant des ingrédients de base courants.'}.
 - **Meal Type:** ${mealType === 'any' ? 'Suitable for any meal' : mealType}.
 - **Creativity Level:** ${creativity} (classic = distinct traditional dish, original = modern twist, crazy = unexpected fusion).
 - **Focus:** ${focus === 'use_stock' ? 'Maximize use of provided ingredients (try to avoid buying new things)' : 'Use provided ingredients as base but feel free to add common complements'}.${avoidText}${expiringText}
@@ -118,7 +125,7 @@ Return ONLY valid JSON with this exact structure:
           console.warn(`Model ${model} returned status ${res.status}:`, errBody);
           modelErrors[model] = `Status ${res.status}: ${errBody}`;
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.warn(`Model ${model} attempt failed:`, err);
         modelErrors[model] = err instanceof Error ? err.message : String(err);
       }
@@ -128,8 +135,8 @@ Return ONLY valid JSON with this exact structure:
       console.error("All Gemini candidate models failed:", modelErrors);
       const isQuota = Object.values(modelErrors).some((msg) => msg.includes("429"));
       const userMessage = isQuota
-        ? "Le service IA est surchargé (quota dépassé), réessayez dans une minute."
-        : "L'IA ne répond pas pour le moment. Veuillez réessayer dans quelques instants.";
+        ? "Le service est temporairement surchargé, réessayez dans une minute."
+        : "L'assistant ne répond pas pour le moment. Veuillez réessayer dans quelques instants.";
 
       return new Response(
         JSON.stringify({ error: userMessage, details: JSON.stringify(modelErrors) }),
@@ -139,11 +146,14 @@ Return ONLY valid JSON with this exact structure:
 
     const data = await response.json();
     if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-      throw new Error("Invalid response format from AI");
+      return new Response(
+        JSON.stringify({ error: "Invalid response format from assistant" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const contentText = data.candidates[0].content.parts[0].text;
-    const jsonMatch = contentText.match(/\{[\s\S]*\}/);
+    const jsonMatch = contentText.match(/\{[\s\S]*}/);
     const jsonString = jsonMatch ? jsonMatch[0] : contentText;
 
     let recipe;
@@ -152,7 +162,7 @@ Return ONLY valid JSON with this exact structure:
     } catch (e) {
       console.error("JSON parse error", e);
       return new Response(
-        JSON.stringify({ error: "L'IA a généré une réponse invalide. Réessayez." }),
+        JSON.stringify({ error: "L'assistant a généré une réponse invalide. Réessayez." }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
