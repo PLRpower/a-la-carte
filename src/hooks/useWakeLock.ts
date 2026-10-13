@@ -11,10 +11,14 @@ export interface UseWakeLockReturn {
 /**
  * Screen Wake Lock hook to prevent device from sleeping while cooking
  */
+interface WakeLockSentinelLike extends EventTarget {
+  release: () => Promise<void>;
+}
+
 export function useWakeLock(enabledByDefault: boolean = true): UseWakeLockReturn {
   const [isActive, setIsActive] = useState(false);
   const [isSupported, setIsSupported] = useState(false);
-  const wakeLockRef = useRef<any>(null);
+  const wakeLockRef = useRef<WakeLockSentinelLike | null>(null);
   const shouldBeActiveRef = useRef(enabledByDefault);
 
   useEffect(() => {
@@ -36,7 +40,8 @@ export function useWakeLock(enabledByDefault: boolean = true): UseWakeLockReturn
         }
       }
 
-      const sentinel = await (navigator as any).wakeLock.request("screen");
+      const nav = navigator as unknown as { wakeLock: { request: (type: string) => Promise<WakeLockSentinelLike> } };
+      const sentinel = await nav.wakeLock.request("screen");
       wakeLockRef.current = sentinel;
       setIsActive(true);
       shouldBeActiveRef.current = true;

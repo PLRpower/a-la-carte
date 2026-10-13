@@ -63,3 +63,7 @@ Disallow: /stock/add
 # https://llmstxt.org/
 llms-txt: https://alacarte.app/llms.txt
 llms-full-txt: https://alacarte.app/llms-full.txt
+
+# XML Sitemap for Search Engines
+Sitemap: https://alacarte.app/sitemap.xml
+

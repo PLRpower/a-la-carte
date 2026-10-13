@@ -15,13 +15,13 @@ const LegalNotice = () => {
           <code>https://alacarte.app</code> ou tout sous-domaine associé) sont édités par :
         </p>
         <ul className="list-disc pl-6 space-y-1">
-          <li><strong>Nom / Dénomination sociale :</strong> [Paul / À la carte SAS ou EI - À compléter]</li>
-          <li><strong>Forme juridique :</strong> [Entreprise Individuelle / SAS / SARL - À compléter]</li>
-          <li><strong>Siège social :</strong> [Adresse postale complète, France - À compléter]</li>
-          <li><strong>Numéro d'immatriculation :</strong> [RCS / SIRET - À renseigner, ex: 123 456 789 00012]</li>
-          <li><strong>Numéro de TVA intracommunautaire :</strong> [FR XX 123456789 ou « Franchise en base de TVA (art. 293 B du CGI) »]</li>
+          <li><strong>Nom / Dénomination sociale :</strong> Paul THOMAS (Entreprise Individuelle)</li>
+          <li><strong>Forme juridique :</strong> Entrepreneur individuel (EI)</li>
+          <li><strong>Siège social :</strong> 10 Rue de Copenhague, 67000 Strasbourg, France</li>
+          <li><strong>Numéro d'immatriculation :</strong> SIRET en cours d'attribution (Dossier INPI n° J00285732012 - COTJ Strasbourg)</li>
+          <li><strong>Numéro de TVA intracommunautaire :</strong> Franchise en base de TVA (art. 293 B du CGI)</li>
           <li><strong>Email de contact :</strong> contact@alacarte.app</li>
-          <li><strong>Téléphone :</strong> [Numéro de téléphone de contact - À compléter]</li>
+          <li><strong>Téléphone :</strong> +33 6 52 96 55 58</li>
         </ul>
       </section>
 
@@ -29,7 +29,7 @@ const LegalNotice = () => {
         <h2 className="text-xl font-bold font-serif text-foreground">2. Directeur de la publication</h2>
         <p>
           Le Directeur de la publication du site et de l'application est :{" "}
-          <strong>Paul [Nom de famille - À renseigner]</strong>, en qualité de fondateur / représentant légal.
+          <strong>Paul THOMAS</strong>, en qualité de fondateur / exploitant de l'entreprise individuelle.
         </p>
         <p>Contact : <code>contact@alacarte.app</code></p>
       </section>

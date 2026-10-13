@@ -19,11 +19,10 @@ describe('saveRecipeIngredients', () => {
         vi.clearAllMocks();
 
         // Setup default mock implementation for supabase
-        const fromMock = vi.fn().mockReturnThis();
         const insertMock = vi.fn().mockResolvedValue({ error: null });
-        (supabase.from as any).mockReturnValue({
+        vi.mocked(supabase.from).mockReturnValue({
             insert: insertMock,
-        });
+        } as unknown as ReturnType<typeof supabase.from>);
     });
 
     it('should process ingredients correctly', async () => {
@@ -35,12 +34,12 @@ describe('saveRecipeIngredients', () => {
             return { name: 'farine', quantity: 200, unit: 'g' };
         });
 
-        vi.mocked(ingredientParser.findBestIngredientMatch).mockImplementation((name, list) => {
-            if (name === 'oeuf') return { id: '1', name: 'oeuf' } as any;
+        vi.mocked(ingredientParser.findBestIngredientMatch).mockImplementation((name) => {
+            if (name === 'oeuf') return { id: '1', name: 'oeuf' } as unknown as ReturnType<typeof ingredientParser.findBestIngredientMatch>;
             return null;
         });
 
-        await saveRecipeIngredients('recipe-id', ingredientsText, allIngredients as any);
+        await saveRecipeIngredients('recipe-id', ingredientsText, allIngredients as unknown as Parameters<typeof saveRecipeIngredients>[2]);
 
         const fromMock = supabase.from;
         const insertMock = supabase.from('recipe_ingredients').insert;
@@ -73,7 +72,7 @@ describe('saveRecipeIngredients', () => {
         vi.mocked(ingredientParser.findBestIngredientMatch).mockReturnValue(null);
 
         // Call with undefined just in case
-        await expect(saveRecipeIngredients('recipe-id', ingredientsText, undefined as any)).resolves.not.toThrow();
+        await expect(saveRecipeIngredients('recipe-id', ingredientsText, undefined as unknown as Parameters<typeof saveRecipeIngredients>[2])).resolves.not.toThrow();
     });
 });
 

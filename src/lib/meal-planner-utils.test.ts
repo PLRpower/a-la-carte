@@ -149,7 +149,7 @@ describe("meal-planner-utils", () => {
       }
     ];
 
-    const session = generateBatchCookingSession(recipes as any);
+    const session = generateBatchCookingSession(recipes as Parameters<typeof generateBatchCookingSession>[0]);
     expect(session.tasks).toHaveLength(5);
     expect(session.savedMinutes).toBeGreaterThan(0);
     expect(session.storageAdvice).toHaveLength(3);

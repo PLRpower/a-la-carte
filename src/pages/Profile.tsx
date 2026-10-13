@@ -12,6 +12,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useRecipes } from "@/hooks/useRecipes";
 import { useStock } from "@/hooks/useStock";
 import { isBetaEnvironment, getBetaUrl, getProductionUrl } from "@/utils/environment";
+import { trackEvent } from "@/lib/analytics";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -181,7 +182,10 @@ const Profile = () => {
         {/* Premium Banner */}
         <section className="px-6">
           <div
-            onClick={() => navigate('/premium')}
+            onClick={() => {
+              trackEvent("premium_profile_banner_click", { is_premium: profile?.subscription_status === 'active' });
+              navigate('/premium');
+            }}
             className={`rounded-2xl p-6 text-white shadow-lg cursor-pointer transform transition-all active:scale-[0.98] relative overflow-hidden group border border-white/10 bg-gradient-to-br ${profile?.subscription_status === 'active'
                 ? 'from-primary to-primary/80'
                 : 'from-accent to-orange-400/90'

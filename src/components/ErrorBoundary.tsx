@@ -3,6 +3,7 @@ import { AlertTriangle, RotateCcw, ExternalLink, ShieldAlert, Home } from "lucid
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { isBetaEnvironment, getProductionUrl } from "@/utils/environment";
+import { Sentry } from "@/lib/sentry";
 
 interface Props {
   children: ReactNode;
@@ -27,6 +28,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught application error:", error, errorInfo);
+    Sentry.captureException(error, {
+      extra: {
+        componentStack: errorInfo.componentStack,
+      },
+    });
   }
 
   private handleReload = () => {
@@ -38,8 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleGoToProduction = () => {
-    const prodUrl = getProductionUrl();
-    window.location.href = prodUrl;
+    window.location.href = getProductionUrl();
   };
 
   public render() {

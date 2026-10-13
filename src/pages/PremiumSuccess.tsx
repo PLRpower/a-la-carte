@@ -3,11 +3,14 @@ import { Sparkles, CheckCircle2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
+import { trackEvent } from "@/lib/analytics";
+
 export default function PremiumSuccess() {
     const navigate = useNavigate();
     const { refetch } = useProfile();
 
     useEffect(() => {
+        trackEvent("premium_conversion_success");
         // Force refresh to update subscription status
         refetch();
     }, [refetch]);

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { 
   RecipeWithDetails, 
-  MealPlanRecipeSnapshot, 
-  BatchCookingTask 
+  MealPlanRecipeSnapshot 
 } from "@/types/database";
 import { 
   generateBatchCookingSession 
@@ -12,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
-import { RecipeImage } from "@/components/RecipeImage";
 import { 
   Clock, 
   Flame, 
@@ -60,7 +58,7 @@ export const BatchCookingView: React.FC<BatchCookingViewProps> = ({
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
 
   useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isTimerRunning && timerSeconds > 0) {
       interval = setInterval(() => {
         setTimerSeconds((prev) => {

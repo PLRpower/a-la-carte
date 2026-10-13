@@ -19,9 +19,6 @@ import { analyzeRecipeStock } from "@/lib/stock-matching";
 import { 
   Search, 
   Clock, 
-  ChefHat, 
-  Check, 
-  Sparkles, 
   Utensils, 
   BookOpen, 
   Compass, 
@@ -32,7 +29,6 @@ import {
 interface AssignRecipeModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  targetDateKey: string;
   targetDayName: string;
   targetSlot: MealPlanSlot;
   onAssignRecipe: (data: {
@@ -46,7 +42,6 @@ interface AssignRecipeModalProps {
 export const AssignRecipeModal: React.FC<AssignRecipeModalProps> = ({
   open,
   onOpenChange,
-  targetDateKey,
   targetDayName,
   targetSlot,
   onAssignRecipe,
@@ -158,7 +153,7 @@ export const AssignRecipeModal: React.FC<AssignRecipeModalProps> = ({
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)} className="flex-1 flex flex-col min-h-0 pt-2">
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "carnet" | "catalog" | "custom")} className="flex-1 flex flex-col min-h-0 pt-2">
           <TabsList className="grid grid-cols-3 w-full mb-3">
             <TabsTrigger value="carnet" className="text-xs flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5" />
@@ -223,7 +218,7 @@ export const AssignRecipeModal: React.FC<AssignRecipeModalProps> = ({
             ) : (
               filteredUserRecipes.map((recipe) => {
                 const analysis = recipe.ingredients
-                  ? analyzeRecipeStock(recipe.ingredients as any, stock, servings / (recipe.servings || 2))
+                  ? analyzeRecipeStock(recipe.ingredients as Parameters<typeof analyzeRecipeStock>[0], stock, servings / (recipe.servings || 2))
                   : null;
 
                 return (
@@ -278,7 +273,7 @@ export const AssignRecipeModal: React.FC<AssignRecipeModalProps> = ({
           <TabsContent value="catalog" className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0 mt-0">
             {filteredCatalogRecipes.slice(0, 30).map((recipe) => {
               const analysis = recipe.ingredients
-                ? analyzeRecipeStock(recipe.ingredients as any, stock, servings / (recipe.servings || 2))
+                ? analyzeRecipeStock(recipe.ingredients as Parameters<typeof analyzeRecipeStock>[0], stock, servings / (recipe.servings || 2))
                 : null;
 
               return (

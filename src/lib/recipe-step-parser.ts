@@ -19,8 +19,8 @@ export function parseRecipeSteps(instructions: string | null | undefined): Parse
   const raw = instructions.trim();
 
   // 1. Check if text has explicit numbered steps like "1.", "1)", "Étape 1"
-  // Look for patterns starting lines: e.g. /(?:^|\n)\s*(?:(?:\d+[\.\)]\s*)|(?:étape\s*\d+\s*[:\-]?\s*))/i
-  const numberedLinesRegex = /(?:^|\n)\s*(?:(?:\d+[\.\)]\s*)|(?:étape\s*\d+\s*[:\-]?\s*))/i;
+  // Look for patterns starting lines: e.g. /(?:^|\n)\s*(?:\d+[.)]\s*|étape\s*\d+\s*[:-]?\s*)/i
+  const numberedLinesRegex = /(?:^|\n)\s*(?:\d+[.)]\s*|étape\s*\d+\s*[:-]?\s*)/i;
 
   if (numberedLinesRegex.test(raw)) {
     // Split by lines or step headings
@@ -32,14 +32,14 @@ export function parseRecipeSteps(instructions: string | null | undefined): Parse
       const trimmed = line.trim();
       if (!trimmed) continue;
 
-      const isNewStep = /^(?:(?:\d+[\.\)]\s*)|(?:étape\s*\d+\s*[:\-]?\s*))/i.test(trimmed);
+      const isNewStep = /^(?:\d+[.)]\s*|étape\s*\d+\s*[:-]?\s*)/i.test(trimmed);
 
       if (isNewStep) {
         if (currentStepText) {
           steps.push(currentStepText.trim());
         }
         // Remove leading step indicator: "1. ", "1) ", "Étape 1 : "
-        currentStepText = trimmed.replace(/^(?:(?:\d+[\.\)]\s*)|(?:étape\s*\d+\s*[:\-]?\s*))/i, "");
+        currentStepText = trimmed.replace(/^(?:\d+[.)]\s*|étape\s*\d+\s*[:-]?\s*)/i, "");
       } else {
         if (currentStepText) {
           currentStepText += " " + trimmed;
@@ -59,9 +59,9 @@ export function parseRecipeSteps(instructions: string | null | undefined): Parse
   }
 
   // 2. Check for bullet points (- or •)
-  if (/(?:^|\n)\s*[\-•*]\s+/i.test(raw)) {
+  if (/(?:^|\n)\s*[-•*]\s+/i.test(raw)) {
     const items = raw
-      .split(/(?:^|\n)\s*[\-•*]\s+/)
+      .split(/(?:^|\n)\s*[-•*]\s+/)
       .map((s) => s.trim())
       .filter(Boolean);
 
@@ -79,7 +79,7 @@ export function parseRecipeSteps(instructions: string | null | undefined): Parse
   if (paragraphs.length > 1) {
     return paragraphs.map((text, idx) => ({
       stepNumber: idx + 1,
-      text: text.replace(/^\d+[\.\)]\s*/, "").trim(),
+      text: text.replace(/^\d+[.)]\s*/, "").trim(),
     }));
   }
 
@@ -92,7 +92,7 @@ export function parseRecipeSteps(instructions: string | null | undefined): Parse
   if (singleLines.length > 1) {
     return singleLines.map((text, idx) => ({
       stepNumber: idx + 1,
-      text: text.replace(/^\d+[\.\)]\s*/, "").trim(),
+      text: text.replace(/^\d+[.)]\s*/, "").trim(),
     }));
   }
 

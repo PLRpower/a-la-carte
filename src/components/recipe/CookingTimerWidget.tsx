@@ -11,7 +11,6 @@ import {
   BellRing,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   formatSeconds,
   playKitchenChime,
@@ -38,7 +37,7 @@ export const CookingTimerWidget: React.FC<CookingTimerWidgetProps> = ({
   const [isAlarming, setIsAlarming] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
 
-  const alarmIntervalRef = useRef<any>(null);
+  const alarmIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Synchronize when a new duration is clicked from step text
   useEffect(() => {
@@ -52,7 +51,7 @@ export const CookingTimerWidget: React.FC<CookingTimerWidgetProps> = ({
 
   // Main countdown loop
   useEffect(() => {
-    let interval: any = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
 
     if (isRunning && remainingSeconds > 0) {
       interval = setInterval(() => {
@@ -133,6 +132,12 @@ export const CookingTimerWidget: React.FC<CookingTimerWidgetProps> = ({
   const progressPercentage =
     totalSeconds > 0 ? Math.max(0, Math.min(100, ((totalSeconds - remainingSeconds) / totalSeconds) * 100)) : 0;
 
+  const iconBgClass = isAlarming
+    ? "bg-destructive text-destructive-foreground animate-bounce"
+    : isRunning
+    ? "bg-accent text-accent-foreground"
+    : "bg-muted text-muted-foreground";
+
   return (
     <div
       className={`rounded-2xl border transition-all duration-300 ${
@@ -144,13 +149,7 @@ export const CookingTimerWidget: React.FC<CookingTimerWidgetProps> = ({
       <div className="flex items-center justify-between gap-2 mb-2">
         <div className="flex items-center gap-2 min-w-0">
           <div
-            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-              isAlarming
-                ? "bg-destructive text-destructive-foreground animate-bounce"
-                : isRunning
-                ? "bg-accent text-accent-foreground"
-                : "bg-muted text-muted-foreground"
-            }`}
+            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${iconBgClass}`}
           >
             {isAlarming ? <BellRing className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
           </div>

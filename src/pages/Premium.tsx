@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useProfile } from "@/hooks/useProfile";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 const Premium = () => {
     const navigate = useNavigate();
@@ -17,6 +18,10 @@ const Premium = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const isPremium = profile?.subscription_status === 'active';
+
+    useEffect(() => {
+        trackEvent("premium_page_view");
+    }, []);
 
     useEffect(() => {
         if (isPremium && !loading) {
@@ -51,6 +56,7 @@ const Premium = () => {
         setIsLoading(true);
         try {
             if (isPremium) {
+                trackEvent("premium_portal_click");
                 // User is already premium, redirect to Stripe Billing Portal to manage subscription
                 const { data, error } = await supabase.functions.invoke('create-portal-session', {
                     body: { returnUrl: window.location.origin + '/profile' }
@@ -72,6 +78,7 @@ const Premium = () => {
                     window.location.href = data.url;
                 }
             } else {
+                trackEvent("premium_checkout_start", { plan: isAnnual ? "annual" : "monthly" });
                 // User is not premium, redirect to Stripe Checkout
                 // NOTE: Replace these with your actual Stripe Price IDs from the dashboard
                 const priceId = isAnnual
@@ -111,9 +118,10 @@ const Premium = () => {
                     window.location.href = data.url;
                 }
             }
-        } catch (error: any /* eslint-disable-line @typescript-eslint/no-explicit-any */) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Une erreur est survenue avec le paiement.");
+            const msg = error instanceof Error ? error.message : "Une erreur est survenue avec le paiement.";
+            toast.error(msg);
         } finally {
             setIsLoading(false);
         }

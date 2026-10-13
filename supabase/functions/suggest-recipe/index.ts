@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { verifyAuthAndQuota, recordAiUsage, corsHeaders } from "../_shared/ai-auth.ts";
 
 // Retry helper function (same as in scan-recipe-image)
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 1000) {
@@ -31,6 +27,12 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, ba
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // 1. Verify user authentication and weekly quota
+  const authCheck = await verifyAuthAndQuota(req, "suggest-recipe");
+  if (!authCheck.authorized) {
+    return authCheck.errorResponse!;
+  }
 
   try {
     const { ingredients, preferences, avoidRecipes, expiringIngredients } = await req.json();
@@ -167,9 +169,21 @@ Return ONLY valid JSON with this exact structure:
       );
     }
 
-    return new Response(JSON.stringify({ recipe }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Log successful AI usage
+    if (authCheck.userId) {
+      await recordAiUsage(authCheck.userId, "suggest-recipe");
+    }
+
+    return new Response(
+      JSON.stringify({
+        recipe,
+        isPremium: authCheck.isPremium,
+        remainingQuota: authCheck.remainingQuota,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Error:", error);
     return new Response(

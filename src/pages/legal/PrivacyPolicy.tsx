@@ -26,9 +26,9 @@ const PrivacyPolicy = () => {
           Le responsable du traitement des données à caractère personnel collectées sur l'application <strong>À la carte</strong> est l'éditeur du service (ci-après « Nous » ou « l'Éditeur »), joignable à l'adresse suivante :
         </p>
         <ul className="list-disc pl-6 space-y-1">
-          <li><strong>Délégué / Référent à la protection des données (DPO) :</strong> Paul [Nom de famille]</li>
+          <li><strong>Délégué / Référent à la protection des données (DPO) :</strong> Paul THOMAS</li>
           <li><strong>Courriel dédié à l'exercice de vos droits :</strong> <code>contact@alacarte.app</code> (Objet : « Données Personnelles / RGPD »)</li>
-          <li><strong>Adresse postale :</strong> [Adresse postale du siège social, France]</li>
+          <li><strong>Adresse postale :</strong> 10 Rue de Copenhague, 67000 Strasbourg, France</li>
         </ul>
       </section>
 

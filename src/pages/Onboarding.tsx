@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { RecipeImage } from "@/components/RecipeImage";
 import { STARTER_THEMES, getStarterPackRecipes } from "@/data/starterPacks";
 import { PENDING_STARTER_PACK_KEY } from "@/lib/recipe-clone";
+import { trackEvent } from "@/lib/analytics";
 
 interface OnboardingProps {
   onComplete?: () => void;
@@ -86,6 +87,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   };
 
   const finishOnboardingWithPack = (recipeIds: string[]) => {
+    trackEvent("onboarding_complete_pack", { pack_recipes_count: recipeIds.length });
     localStorage.setItem("onboardingCompleted", "true");
     localStorage.setItem(PENDING_STARTER_PACK_KEY, JSON.stringify(recipeIds));
     localStorage.removeItem("isDemoMode");
@@ -95,6 +97,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   };
 
   const startDemoMode = () => {
+    trackEvent("onboarding_demo_started");
     localStorage.setItem("onboardingCompleted", "true");
     localStorage.setItem("isDemoMode", "true");
 

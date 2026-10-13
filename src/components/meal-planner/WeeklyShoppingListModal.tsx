@@ -9,10 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import { 
-  WeeklyShoppingListResult, 
-  GeneratedShoppingItem 
+  WeeklyShoppingListResult 
 } from "@/lib/meal-planner-utils";
 import { useShoppingList } from "@/hooks/useShoppingList";
 import { useToast } from "@/hooks/use-toast";
@@ -22,9 +20,7 @@ import {
   Check, 
   ChevronDown, 
   ChevronUp, 
-  Sparkles, 
-  ArrowRight, 
-  AlertCircle 
+  ArrowRight 
 } from "lucide-react";
 
 interface WeeklyShoppingListModalProps {
@@ -90,14 +86,22 @@ export const WeeklyShoppingListModal: React.FC<WeeklyShoppingListModalProps> = (
     setIsAdding(true);
     try {
       const res = await addItems(itemsToAdd);
-      if (res.error) throw res.error;
+      if (res.error) {
+        console.error("Error adding to shopping list:", res.error);
+        toast({
+          title: "Erreur",
+          description: "Impossible d'ajouter les ingrédients aux courses.",
+          variant: "destructive",
+        });
+        return;
+      }
 
       setHasAdded(true);
       toast({
         title: "Liste de courses mise à jour ! 🛒",
         description: `${itemsToAdd.length} ingrédient${itemsToAdd.length > 1 ? "s ajoutés" : " ajouté"} avec succès.`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error adding to shopping list:", err);
       toast({
         title: "Erreur",

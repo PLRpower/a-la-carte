@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { verifyAuthAndQuota, recordAiUsage, corsHeaders } from "../_shared/ai-auth.ts";
 
 // Retry helper function
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 1000) {
@@ -34,6 +30,12 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, ba
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // 1. Verify user authentication and weekly quota
+  const authCheck = await verifyAuthAndQuota(req, "scan-recipe-image");
+  if (!authCheck.authorized) {
+    return authCheck.errorResponse!;
+  }
 
   try {
     const { imageBase64 } = await req.json();
@@ -174,9 +176,21 @@ IMPORTANT:
       console.warn("Extracted JSON seems valid but empty or wrong schema", recipe);
     }
 
-    return new Response(JSON.stringify({ recipes: recipe.recipes || (recipe.title ? [recipe] : []) }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Log successful AI usage
+    if (authCheck.userId) {
+      await recordAiUsage(authCheck.userId, "scan-recipe-image");
+    }
+
+    return new Response(
+      JSON.stringify({
+        recipes: recipe.recipes || (recipe.title ? [recipe] : []),
+        isPremium: authCheck.isPremium,
+        remainingQuota: authCheck.remainingQuota,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Global Error Handler:", error);
     return new Response(

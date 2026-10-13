@@ -8,18 +8,17 @@ import {
   MealPlanRecipeSnapshot, 
   RecipeWithDetails 
 } from '@/types/database';
+import { Json } from '@/integrations/supabase/types';
 import { useAuth } from './useAuth';
 import { useStock } from './useStock';
-import { useRecipes } from './useRecipes';
 import { 
   getWeekDates, 
   generateWeeklyShoppingListItems, 
   generateBatchCookingSession,
-  generateSmartWeekPlan,
-  MealPlanPreferences
+  generateSmartWeekPlan
 } from '@/lib/meal-planner-utils';
-import { CATALOG_RECIPES, CatalogRecipe } from '@/data/recipesCatalog';
-import { startOfWeek, addWeeks, subWeeks, format } from 'date-fns';
+import { CatalogRecipe } from '@/data/recipesCatalog';
+import { startOfWeek, addWeeks, subWeeks } from 'date-fns';
 
 const LOCAL_STORAGE_KEY = 'a_la_carte_local_meal_plans';
 
@@ -27,7 +26,6 @@ export const useMealPlanner = () => {
   const { user, isDemo } = useAuth();
   const queryClient = useQueryClient();
   const { stock } = useStock();
-  const { allRecipes } = useRecipes();
 
   // Current selected week anchor (always Monday)
   const [currentDate, setCurrentDate] = useState<Date>(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
@@ -57,7 +55,7 @@ export const useMealPlanner = () => {
   }, []);
 
   // Main Query
-  const { data: weekPlans = [], isLoading: loading, error, refetch } = useQuery({
+  const { data: weekPlans = [], isLoading: loading, error } = useQuery({
     queryKey,
     queryFn: async (): Promise<MealPlanWithRecipe[]> => {
       // 1. If demo or no user, use localStorage
@@ -255,7 +253,7 @@ export const useMealPlanner = () => {
             custom_title: planRecord.custom_title,
             servings: planRecord.servings,
             notes: planRecord.notes,
-            recipe_snapshot: planRecord.recipe_snapshot as any,
+            recipe_snapshot: planRecord.recipe_snapshot as unknown as Json,
             updated_at: now
           })
           .eq('id', existing.id)
@@ -276,7 +274,7 @@ export const useMealPlanner = () => {
             custom_title: planRecord.custom_title,
             servings: planRecord.servings,
             notes: planRecord.notes,
-            recipe_snapshot: planRecord.recipe_snapshot as any
+            recipe_snapshot: planRecord.recipe_snapshot as unknown as Json
           })
           .select(`*, recipe:recipes(*, ingredients:recipe_ingredients(*, ingredient:ingredients(*)))`)
           .single();

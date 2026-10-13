@@ -22,10 +22,10 @@ const TermsOfService = () => {
       <section className="space-y-3">
         <h2 className="text-xl font-bold font-serif text-foreground">Article 1 - Identification de l'Éditeur et Vendeur</h2>
         <ul className="list-disc pl-6 space-y-1">
-          <li><strong>Dénomination :</strong> [À la carte / Paul - À compléter]</li>
-          <li><strong>Forme juridique :</strong> [Entreprise Individuelle / SAS / SARL - À compléter]</li>
-          <li><strong>Siège social :</strong> [Adresse complète, France - À compléter]</li>
-          <li><strong>Numéro SIRET / RCS :</strong> [À compléter]</li>
+          <li><strong>Dénomination :</strong> Paul THOMAS (Entreprise Individuelle - EI)</li>
+          <li><strong>Forme juridique :</strong> Entrepreneur individuel (EI)</li>
+          <li><strong>Siège social :</strong> 10 Rue de Copenhague, 67000 Strasbourg, France</li>
+          <li><strong>Numéro SIRET / RCS :</strong> SIRET en cours d'attribution (Dossier INPI n° J00285732012 - COTJ Strasbourg)</li>
           <li><strong>Contact :</strong> <code>contact@alacarte.app</code></li>
         </ul>
       </section>

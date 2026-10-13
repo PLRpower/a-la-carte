@@ -254,7 +254,6 @@ const MealPlanner: React.FC = () => {
                       {/* Midi (Lunch) */}
                       <MealSlotCard
                         dateKey={day.dateKey}
-                        dayName={day.dayName}
                         slot="lunch"
                         plan={dayPlans.lunch}
                         onOpenAssign={handleOpenAssign}
@@ -268,7 +267,6 @@ const MealPlanner: React.FC = () => {
                       {/* Soir (Dinner) */}
                       <MealSlotCard
                         dateKey={day.dateKey}
-                        dayName={day.dayName}
                         slot="dinner"
                         plan={dayPlans.dinner}
                         onOpenAssign={handleOpenAssign}
@@ -319,7 +317,6 @@ const MealPlanner: React.FC = () => {
         <AssignRecipeModal
           open={assignModalOpen}
           onOpenChange={setAssignModalOpen}
-          targetDateKey={targetSlotInfo.dateKey}
           targetDayName={targetSlotInfo.dayName}
           targetSlot={targetSlotInfo.slot}
           onAssignRecipe={handleAssignRecipe}

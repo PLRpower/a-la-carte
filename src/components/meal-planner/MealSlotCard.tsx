@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { 
   MealPlanWithRecipe, 
   MealPlanSlot, 
-  RecipeWithDetails 
+  RecipeWithDetails,
+  MealPlanRecipeSnapshot
 } from "@/types/database";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Clock, 
@@ -18,7 +18,6 @@ import {
   Sparkles, 
   Check, 
   Utensils, 
-  ChefHat, 
   GripVertical 
 } from "lucide-react";
 import {
@@ -35,19 +34,17 @@ import { analyzeRecipeStock } from "@/lib/stock-matching";
 
 interface MealSlotCardProps {
   dateKey: string;
-  dayName: string;
   slot: MealPlanSlot;
   plan?: MealPlanWithRecipe;
   onOpenAssign: (dateKey: string, slot: MealPlanSlot) => void;
   onRemove: (planId: string) => void;
   onUpdateServings: (planId: string, servings: number) => void;
   onMoveSlot: (fromPlanId: string, toDate: string, toSlot: MealPlanSlot) => void;
-  onSelectRecipeDetails?: (recipe: any) => void;
+  onSelectRecipeDetails?: (recipe: RecipeWithDetails | MealPlanRecipeSnapshot) => void;
 }
 
 export const MealSlotCard: React.FC<MealSlotCardProps> = ({
   dateKey,
-  dayName,
   slot,
   plan,
   onOpenAssign,
@@ -70,7 +67,7 @@ export const MealSlotCard: React.FC<MealSlotCardProps> = ({
   // Stock status calculation if recipe has ingredients
   const stockAnalysis = React.useMemo(() => {
     if (!recipe?.ingredients || recipe.ingredients.length === 0) return null;
-    return analyzeRecipeStock(recipe.ingredients as any, stock, servings / (recipe.servings || 2));
+    return analyzeRecipeStock(recipe.ingredients as Parameters<typeof analyzeRecipeStock>[0], stock, servings / (recipe.servings || 2));
   }, [recipe, stock, servings]);
 
   // Drag & Drop handlers

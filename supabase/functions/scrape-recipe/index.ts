@@ -1,13 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { verifyAuthAndQuota, recordAiUsage, corsHeaders } from "../_shared/ai-auth.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // 1. Verify user authentication and weekly quota
+  const authCheck = await verifyAuthAndQuota(req, "scrape-recipe");
+  if (!authCheck.authorized) {
+    return authCheck.errorResponse!;
+  }
 
   try {
     const { url, text } = await req.json();
@@ -208,9 +210,21 @@ RÈGLES IMPORTANTES :
       );
     }
 
-    return new Response(JSON.stringify({ recipe }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Log successful AI usage
+    if (authCheck.userId) {
+      await recordAiUsage(authCheck.userId, "scrape-recipe");
+    }
+
+    return new Response(
+      JSON.stringify({
+        recipe,
+        isPremium: authCheck.isPremium,
+        remainingQuota: authCheck.remainingQuota,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Scrape error:", error);
     return new Response(

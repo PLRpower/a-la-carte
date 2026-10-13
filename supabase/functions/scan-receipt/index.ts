@@ -1,9 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { verifyAuthAndQuota, recordAiUsage, corsHeaders } from "../_shared/ai-auth.ts";
 
 async function fetchWithRetry(url: string, options: RequestInit, retries = 3, backoff = 1000) {
   let lastError: unknown;
@@ -30,6 +26,12 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, ba
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  // 1. Verify user authentication and weekly quota
+  const authCheck = await verifyAuthAndQuota(req, "scan-receipt");
+  if (!authCheck.authorized) {
+    return authCheck.errorResponse!;
+  }
 
   try {
     const { imageBase64 } = await req.json();
@@ -144,9 +146,21 @@ RÈGLES IMPORTANTES :
       );
     }
 
-    return new Response(JSON.stringify(receiptData), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Log successful AI usage
+    if (authCheck.userId) {
+      await recordAiUsage(authCheck.userId, "scan-receipt");
+    }
+
+    return new Response(
+      JSON.stringify({
+        ...receiptData,
+        isPremium: authCheck.isPremium,
+        remainingQuota: authCheck.remainingQuota,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   } catch (error) {
     console.error("Receipt Scanner Error:", error);
     return new Response(

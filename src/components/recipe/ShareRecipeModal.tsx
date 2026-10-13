@@ -55,7 +55,16 @@ export const ShareRecipeModal = ({
         .from("recipes")
         .update({ is_shared_with_family: checked })
         .eq("id", recipe.id);
-      if (error) throw error;
+      if (error) {
+        console.error(error);
+        setSharedWithFamily(!checked);
+        toast({
+          title: "Erreur",
+          description: "Impossible de modifier le partage familial.",
+          variant: "destructive",
+        });
+        return;
+      }
       await queryClient.invalidateQueries({ queryKey: ["recipes"] });
       toast({
         title: checked ? "Partagée avec la famille ! 👨‍👩‍👧‍👦" : "Retirée de la famille 🔒",
@@ -84,7 +93,16 @@ export const ShareRecipeModal = ({
         .from("recipes")
         .update({ is_public: checked })
         .eq("id", recipe.id);
-      if (error) throw error;
+      if (error) {
+        console.error(error);
+        setSharedPublic(!checked);
+        toast({
+          title: "Erreur",
+          description: "Impossible de modifier la visibilité publique.",
+          variant: "destructive",
+        });
+        return;
+      }
       await queryClient.invalidateQueries({ queryKey: ["recipes"] });
       toast({
         title: checked ? "Publiée dans Découvrir ! 🌍" : "Passée en privé 🔒",
@@ -133,8 +151,8 @@ export const ShareRecipeModal = ({
           text: `Découvrez la recette "${recipe.title}" sur À la carte !`,
           url: shareUrl,
         });
-      } catch (err: any) {
-        if (err.name !== "AbortError") {
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name !== "AbortError") {
           console.error("Share error", err);
         }
       }

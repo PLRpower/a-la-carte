@@ -6,14 +6,10 @@ import {
   Heart,
   Filter,
   Plus,
-  Book,
-  GraduationCap,
   Globe,
   ChefHat,
-  Camera,
   Sparkles,
   Check,
-  Download,
   BookOpen,
   Compass,
   Coins,
@@ -31,10 +27,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import RecipeFilters from "@/components/RecipeFilters";
 import { useRecipes } from "@/hooks/useRecipes";
 import { RecipeCategory, RecipeDifficulty } from "@/types/database";
-import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CATALOG_RECIPES, CatalogRecipe } from "@/data/recipesCatalog";
-import { STARTER_THEMES } from "@/data/starterPacks";
 import { cloneRecipeToUser } from "@/lib/recipe-clone";
 import { useAuth } from "@/hooks/useAuth";
 import { useIngredients } from "@/hooks/useIngredients";
@@ -85,10 +79,6 @@ const Recipes = () => {
   // Modals
   const [showStarterPackModal, setShowStarterPackModal] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
-  const [authPromptText, setAuthPromptText] = useState<{ title: string; description: string }>({
-    title: "",
-    description: "",
-  });
 
   // Track recipes being cloned right now to show spinner
   const [cloningId, setCloningId] = useState<string | null>(null);
@@ -101,7 +91,7 @@ const Recipes = () => {
     } else if (tab === "carnet" && activeTab !== "carnet") {
       setActiveTab("carnet");
     }
-  }, [searchParams]);
+  }, [searchParams, activeTab]);
 
   const switchTab = (tab: "carnet" | "discover") => {
     if (tab === "carnet" && !user) {
@@ -421,8 +411,6 @@ const Recipes = () => {
       <AuthPromptDialog
         open={showAuthPrompt}
         onOpenChange={setShowAuthPrompt}
-        title={authPromptText.title}
-        description={authPromptText.description}
       />
 
       {/* Header */}
@@ -519,7 +507,7 @@ const Recipes = () => {
                 onClick={() => setSharingFilter(sharingFilter === "mine" ? "all" : "mine")}
                 className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 ${
                   sharingFilter === "mine"
-                    ? "bg-accent text-accent-foreground font-semibold shadow-xs"
+                    ? "bg-accent text-accent-foreground shadow-xs"
                     : "bg-white/15 text-white hover:bg-white/25"
                 }`}
               >
@@ -531,10 +519,10 @@ const Recipes = () => {
               <button
                 type="button"
                 onClick={() => setSharingFilter(sharingFilter === "family" ? "all" : "family")}
-                className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1.5 ${
+                className={`px-3 py-1 rounded-full text-xs font-medium text-white shrink-0 transition-all flex items-center gap-1.5 ${
                   sharingFilter === "family"
-                    ? "bg-amber-600 text-white font-semibold shadow-xs"
-                    : "bg-white/15 text-white hover:bg-white/25"
+                    ? "bg-amber-600 shadow-xs"
+                    : "bg-white/15 hover:bg-white/25"
                 }`}
               >
                 <Users className="w-3 h-3" />
@@ -553,7 +541,7 @@ const Recipes = () => {
                   onClick={() => setSelectedTheme(theme.id)}
                   className={`px-3 py-1 rounded-full text-xs font-medium shrink-0 transition-all flex items-center gap-1 ${
                     isSelected
-                      ? "bg-accent text-accent-foreground font-semibold shadow-xs"
+                      ? "bg-accent text-accent-foreground shadow-xs"
                       : "bg-white/15 text-white hover:bg-white/25"
                   }`}
                 >

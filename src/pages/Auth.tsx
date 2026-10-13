@@ -8,6 +8,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 const Auth = () => {
   const location = useLocation();
@@ -28,6 +29,10 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { signIn, signUp, user, resetPassword } = useAuth();
+
+  useEffect(() => {
+    trackEvent("auth_view", { initial_mode: isSignupRequested ? "signup" : "login" });
+  }, [isSignupRequested]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -89,6 +94,7 @@ const Auth = () => {
 
     try {
       if (isLogin) {
+        trackEvent("login_attempt");
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
@@ -97,12 +103,14 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
+          trackEvent("login_success");
           const params = new URLSearchParams(location.search);
           const redirectTo = params.get("redirectTo");
           toast.success("Bon retour !");
           navigate(redirectTo && redirectTo.startsWith("/") ? redirectTo : "/", { replace: true });
         }
       } else {
+        trackEvent("signup_attempt");
         const { data, error } = await signUp(email, password, firstName, lastName);
         if (error) {
           if (error.message.includes("User already registered")) {
@@ -111,6 +119,7 @@ const Auth = () => {
             toast.error(error.message);
           }
         } else {
+          trackEvent("signup_success", { has_session: Boolean(data?.session) });
           // Check if session was created (auto-confirm enabled)
           if (data?.session) {
             toast.success("Compte créé ! Bienvenue.");
@@ -291,7 +300,11 @@ const Auth = () => {
           {!isForgotPassword && (
             <div className="mt-4 text-center text-sm">
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  const nextMode = !isLogin;
+                  setIsLogin(nextMode);
+                  trackEvent("auth_mode_toggle", { target_mode: nextMode ? "login" : "signup" });
+                }}
                 className="text-accent hover:underline"
               >
                 {isLogin ? "Pas de compte ? Inscrivez-vous" : "Déjà un compte ? Connectez-vous"}
